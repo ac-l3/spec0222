@@ -11,6 +11,44 @@ const config = {
         'peach': '#FED1BD',
         'candy-pink': '#fb8f9c',
         'nba-orange': '#fc5203',
+        spectral: {
+          observer: {
+            main: '#222222',
+            accent: '#007BFF'
+          },
+          catalyst: {
+            main: '#FF4500',
+            accent: '#FFD700'
+          },
+          synthesizer: {
+            main: '#8A2BE2',
+            accent: '#E5C100'
+          },
+          archivist: {
+            main: '#6B4226',
+            accent: '#F5E6CC'
+          },
+          visionary: {
+            main: '#4B0082',
+            accent: '#00FFFF'
+          },
+          technician: {
+            main: '#4682B4',
+            accent: '#C0C0C0'
+          },
+          interfacer: {
+            main: '#20B2AA',
+            accent: '#D3D3D3'
+          },
+          explorer: {
+            main: '#228B22',
+            accent: '#D2B48C'
+          },
+          philosopher: {
+            main: '#1E3A5F',
+            accent: '#000000'
+          }
+        }
       },
       fontFamily: {
         karla: ['var(--font-karla)'],

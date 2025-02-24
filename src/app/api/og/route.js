@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { getFromKV } from '@/lib/cloudflare-kv';
-import { ENNEAGRAM_TYPES } from '@/lib/constants';
+import { SPECTRAL_TYPES } from '@/lib/constants';
 
 export const runtime = 'edge';
 
@@ -10,7 +10,7 @@ const karlaFontData = fetch(
 ).then(res => res.arrayBuffer());
 
 async function getAnalysis(fid) {
-  const cacheKey = `enneagram:analysis:${fid}`;
+  const cacheKey = `spectral:analysis:${fid}`;
   const cachedData = await getFromKV(cacheKey);
   
   if (!cachedData) {
@@ -20,16 +20,21 @@ async function getAnalysis(fid) {
   const data = JSON.parse(cachedData);
   const analysis = data.value ? JSON.parse(data.value) : data;
 
-  if (!analysis?.username || !analysis?.pfpUrl || !analysis?.analysis?.enneagramType) {
+  if (!analysis?.username || !analysis?.pfpUrl || !analysis?.analysis?.spectralType) {
     throw new Error('Invalid analysis data');
   }
+
+  const spectralType = SPECTRAL_TYPES[analysis.analysis.spectralType];
 
   return {
     username: analysis.username,
     pfp: analysis.pfpUrl,
     type: {
-      number: analysis.analysis.enneagramType,
-      name: ENNEAGRAM_TYPES[analysis.analysis.enneagramType].split('(')[1].replace(')', '')
+      number: analysis.analysis.spectralType,
+      name: spectralType.name,
+      title: spectralType.name,
+      motto: spectralType.motto,
+      colors: spectralType.colors
     }
   };
 }
@@ -43,14 +48,13 @@ export async function GET(request) {
       return new Response('Missing FID', { status: 400 });
     }
 
-    // Get analysis data and font in parallel
     const [analysis, fontData] = await Promise.all([
       getAnalysis(fid),
       karlaFontData
     ]);
 
     // Generate the image
-    const imageResponse = await new ImageResponse(
+    return new ImageResponse(
       (
         <div style={{
           height: '100%',
@@ -59,9 +63,9 @@ export async function GET(request) {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#FDA4AF',
+          backgroundColor: analysis.type.colors.main,
           padding: '60px 40px',
-          color: '#030303',
+          color: analysis.type.colors.accent,
           fontFamily: 'Karla',
         }}>
           <div style={{
@@ -73,7 +77,7 @@ export async function GET(request) {
               fontSize: '64px',
               fontWeight: 500,
             }}>
-              Enneagram Analysis
+              Spectral Researcher Analysis
             </span>
           </div>
           <div style={{
@@ -103,22 +107,32 @@ export async function GET(request) {
             fontWeight: 800,
             marginBottom: '16px'
           }}>
-            According to my casts, I'm a...
+            {analysis.type.title}
           </span>
 
           <span style={{
             fontSize: '72px',
             fontWeight: 500,
-            marginBottom: '80px',
+            marginBottom: '40px',
           }}>
-            Type {analysis.type.number} ({analysis.type.name})
+            {analysis.type.name}
+          </span>
+
+          <span style={{
+            fontSize: '32px',
+            fontWeight: 500,
+            fontStyle: 'italic',
+            marginBottom: '80px',
+            textAlign: 'center',
+          }}>
+            "{analysis.type.motto}"
           </span>
 
           <span style={{
             fontSize: '42px',
             fontWeight: 500,
           }}>
-            Discover Your Own Enneagram Type ↓
+            Discover Your Research Style ↓
           </span>
         </div>
       ),
@@ -134,8 +148,6 @@ export async function GET(request) {
         ],
       }
     );
-
-    return imageResponse;
   } catch (error) {
     console.error('OG image generation error:', error);
     return new Response(error.message || 'Failed to generate image', { status: 500 });

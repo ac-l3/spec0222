@@ -20,13 +20,13 @@ export async function POST(request) {
     console.log('generate share image', fid);
 
     // Check if image already exists
-    const filename = `enneagram/enneagram-${fid}-${Date.now()}.png`;
+    const filename = `spectral/spectral-${fid}-${Date.now()}.png`;
+    const cacheKey = `spectral:share-image:${fid}`;
     
     try {
       const exists = await checkIfExists(filename);
       if (exists) {
         const imageUrl = getPublicUrl(filename);
-        const cacheKey = `enneagram:share-image:${fid}`;
         await putToKV(cacheKey, imageUrl);
         return NextResponse.json({ imageUrl });
       }
@@ -57,7 +57,6 @@ export async function POST(request) {
     console.log('caching image url', imageUrl);
 
     // Store the image URL in KV
-    const cacheKey = `enneagram:share-image:${fid}`;
     await putToKV(cacheKey, imageUrl);
     
     return NextResponse.json({ imageUrl });

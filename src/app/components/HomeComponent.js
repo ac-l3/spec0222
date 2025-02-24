@@ -1,8 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ENNEAGRAM_TYPES } from '../../lib/constants';
+import { SPECTRAL_TYPES } from '../../lib/constants';
 import Layout from './Layout';
+import { Fira_Code } from 'next/font/google';
+import MetricBar from './MetricBar';
+
+const firaCode = Fira_Code({
+  subsets: ['latin'],
+  weight: ['400', '700'], // Only regular (400) and bold (700)
+});
 
 export default function HomeComponent({ fid: initialFid, initialData }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -42,27 +49,19 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     return () => clearInterval(interval);
   }, [fid, userFid]);
 
-  async function analyzeWithRetry(fid, maxRetries = 4) {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await fetch(`/api/analyze-profile?fid=${fid}`);
-        const data = await response.json();
-        
-        // Validate the response has the expected structure
-        if (!data?.analysis?.enneagramType || !data?.username) {
-          throw new Error('Invalid response structure');
-        }
-        
-        return data;
-      } catch (error) {
-        console.error(`Analysis attempt ${attempt} failed:`, error);
-        if (attempt === maxRetries) {
-          throw error;
-        }
-        // Exponential backoff: wait longer between each retry
-        await new Promise(resolve => setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt), 8000)));
-      }
+  async function analyzeWithRetry(data) {
+    if (!data || typeof data !== 'object') {
+      console.error('Invalid data structure:', data);
+      throw new Error('Invalid data structure');
     }
+
+    // Validate the analysis object structure
+    if (!data.analysis?.spectralType || !data.analysis?.researchProfile) {
+      console.log('Response data:', data);
+      throw new Error('Invalid analysis structure');
+    }
+
+    return data;
   }
 
   // Load analysis if we have an FID in the URL but no initial data
@@ -71,7 +70,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       if (!initialFid || initialData) return;
       
       try {
-        const data = await analyzeWithRetry(initialFid);
+        const data = await analyzeWithRetry(initialData);
         console.log('Loaded analysis for FID:', initialFid, 'Data:', data);
         setAnalysis(data.analysis);
         setFid(data.fid);
@@ -139,8 +138,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       if (!response.ok) throw new Error('Failed to generate share image');
       const { imageUrl } = await response.json();
 
-      // Create share text with enneagram type
-      const shareText = `I'm a ${ENNEAGRAM_TYPES[analysis.enneagramType]}! Check out your own Enneagram analysis by pressing the button below.`;
+      // Create share text with spectral type
+      const shareText = `I've been classified as a ${SPECTRAL_TYPES[analysis.spectralType].name} in the Spectral Lab! Discover your research designation below.`;
       
       // Create Warpcast share URL with app URL and image as embeds
       const encodedText = encodeURI(shareText);
@@ -162,106 +161,120 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     }
   };
 
+  const getSpectralTypeClass = (type) => {
+    if (!type) return '';
+    const typeName = SPECTRAL_TYPES[type].name.toLowerCase();
+    return `bg-spectral-${typeName}-main text-spectral-${typeName}-accent`;
+  };
+
+  // Add safety checks and use correct path
+  const metrics = analysis?.researchProfile?.researchDeployment?.metrics;
+
   return (
     <Layout>
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-8 text-gray-800">
-          {analysis ? `Enneagram Analysis for @${userInfo.username}` : 'Discover Your Enneagram Type'}
-        </h1>
-        
-        {!analysis ? (
-          <>
+      <div className={`min-h-screen bg-[#191919] ${firaCode.className} font-normal`}>
+        <div className="max-w-3xl mx-auto px-6 py-12">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold mb-8 text-[#C0C2C5]">
+              SPECTRAL LAB RECRUITMENT EVALUATION
+            </h1>
+
             <button
-              onClick={handleAnalyze}
-              disabled={isAnalyzing}
-              className="px-6 py-3 bg-nba-orange text-white font-semibold rounded-full hover:bg-nba-orange/90 transition-colors mb-8 disabled:opacity-50"
+              onClick={analysis ? handleShare : handleAnalyze}
+              disabled={isAnalyzing || isSharing}
+              className="px-6 py-3 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50"
             >
-              {isAnalyzing ? 'Analyzing...' : 'Analyze Profile'}
+              {isAnalyzing ? 'ANALYZING...' : isSharing ? 'SHARING...' : analysis ? 'SHARE RESULT' : 'ANALYZE PROFILE'}
             </button>
-
-            <div className="max-w-2xl mx-auto text-center relative">
-              <div className="absolute inset-0 bg-white/60 rounded-lg backdrop-blur-sm" />
-              <div className="relative p-6 rounded-lg">
-                <p className="text-lg text-gray-700 mb-4">
-                  The Enneagram is a powerful system for understanding personality types and human behavior.
-                </p>
-                <p className="text-lg text-gray-700">
-                  While discovering your type usually involves self-reflection and introspection, we'll analyze your casts to make our best guess.
-                </p>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            {isOwnProfile === false && (
-              <p className="text-gray-600 mb-4 font-semibold text-base">
-                Viewing @{userInfo.username}'s results, get your own:
-              </p>
-            )}
-            <a 
-              href={isOwnProfile !== null ? (isOwnProfile ? `/?fid=${fid}` : '/') : '#'}
-              className={`inline-block mb-4 px-6 py-2 bg-nba-orange text-white font-semibold rounded-full transition-colors ${isOwnProfile === null || isSharing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-nba-orange/90'}`}
-              onClick={isOwnProfile ? handleShare : (e => isOwnProfile === null && e.preventDefault())}
-            >
-              {isOwnProfile === null ? 'Loading...' : (isOwnProfile ? (isSharing ? 'Sharing...' : 'Share Results →') : 'Try Yours →')}
-            </a>
-          </>
-        )}
-      </div>
-
-      {analysis && (
-        <div className="w-full max-w-2xl relative">
-          <div className="absolute inset-0 bg-white/60 rounded-lg backdrop-blur-sm" />
-          <div className="relative p-6 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">Analysis Results</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-2xl font-semibold mb-2">{ENNEAGRAM_TYPES[analysis.enneagramType]}</h3>
-                <p className="text-lg mb-4">{analysis.personalityOverview}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold mb-2">Key Patterns:</h3>
-                <ul className="space-y-4">
-                  {analysis.supportingEvidence.map((evidence, i) => (
-                    <li key={i} className="relative">
-                      <div className="absolute inset-0 bg-white/70 rounded shadow-sm" />
-                      <div className="relative p-4">
-                        <h4 className="font-medium text-lg mb-2">{evidence.pattern}</h4>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {evidence.phrases.map((phrase, j) => (
-                            <span key={j} className="inline-block bg-nba-orange/10 text-nba-orange px-3 py-1 rounded-full text-sm font-medium">
-                              {phrase}
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-gray-800">{evidence.explanation}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {analysis.whyNotOtherTypes?.length > 0 && analysis.whyNotOtherTypes[0].reason && (
-                <div>
-                  <h3 className="font-semibold mb-2">We also considered:</h3>
-                  <ul className="space-y-4">
-                    {analysis.whyNotOtherTypes.map((type, i) => (
-                      <li key={i} className="relative">
-                        <div className="absolute inset-0 bg-white/70 rounded shadow-sm" />
-                        <div className="relative p-4">
-                          <h4 className="font-medium text-lg mb-1">{ENNEAGRAM_TYPES[type.type]}</h4>
-                          <p className="text-gray-800">{type.reason}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
           </div>
+
+          {analysis && (
+            <div className="text-[#C0C2C5]">
+              <div className="mb-12">
+                <h2 className="text-3xl font-bold mb-3">
+                  {SPECTRAL_TYPES[analysis.spectralType].name}
+                </h2>
+                <p className="text-lg font-normal mb-8 text-[#C0C2C5]">
+                  {SPECTRAL_TYPES[analysis.spectralType].motto}
+                </p>
+                <div className="font-normal">
+                  <p className="text-lg leading-relaxed">{analysis.researchProfile.coreIdentity}</p>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <details className="group" open>
+                  <summary className="cursor-pointer list-none">
+                    <div className="flex items-center mb-4">
+                      <h3 className="text-xl font-normal">Functional Impact</h3>
+                      <span className="ml-auto text-[#C8FA1A] text-xl">+</span>
+                    </div>
+                  </summary>
+                  <div className="bg-[#222222] border border-[#333333] p-6">
+                    <p className="leading-relaxed">{analysis.researchProfile.functionalImpact}</p>
+                  </div>
+                </details>
+
+                <details className="group" open>
+                  <summary className="cursor-pointer list-none">
+                    <div className="flex items-center mb-4">
+                      <h3 className="text-xl font-normal">Stability Warning</h3>
+                      <span className="ml-auto text-[#C8FA1A] text-xl">+</span>
+                    </div>
+                  </summary>
+                  <div className="bg-[#222222] border border-[#333333] p-6">
+                    <p className="leading-relaxed">{analysis.researchProfile.stabilityWarning}</p>
+                  </div>
+                </details>
+
+                <details className="group" open>
+                  <summary className="cursor-pointer list-none">
+                    <div className="flex items-center mb-4">
+                      <h3 className="text-xl font-normal">Research Deployment</h3>
+                      <span className="ml-auto text-[#C8FA1A] text-xl">+</span>
+                    </div>
+                  </summary>
+                  <div className="bg-[#222222] border border-[#333333] p-6">
+                    {metrics && (
+                      <>
+                        {/* Deployment Verdict - without redundant title */}
+                        <div className="mb-8 border-b border-[#333333] pb-6">
+                          <p className="leading-relaxed text-[#C0C2C5] whitespace-pre-line">
+                            {analysis.researchProfile.researchDeployment.verdict}
+                          </p>
+                        </div>
+
+                        {/* Supporting Metrics */}
+                        <div>
+                          <h4 className="text-lg mb-4 text-[#888888]">Supporting Metrics</h4>
+                          <div className="space-y-4">
+                            <MetricBar
+                              label="Exploratory Depth"
+                              value={metrics.exploratoryDepth}
+                            />
+                            <MetricBar
+                              label="Data Retention"
+                              value={metrics.dataRetention}
+                            />
+                            <MetricBar
+                              label="Systematic Thinking"
+                              value={metrics.systematicThinking}
+                            />
+                            <MetricBar
+                              label="Risk Tolerance"
+                              value={metrics.riskTolerance}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </details>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </Layout>
   );
 } 

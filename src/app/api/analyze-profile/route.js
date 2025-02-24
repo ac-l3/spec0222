@@ -16,7 +16,7 @@ export async function GET(request) {
       );
     }
 
-    const cacheKey = `enneagram:analysis:${fid}`;
+    const cacheKey = `spectral:analysis:${fid}`;
     const cachedData = await getFromKV(cacheKey);
     
     if (cachedData) {
