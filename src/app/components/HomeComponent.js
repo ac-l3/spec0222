@@ -8,7 +8,7 @@ import MetricBar from './MetricBar';
 
 const firaCode = Fira_Code({
   subsets: ['latin'],
-  weight: ['400', '700'], // Only regular (400) and bold (700)
+  weight: ['400', '600', '700'], // Regular (400), semi-bold (600), and bold (700)
 });
 
 export default function HomeComponent({ fid: initialFid, initialData }) {
@@ -70,15 +70,23 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       if (!initialFid || initialData) return;
       
       try {
-        const data = await analyzeWithRetry(initialData);
-        console.log('Loaded analysis for FID:', initialFid, 'Data:', data);
-        setAnalysis(data.analysis);
-        setFid(data.fid);
+        // Fetch the analysis data from the API
+        const response = await fetch(`/api/analyze-profile?fid=${initialFid}`);
+        if (!response.ok) {
+          throw new Error(`API returned ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const validatedData = await analyzeWithRetry(data);
+        
+        console.log('Loaded analysis for FID:', initialFid, 'Data:', validatedData);
+        setAnalysis(validatedData.analysis);
+        setFid(validatedData.fid);
         setUserInfo({
-          username: data.username,
-          display_name: data.displayName,
-          pfp_url: data.pfpUrl,
-          profile: { bio: { text: data.bio } }
+          username: validatedData.username,
+          display_name: validatedData.displayName,
+          pfp_url: validatedData.pfpUrl,
+          profile: { bio: { text: validatedData.bio } }
         });
       } catch (error) {
         console.error('Error loading analysis:', error);
@@ -98,19 +106,27 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
         return;
       }
 
-      const data = await analyzeWithRetry(userFid);
-      console.log('Analysis result:', data);
+      // Fetch the analysis data from the API
+      const response = await fetch(`/api/analyze-profile?fid=${userFid}`);
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const validatedData = await analyzeWithRetry(data);
+      
+      console.log('Analysis result:', validatedData);
       
       // Update the URL with the new FID
       window.history.pushState({}, '', `/?fid=${userFid}`);
       
-      setAnalysis(data.analysis);
+      setAnalysis(validatedData.analysis);
       setFid(userFid);
       setUserInfo({
-        username: data.username,
-        display_name: data.displayName,
-        pfp_url: data.pfpUrl,
-        profile: { bio: { text: data.bio } }
+        username: validatedData.username,
+        display_name: validatedData.displayName,
+        pfp_url: validatedData.pfpUrl,
+        profile: { bio: { text: validatedData.bio } }
       });
       
       // Since this is the user's own analysis, set isOwnProfile to true
@@ -167,6 +183,22 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     return `bg-spectral-${typeName}-main text-spectral-${typeName}-accent`;
   };
 
+  // Get the appropriate Zora URL based on spectral type
+  const getZoraUrl = (spectralType) => {
+    if (!spectralType) return 'https://zora.co';
+    
+    const zoraUrls = {
+      1: 'https://zora.co/collect/base:0xa2d7f2b23e55d4816c02b84675007761b683be46/6?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
+      2: 'https://zora.co/collect/base:0x0910c0e7cbe84fa0575e6002924c617afe820b44/1?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
+      3: 'https://zora.co/collect/base:0xa2d7f2b23e55d4816c02b84675007761b683be46/7?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
+      4: 'https://zora.co/collect/base:0x0910c0e7cbe84fa0575e6002924c617afe820b44/2?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
+      5: 'https://zora.co/collect/base:0x0910c0e7cbe84fa0575e6002924c617afe820b44/3?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
+      6: 'https://zora.co/collect/base:0xa2d7f2b23e55d4816c02b84675007761b683be46/9?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160'
+    };
+    
+    return zoraUrls[spectralType] || 'https://zora.co';
+  };
+
   // Add safety checks and use correct path
   const metrics = analysis?.researchProfile?.researchDeployment?.metrics;
 
@@ -174,31 +206,90 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     <Layout>
       <div className={`min-h-screen bg-[#191919] ${firaCode.className} font-normal`}>
         <div className="max-w-3xl mx-auto px-6 py-12">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-8 text-[#C0C2C5]">
-              SPECTRAL LAB RECRUITMENT EVALUATION
-            </h1>
+          {analysis && (
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-semibold mb-8 text-[#C0C2C5]">
+                The Spectral Lab welcomes @{userInfo?.username || ''}
+              </h1>
+              <p className="text-lg text-[#C0C2C5] mb-8">
+              Finalize the induction by <span className="text-[#C8FA1A]">acquiring a share of your assigned Spectral</span>—an official confirmation of alignment.
+              </p>
+              
+              <div className="flex justify-between w-full gap-4">
+                <button
+                  onClick={() => window.open(getZoraUrl(analysis?.spectralType), '_blank')}
+                  className="w-1/2 py-2 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all text-center"
+                >
+                  OWN YOUR SPECTRAL
+                </button>
+                
+                <button
+                  onClick={handleShare}
+                  disabled={isSharing}
+                  className="w-1/2 py-2 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50 text-center"
+                >
+                  {isSharing ? 'SHARING...' : 'SHARE RESULTS'}
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {!analysis && (
+            <div className="text-center mb-12 border border-[#333333] p-12 max-w-2xl mx-auto">
+              <h2 className="text-xl font-normal mb-12 text-[#C0C2C5] leading-relaxed">
+                The Spectral Lab is looking for researchers. Do you fit in?
+              </h2>
 
-            <button
-              onClick={analysis ? handleShare : handleAnalyze}
-              disabled={isAnalyzing || isSharing}
-              className="px-6 py-3 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50"
-            >
-              {isAnalyzing ? 'ANALYZING...' : isSharing ? 'SHARING...' : analysis ? 'SHARE RESULT' : 'ANALYZE PROFILE'}
-            </button>
-          </div>
+              <div className="mb-12">
+                <button
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing}
+                  className="w-full py-2 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50"
+                >
+                  {isAnalyzing ? 'ANALYZING...' : 'SUBMIT APPLICATION'}
+                </button>
+              </div>
+              
+              <div className="text-left text-[#C0C2C5] space-y-8">
+                <p className="leading-relaxed">
+                  The Lab researches unseen structures, emergent behaviors, and hidden frequencies. Every researcher plays a role—some break systems, others stabilize or explore new frontiers.
+                </p>
+                
+                <p className="leading-relaxed">
+                  Your application is based on your profile and activity. We'll analyze your research instincts, assign your role, and place you in the Lab.
+                </p>
+              </div>
+            </div>
+          )}
 
           {analysis && (
             <div className="text-[#C0C2C5]">
               <div className="mb-12">
+                <hr className="border-t border-[#333333] my-12" />
                 <h2 className="text-3xl font-bold mb-3">
                   {SPECTRAL_TYPES[analysis.spectralType].name}
                 </h2>
-                <p className="text-lg font-normal mb-8 text-[#C0C2C5]">
-                  {SPECTRAL_TYPES[analysis.spectralType].motto}
-                </p>
                 <div className="font-normal">
-                  <p className="text-lg leading-relaxed">{analysis.researchProfile.coreIdentity}</p>
+                  {(() => {
+                    // Split the core identity at the first sentence
+                    const coreIdentity = analysis.researchProfile.coreIdentity;
+                    const firstSentenceMatch = coreIdentity.match(/^[^.!?]+[.!?]/);
+                    
+                    if (firstSentenceMatch) {
+                      const firstSentence = firstSentenceMatch[0];
+                      const restOfText = coreIdentity.substring(firstSentence.length).trim();
+                      
+                      return (
+                        <>
+                          <p className="text-lg leading-relaxed mb-4">{firstSentence}</p>
+                          <p className="text-lg leading-relaxed">{restOfText}</p>
+                        </>
+                      );
+                    } else {
+                      // Fallback if we can't find a clear first sentence
+                      return <p className="text-lg leading-relaxed">{coreIdentity}</p>;
+                    }
+                  })()}
                 </div>
               </div>
 
@@ -218,12 +309,12 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                 <details className="group" open>
                   <summary className="cursor-pointer list-none">
                     <div className="flex items-center mb-4">
-                      <h3 className="text-xl font-normal">Stability Warning</h3>
+                      <h3 className="text-xl font-normal">Alignment Considerations</h3>
                       <span className="ml-auto text-[#C8FA1A] text-xl">+</span>
                     </div>
                   </summary>
                   <div className="bg-[#222222] border border-[#333333] p-6">
-                    <p className="leading-relaxed">{analysis.researchProfile.stabilityWarning}</p>
+                    <p className="leading-relaxed">{analysis.researchProfile.alignmentConsiderations}</p>
                   </div>
                 </details>
 
@@ -240,7 +331,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         {/* Deployment Verdict - without redundant title */}
                         <div className="mb-8 border-b border-[#333333] pb-6">
                           <p className="leading-relaxed text-[#C0C2C5] whitespace-pre-line">
-                            {analysis.researchProfile.researchDeployment.verdict}
+                            {analysis.researchProfile.researchDeployment.verdict.replace(/^As a [^,]+, assigned to [^:]+:\s*/i, '')}
                           </p>
                         </div>
 
