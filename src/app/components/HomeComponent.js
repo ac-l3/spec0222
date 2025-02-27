@@ -227,7 +227,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               {/* Call to Action in a darker box */}
               <div className="bg-[#222222] p-4 mb-6">
                 <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
-                  Found your alignment. Make it your asset.
+                  Alignments reveal Spectrals. This one matches you. Take ownership.
                 </p>
                 
                 {/* Action Buttons */}
