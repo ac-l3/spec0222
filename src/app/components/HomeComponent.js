@@ -226,7 +226,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               
               {/* Call to Action in a darker box */}
               <div className="bg-[#222222] p-4 mb-6">
-                <p className={`text-center mb-4 text-sm text-[#999999] ${firaCode.className}`}>
+                <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
                   Found your alignment. Make it your asset.
                 </p>
                 
@@ -251,7 +251,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               
               {/* Core Identity Summary */}
               <div className="text-left mb-12">
-                <p className="leading-relaxed text-base mb-6">
+                <p className="leading-relaxed text-sm mb-6">
                   {(() => {
                     // Get the first paragraph of the core identity
                     const coreIdentity = analysis.researchProfile.coreIdentity;
@@ -265,7 +265,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                     }
                   })()}
                 </p>
-                <p className="leading-relaxed text-base">
+                <p className="leading-relaxed text-sm">
                   {(() => {
                     // Get everything after the first sentence
                     const coreIdentity = analysis.researchProfile.coreIdentity;
@@ -495,28 +495,33 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
           )}
           
           {!analysis && (
-            <div className="text-center mb-12 border border-[#333333] p-12 max-w-2xl mx-auto">
-              <h2 className="text-base font-normal mb-12 text-[#C0C2C5] leading-relaxed">
-                The Spectral Lab is looking for researchers. Do you fit in?
+            <div className="text-center mb-12 max-w-2xl mx-auto">
+              <h2 className="text-base font-normal mb-8 text-[#C0C2C5] leading-relaxed">
+                How do you explore the unknown?<br />
+                Spectral Lab has the data.
               </h2>
 
-              <div className="mb-12">
+              <div className="bg-[#222222] border border-[#2A2A2A] p-6 mb-8">
+                <div className="mb-6 flex justify-center">
+                  <SpectralVisual isLanding={true} />
+                </div>
+                
                 <button
                   onClick={handleAnalyze}
                   disabled={isAnalyzing}
-                  className="w-full py-2 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50 text-xs"
+                  className="w-full py-1 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50 text-xs"
                 >
-                  {isAnalyzing ? 'ANALYZING...' : 'SUBMIT APPLICATION'}
+                  {isAnalyzing ? 'ANALYZING...' : 'REVEAL YOUR SPECTRAL ALIGNMENT'}
                 </button>
               </div>
               
               <div className="text-left text-[#C0C2C5] space-y-8">
                 <p className="leading-relaxed text-sm">
-                  The Lab researches unseen structures, emergent behaviors, and hidden frequencies. Every researcher plays a role—some break systems, others stabilize or explore new frontiers.
+                  The Lab studies unseen structures, emergent behaviors, and hidden frequencies. Different approaches to the unknown reveal different aspects of reality—some disrupt boundaries, others flow between systems, and some establish frameworks.
                 </p>
                 
                 <p className="leading-relaxed text-sm">
-                  Your application is based on your profile and activity. We'll analyze your research instincts, assign your role, and place you in the Lab.
+                  Your spectral signature is based on your current engagement with research frontiers. Alignments reveal both insight into your methods and a corresponding Spectral position worth preserving.
                 </p>
               </div>
             </div>
