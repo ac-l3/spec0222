@@ -1,18 +1,18 @@
 {
   "accountAssociation": {
     "header": "eyJmaWQiOjM3MzkwNCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDJFMDVjNDJmMUZCMTE5MmJDMWRFZjA1OEUwZWE5YTcwMkE2MzY1YzIifQ",
-    "payload": "eyJkb21haW4iOiJzcGVjMDIyMi00eW01eTBtcTgtbGF1cmluZG9hbmFjYXJvbGluYS1nbWFpbGNvbXMtcHJvamVjdHMudmVyY2VsLmFwcCJ9",
+    "payload": "eyJkb21haW4iOiJzcGVjMDIyMi52ZXJjZWwuYXBwIn0",
     "signature": "MHg4YjBmZWUwNDE2YWViOWZkMzc0ZWRjYTZjMmE1MTc0MTFlODFjNWU3NzQwZmNlZmM2NWM4NDE5M2MzYWJmZWNiNjA5ZGM3Mzk3MGU5MmRmMTU0YzdhMmNhMGJkODU5Yzg3N2FhNjgxMDdlNTUzYjc2NWQwZDA0MzhhNjk3Y2U4NDFj"
   },
   "frame": {
     "version": "1",
     "name": "Example Frame",
-    "iconUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app/icon.png",
-    "homeUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app",
-    "imageUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app/image.png",
+    "iconUrl": "https://spec0222.vercel.app/icon.png",
+    "homeUrl": "https://spec0222.vercel.app",
+    "imageUrl": "https://spec0222.vercel.app/image.png",
     "buttonTitle": "Check this out",
-    "splashImageUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app/splash.png",
+    "splashImageUrl": "https://spec0222.vercel.app/splash.png",
     "splashBackgroundColor": "#eeccff",
-    "webhookUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app/api/webhook"
+    "webhookUrl": "https://spec0222.vercel.app/api/webhook"
   }
 } 

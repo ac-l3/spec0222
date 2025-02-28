@@ -44,7 +44,7 @@ export async function generateFrameMetadata({ searchParams }) {
           "action": {
             "type": "launch_frame",
             "name": "Spectral Researcher",
-            "url": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app",
+            "url": "https://spec0222.vercel.app",
             "splashImageUrl": "https://cover-art.kasra.codes/enneagram-icon-512.png",
             "splashBackgroundColor": "#222222"
           }
