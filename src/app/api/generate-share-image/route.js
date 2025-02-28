@@ -4,7 +4,7 @@ import { getFromKV, putToKV } from '../../../lib/cloudflare-kv';
 
 export const runtime = 'edge';
 
-export const maxDuration = 90;
+export const maxDuration = 60;
 
 export async function POST(request) {
   try {

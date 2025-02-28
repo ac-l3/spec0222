@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getFromKV, putToKV } from '../../../lib/cloudflare-kv.js';
 import { analyzePersonality, fetchUserInfo, fetchUserCasts } from '../../../lib/analysis.js';
 
-export const maxDuration = 90;
+export const maxDuration = 60;
 
 export async function GET(request) {
   try {
