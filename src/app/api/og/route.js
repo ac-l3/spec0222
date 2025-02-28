@@ -19,10 +19,10 @@ const firaCodeBoldData = fetch(
 
 // Image paths for each spectral type
 const imagePaths = {
-  1: 'http://localhost:3000/images/axis-framer.png',
-  2: 'http://localhost:3000/images/flux-drifter.png',
-  3: 'http://localhost:3000/images/edge-disruptor.png',
-  landing: 'http://localhost:3000/images/spectral-landing.png'
+  1: `${process.env.NEXT_PUBLIC_BASE_URL}/images/axis-framer.png`,
+  2: `${process.env.NEXT_PUBLIC_BASE_URL}/images/flux-drifter.png`,
+  3: `${process.env.NEXT_PUBLIC_BASE_URL}/images/edge-disruptor.png`,
+  landing: `${process.env.NEXT_PUBLIC_BASE_URL}/images/spectral-landing.png`
 };
 
 async function getAnalysis(fid) {
