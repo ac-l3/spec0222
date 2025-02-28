@@ -37,16 +37,16 @@ export async function generateFrameMetadata({ searchParams }) {
     },
     other: {
       'fc:frame': JSON.stringify({
-        version: "next",
-        imageUrl: imageUrl,
-        button: {
-          title: buttonText,
-          action: {
-            type: "launch_frame",
-            name: "Spectral Researcher",
-            url: targetUrl,
-            splashImageUrl: "https://cover-art.kasra.codes/enneagram-icon-512.png",
-            splashBackgroundColor: "#222222"
+        "version": "next",
+        "imageUrl": "https://cover-art.kasra.codes/enneagram-icon-512-square.png",
+        "button": {
+          "title": "Analyze My Research Style",
+          "action": {
+            "type": "launch_frame",
+            "name": "Spectral Researcher",
+            "url": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app",
+            "splashImageUrl": "https://cover-art.kasra.codes/enneagram-icon-512.png",
+            "splashBackgroundColor": "#222222"
           }
         }
       })

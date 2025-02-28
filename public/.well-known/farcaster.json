@@ -1,17 +1,18 @@
 {
   "accountAssociation": {
-    "header": "eyJmaWQiOjk3NzIzMywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweGE2N0JhMDI4MTIzMWVCOUUyZWE0Y0Y5Nzg5NGMwYjBiNUI4MDFDYzYifQ",
-    "payload": "eyJkb21haW4iOiJlbm5lYWdyYW0ua2FzcmEuY29kZXMifQ",
-    "signature": "MHhmZTlhYWZmZjQ3ZjNjZmExNmFiMjk0MmRmNjMyNWRmN2JkMDFlMWZjMTE2NzA4N2I2YjY0MGJkNmQwZDE4ZWM5N2YwYjRhNWQyMzI4YzEwYTFkZGE4N2UxMTAzYmZiOGZmNzUxY2M0YmVlNWUzMjZmOTU4MTRmY2I0ZWJlOGE1MjFj"
+    "header": "eyJmaWQiOjM3MzkwNCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDJFMDVjNDJmMUZCMTE5MmJDMWRFZjA1OEUwZWE5YTcwMkE2MzY1YzIifQ",
+    "payload": "eyJkb21haW4iOiJzcGVjMDIyMi00eW01eTBtcTgtbGF1cmluZG9hbmFjYXJvbGluYS1nbWFpbGNvbXMtcHJvamVjdHMudmVyY2VsLmFwcCJ9",
+    "signature": "MHg4YjBmZWUwNDE2YWViOWZkMzc0ZWRjYTZjMmE1MTc0MTFlODFjNWU3NzQwZmNlZmM2NWM4NDE5M2MzYWJmZWNiNjA5ZGM3Mzk3MGU5MmRmMTU0YzdhMmNhMGJkODU5Yzg3N2FhNjgxMDdlNTUzYjc2NWQwZDA0MzhhNjk3Y2U4NDFj"
   },
   "frame": {
     "version": "1",
-    "name": "Enneagram Guesser",
-    "iconUrl": "https://cover-art.kasra.codes/enneagram-icon-512-square.png",
-    "homeUrl": "https://enneagram.kasra.codes",
-    "imageUrl": "https://cover-art.kasra.codes/enneagram-icon-512-square.png",
-    "buttonTitle": "Analyze My Enneagram",
-    "splashImageUrl": "https://cover-art.kasra.codes/enneagram-icon-512.png",
-    "splashBackgroundColor": "#FB8F9C"
+    "name": "Example Frame",
+    "iconUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app/icon.png",
+    "homeUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app",
+    "imageUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app/image.png",
+    "buttonTitle": "Check this out",
+    "splashImageUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app/splash.png",
+    "splashBackgroundColor": "#eeccff",
+    "webhookUrl": "https://spec0222-4ym5y0mq8-laurindoanacarolina-gmailcoms-projects.vercel.app/api/webhook"
   }
-}
+} 
