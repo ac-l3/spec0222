@@ -4,17 +4,49 @@ import { SPECTRAL_TYPES } from '@/lib/constants';
 
 export const runtime = 'edge';
 
-// Load font
-const karlaFontData = fetch(
-  'https://images.kasra.codes/Karla-Regular.ttf'
+// Load fonts
+const firaCodeRegularData = fetch(
+  'https://fonts.gstatic.com/s/firacode/v21/uU9eCBsR6Z2vfE9aq3bL0fxyUs4tcw4W_D1sJVD7MOzlojwUKaJO.woff'
 ).then(res => res.arrayBuffer());
+
+const firaCodeMediumData = fetch(
+  'https://fonts.gstatic.com/s/firacode/v21/uU9eCBsR6Z2vfE9aq3bL0fxyUs4tcw4W_A9sJVD7MOzlojwUKaJO.woff'
+).then(res => res.arrayBuffer());
+
+const firaCodeBoldData = fetch(
+  'https://fonts.gstatic.com/s/firacode/v21/uU9eCBsR6Z2vfE9aq3bL0fxyUs4tcw4W_NprJVD7MOzlojwUKaJO.woff'
+).then(res => res.arrayBuffer());
+
+// Image paths for each spectral type
+const imagePaths = {
+  1: 'http://localhost:3000/images/axis-framer.png',
+  2: 'http://localhost:3000/images/flux-drifter.png',
+  3: 'http://localhost:3000/images/edge-disruptor.png',
+  landing: 'http://localhost:3000/images/spectral-landing.png'
+};
 
 async function getAnalysis(fid) {
   const cacheKey = `spectral:analysis:${fid}`;
   const cachedData = await getFromKV(cacheKey);
   
   if (!cachedData) {
-    throw new Error('Analysis not found');
+    // For testing: Return mock data when KV lookup fails
+    console.log('No data found in KV, using test data');
+    
+    // Use the FID to determine which spectral type to use (for testing)
+    const spectralType = (parseInt(fid) % 3) + 1; // Will be 1, 2, or 3
+    
+    return {
+      username: "testuser",
+      pfp: "https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg", // Example profile pic
+      type: {
+        number: spectralType,
+        name: SPECTRAL_TYPES[spectralType].name,
+        title: SPECTRAL_TYPES[spectralType].name,
+        motto: SPECTRAL_TYPES[spectralType].motto,
+        colors: SPECTRAL_TYPES[spectralType].colors
+      }
+    };
   }
 
   const data = JSON.parse(cachedData);
@@ -48,10 +80,15 @@ export async function GET(request) {
       return new Response('Missing FID', { status: 400 });
     }
 
-    const [analysis, fontData] = await Promise.all([
+    const [analysis, regularFontData, mediumFontData, boldFontData] = await Promise.all([
       getAnalysis(fid),
-      karlaFontData
+      firaCodeRegularData,
+      firaCodeMediumData,
+      firaCodeBoldData
     ]);
+
+    // Get the correct image path for this spectral type
+    const imagePath = imagePaths[analysis.type.number] || imagePaths[1];
 
     // Generate the image
     return new ImageResponse(
@@ -62,88 +99,112 @@ export async function GET(request) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: analysis.type.colors.main,
+          justifyContent: 'space-between',
+          backgroundColor: '#191919', // Dark background
           padding: '60px 40px',
-          color: analysis.type.colors.accent,
-          fontFamily: 'Karla',
+          color: '#FFFFFF',
+          fontFamily: 'Fira Code',
         }}>
+          {/* Header text */}
           <div style={{
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            marginBottom: '60px',
+            marginTop: '20px',
           }}>
             <span style={{
-              fontSize: '64px',
-              fontWeight: 500,
+              fontSize: '24px',
+              fontWeight: 500, // Medium weight
+              color: '#C0C2C5',
+              display: 'flex',
+              textAlign: 'center',
+              marginBottom: '10px',
             }}>
-              Spectral Researcher Analysis
+              How do you explore the unknown?
+            </span>
+            <span style={{
+              fontSize: '24px',
+              fontWeight: 500, // Medium weight
+              color: '#C0C2C5',
+              display: 'flex',
+              textAlign: 'center',
+            }}>
+              Spectral Lab has the data.
             </span>
           </div>
+
+          {/* Spectral Visual - using the actual image */}
           <div style={{
+            width: '300px',
+            height: '300px',
+            borderRadius: '150px',
             display: 'flex',
             alignItems: 'center',
-            marginBottom: '60px',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
           }}>
             <img
-              src={analysis.pfp}
-              width="100"
-              height="100"
+              src={imagePath}
+              alt={`Spectral Type ${analysis.type.number} Visual`}
               style={{
-                borderRadius: '50px',
-                marginRight: '20px',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'flex',
               }}
             />
-            <span style={{
-              fontSize: '64px',
-              fontWeight: 500,
-            }}>
-              @{analysis.username}
-            </span>
           </div>
 
-          <span style={{
-            fontSize: '42px',
-            fontWeight: 800,
-            marginBottom: '16px'
+          {/* Alignment text and spectral type */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            marginBottom: '20px',
           }}>
-            {analysis.type.title}
-          </span>
-
-          <span style={{
-            fontSize: '72px',
-            fontWeight: 500,
-            marginBottom: '40px',
-          }}>
-            {analysis.type.name}
-          </span>
-
-          <span style={{
-            fontSize: '32px',
-            fontWeight: 500,
-            fontStyle: 'italic',
-            marginBottom: '80px',
-            textAlign: 'center',
-          }}>
-            "{analysis.type.motto}"
-          </span>
-
-          <span style={{
-            fontSize: '42px',
-            fontWeight: 500,
-          }}>
-            Discover Your Research Style ↓
-          </span>
+            <span style={{
+              fontSize: '24px',
+              fontWeight: 400, // Regular weight
+              color: '#C0C2C5',
+              display: 'flex',
+              marginBottom: '20px',
+            }}>
+              @{analysis.username} aligns with:
+            </span>
+            <span style={{
+              fontSize: '66px',
+              fontWeight: 700, // Bold weight
+              color: '#FFFFFF',
+              display: 'flex',
+              textAlign: 'center',
+            }}>
+              {analysis.type.name}
+            </span>
+          </div>
         </div>
       ),
       {
         width: 1200,
-        height: 800,
+        height: 630, // Standard OG image ratio
         fonts: [
           {
-            name: 'Karla',
-            data: fontData,
+            name: 'Fira Code',
+            data: regularFontData,
             style: 'normal',
+            weight: 400,
+          },
+          {
+            name: 'Fira Code',
+            data: mediumFontData,
+            style: 'normal',
+            weight: 500,
+          },
+          {
+            name: 'Fira Code',
+            data: boldFontData,
+            style: 'normal',
+            weight: 700,
           },
         ],
       }

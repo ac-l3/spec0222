@@ -154,21 +154,31 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       
       if (!response.ok) throw new Error('Failed to generate share image');
       const { imageUrl } = await response.json();
-
+      
+      // Extract the filename from the imageUrl
+      // The imageUrl format should be like: https://example.r2.dev/spectral/spectral-123-timestamp.png
+      const filename = imageUrl.split('/').pop();
+      
+      // Create the URL to our site with the image parameter
+      const appUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?image=${filename}`;
+      
       // Create share text with spectral type
       const shareText = `I've been classified as a ${SPECTRAL_TYPES[analysis.spectralType].name} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Create Warpcast share URL with app URL and image as embeds
-      const encodedText = encodeURI(shareText);
-      const encodedAppUrl = encodeURIComponent(`${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`);
-      const shareUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedAppUrl}`;
-
-      // Open share URL using Frame SDK
+      // For Frame V2 integration, we directly open our URL with the image parameter
       if (window.frame?.sdk?.actions?.openUrl) {
-        window.frame.sdk.actions.openUrl(shareUrl);
+        window.frame.sdk.actions.openUrl(appUrl);
       } else {
+        // Fallback for non-frame environments
         console.error('Frame SDK not available for sharing');
-        throw new Error('Unable to open share dialog');
+        
+        // Create Warpcast share URL with app URL and image as embeds
+        const encodedText = encodeURI(shareText);
+        const encodedAppUrl = encodeURIComponent(`${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`);
+        const shareUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedAppUrl}`;
+        
+        // Open in a new tab
+        window.open(shareUrl, '_blank');
       }
     } catch (error) {
       console.error('Error sharing:', error);
