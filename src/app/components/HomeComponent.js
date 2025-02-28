@@ -154,31 +154,21 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       
       if (!response.ok) throw new Error('Failed to generate share image');
       const { imageUrl } = await response.json();
-      
-      // Extract the filename from the imageUrl
-      // The imageUrl format should be like: https://example.r2.dev/spectral/spectral-123-timestamp.png
-      const filename = imageUrl.split('/').pop();
-      
-      // Create the URL to our site with the image parameter
-      const appUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?image=${filename}`;
-      
+
       // Create share text with spectral type
       const shareText = `I've been classified as a ${SPECTRAL_TYPES[analysis.spectralType].name} in the Spectral Lab! Discover your research alignment below.`;
       
-      // For Frame V2 integration, we directly open our URL with the image parameter
+      // Create Warpcast share URL with app URL and image as embeds
+      const encodedText = encodeURI(shareText);
+      const encodedAppUrl = encodeURIComponent(`${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`);
+      const shareUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedAppUrl}`;
+
+      // Open share URL using Frame SDK
       if (window.frame?.sdk?.actions?.openUrl) {
-        window.frame.sdk.actions.openUrl(appUrl);
+        window.frame.sdk.actions.openUrl(shareUrl);
       } else {
-        // Fallback for non-frame environments
         console.error('Frame SDK not available for sharing');
-        
-        // Create Warpcast share URL with app URL and image as embeds
-        const encodedText = encodeURI(shareText);
-        const encodedAppUrl = encodeURIComponent(`${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`);
-        const shareUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedAppUrl}`;
-        
-        // Open in a new tab
-        window.open(shareUrl, '_blank');
+        throw new Error('Unable to open share dialog');
       }
     } catch (error) {
       console.error('Error sharing:', error);
@@ -506,10 +496,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
           
           {!analysis && (
             <div className="text-center mb-12 max-w-2xl mx-auto">
-              <h2 className="text-base font-normal mb-8 text-[#C0C2C5] leading-relaxed">
-                How do you explore the unknown?<br />
-                Spectral Lab has the data.
-              </h2>
+              {/* Removed the heading with "How do you explore the unknown? Spectral Lab has the data." */}
 
               <div className="bg-[#222222] border border-[#2A2A2A] p-6 mb-8">
                 <div className="mb-6 flex justify-center">
@@ -527,7 +514,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               
               <div className="text-left text-[#C0C2C5] space-y-8">
                 <p className="leading-relaxed text-sm">
-                  The Lab studies unseen structures, emergent behaviors, and hidden frequencies. Different approaches to the unknown reveal different aspects of reality—some disrupt boundaries, others flow between systems, and some establish frameworks.
+                  The Spectral Lab studies unseen structures, emergent behaviors, and hidden frequencies. Different approaches to the unknown reveal different aspects of reality—some disrupt boundaries, others flow between systems, and some establish frameworks.
                 </p>
                 
                 <p className="leading-relaxed text-sm">
