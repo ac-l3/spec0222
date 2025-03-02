@@ -28,6 +28,34 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   );
   const [isSharing, setIsSharing] = useState(false);
 
+  // Check for spectralType in URL on initial load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const spectralType = urlParams.get('spectralType');
+      
+      if (spectralType && !analysis) {
+        // If we have a spectralType parameter but no analysis, create a mock analysis
+        const typeNumber = parseInt(spectralType, 10);
+        if (typeNumber >= 1 && typeNumber <= 3) {
+          setAnalysis({
+            type: {
+              number: typeNumber,
+              name: SPECTRAL_TYPES[typeNumber].name,
+              motto: SPECTRAL_TYPES[typeNumber].motto
+            },
+            sections: {
+              coreIdentity: "This is a sample analysis based on your Farcaster Frame interaction.",
+              functionalImpact: "Your research style shows potential for significant contributions.",
+              alignmentConsiderations: "Your approach aligns well with collaborative research environments.",
+              researchDeployment: "You would excel in projects requiring creative problem-solving."
+            }
+          });
+        }
+      }
+    }
+  }, [analysis]);
+
   // Listen for userFid changes
   useEffect(() => {
     const checkUserFid = () => {
@@ -48,7 +76,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
 
     // Clean up
     return () => clearInterval(interval);
-  }, [fid, userFid]);
+  }, [userFid, fid]);
 
   async function analyzeWithRetry(data) {
     if (!data || typeof data !== 'object') {

@@ -2,7 +2,7 @@ import { getFromKV } from './cloudflare-kv';
 
 export async function generateFrameMetadata({ searchParams }) {
   const { fid } = await searchParams;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
   console.log('base url', baseUrl);
   let imageUrl = "https://cover-art.kasra.codes/enneagram-icon-512-square.png";
   let targetUrl = baseUrl;
@@ -36,20 +36,12 @@ export async function generateFrameMetadata({ searchParams }) {
       apple: "https://cover-art.kasra.codes/enneagram-icon-512.png",
     },
     other: {
-      'fc:frame': JSON.stringify({
-        "version": "next",
-        "imageUrl": "https://cover-art.kasra.codes/enneagram-icon-512-square.png",
-        "button": {
-          "title": "Analyze My Research Style",
-          "action": {
-            "type": "launch_frame",
-            "name": "Spectral Researcher",
-            "url": "https://spec0222.vercel.app",
-            "splashImageUrl": "https://cover-art.kasra.codes/enneagram-icon-512.png",
-            "splashBackgroundColor": "#222222"
-          }
-        }
-      })
+      'fc:frame': 'vNext',
+      'fc:frame:image': imageUrl,
+      'fc:frame:image:aspect_ratio': '1:1',
+      'fc:frame:button:1': buttonText,
+      'fc:frame:button:1:action': 'post',
+      'fc:frame:post_url': `${baseUrl}/api/analyze-profile${fid ? `?fid=${fid}` : ''}`,
     }
   };
 } 

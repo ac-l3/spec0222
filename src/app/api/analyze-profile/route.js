@@ -4,6 +4,52 @@ import { analyzePersonality, fetchUserInfo, fetchUserCasts } from '../../../lib/
 
 export const maxDuration = 60;
 
+export async function POST(request) {
+  try {
+    // Handle Farcaster Frame POST request
+    const formData = await request.formData();
+    const frameData = formData.get('trustedData.messageBytes');
+    
+    // Extract FID from the frame data if available
+    let fid = null;
+    if (frameData) {
+      try {
+        // For now, just use a fallback approach
+        console.log('Received frame data, using fallback approach');
+        // Return a redirect to the main page with a random spectral type
+        const randomType = Math.floor(Math.random() * 3) + 1;
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
+        
+        return new NextResponse(null, {
+          status: 302,
+          headers: {
+            'Location': `${baseUrl}?spectralType=${randomType}`,
+            'Content-Type': 'text/html'
+          }
+        });
+      } catch (error) {
+        console.error('Error parsing frame data:', error);
+      }
+    }
+    
+    // If we couldn't extract FID from frame data, redirect to main page
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
+    return new NextResponse(null, {
+      status: 302,
+      headers: {
+        'Location': baseUrl,
+        'Content-Type': 'text/html'
+      }
+    });
+  } catch (error) {
+    console.error('Error in POST handler:', error);
+    return NextResponse.json(
+      { error: 'Failed to process request', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
