@@ -16,14 +16,17 @@ export const ENNEAGRAM_TYPES = {
   9: "Type 9 (The Peacemaker)",
 };
 
+// Generate metadata for the page, including Frame metadata
 export async function generateMetadata({ searchParams }) {
-  return generateFrameMetadata({ searchParams });
+  const metadata = await generateFrameMetadata({ searchParams });
+  return metadata;
 }
 
 export default async function Page({ searchParams }) {
   const params = await searchParams;
   const rawFid = params?.fid;
   const fid = rawFid ? parseInt(rawFid, 10) : null;
+  const spectralType = params?.spectralType ? parseInt(params.spectralType, 10) : null;
   
   let initialData = null;
   if (fid && !isNaN(fid)) {
@@ -67,5 +70,5 @@ export default async function Page({ searchParams }) {
     }
   }
 
-  return <HomeComponent fid={fid} initialData={initialData} />;
+  return <HomeComponent fid={fid} initialData={initialData} spectralType={spectralType} />;
 }

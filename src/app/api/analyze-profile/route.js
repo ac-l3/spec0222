@@ -10,42 +10,79 @@ export async function POST(request) {
     const formData = await request.formData();
     const frameData = formData.get('trustedData.messageBytes');
     
-    // Extract FID from the frame data if available
-    let fid = null;
-    if (frameData) {
-      try {
-        // For now, just use a fallback approach
-        console.log('Received frame data, using fallback approach');
-        // Return a redirect to the main page with a random spectral type
-        const randomType = Math.floor(Math.random() * 3) + 1;
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
-        
-        return new NextResponse(null, {
-          status: 302,
-          headers: {
-            'Location': `${baseUrl}?spectralType=${randomType}`,
-            'Content-Type': 'text/html'
-          }
-        });
-      } catch (error) {
-        console.error('Error parsing frame data:', error);
-      }
+    // Generate a random spectral type (1, 2, or 3)
+    const randomType = Math.floor(Math.random() * 3) + 1;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
+    
+    // Create a Frame response with a new image and button
+    let imageUrl;
+    let buttonText;
+    
+    switch(randomType) {
+      case 1:
+        imageUrl = `${baseUrl}/images/optimized/axis-framer.png`;
+        buttonText = "VIEW $AXIS FRAMER ANALYSIS";
+        break;
+      case 2:
+        imageUrl = `${baseUrl}/images/optimized/flux-drifter.png`;
+        buttonText = "VIEW $FLUX DRIFTER ANALYSIS";
+        break;
+      case 3:
+        imageUrl = `${baseUrl}/images/optimized/edge-disruptor.png`;
+        buttonText = "VIEW $EDGE DISRUPTOR ANALYSIS";
+        break;
+      default:
+        imageUrl = `${baseUrl}/images/optimized/spectral-landing.png`;
+        buttonText = "VIEW ANALYSIS";
     }
     
-    // If we couldn't extract FID from frame data, redirect to main page
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
-    return new NextResponse(null, {
-      status: 302,
-      headers: {
-        'Location': baseUrl,
-        'Content-Type': 'text/html'
+    // Return a Frame response
+    return new NextResponse(
+      `<!DOCTYPE html>
+      <html>
+        <head>
+          <meta property="fc:frame" content="vNext" />
+          <meta property="fc:frame:image" content="${imageUrl}" />
+          <meta property="fc:frame:button:1" content="${buttonText}" />
+          <meta property="fc:frame:button:1:action" content="link" />
+          <meta property="fc:frame:button:1:target" content="${baseUrl}?spectralType=${randomType}" />
+        </head>
+        <body>
+          <p>Your spectral analysis is ready. Click the button to view it.</p>
+        </body>
+      </html>`,
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html',
+        },
       }
-    });
+    );
   } catch (error) {
     console.error('Error in POST handler:', error);
-    return NextResponse.json(
-      { error: 'Failed to process request', details: error.message },
-      { status: 500 }
+    
+    // Even in case of error, return a valid Frame response
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
+    return new NextResponse(
+      `<!DOCTYPE html>
+      <html>
+        <head>
+          <meta property="fc:frame" content="vNext" />
+          <meta property="fc:frame:image" content="${baseUrl}/images/optimized/spectral-landing.png" />
+          <meta property="fc:frame:button:1" content="TRY AGAIN" />
+          <meta property="fc:frame:button:1:action" content="post" />
+          <meta property="fc:frame:post_url" content="${baseUrl}/api/analyze-profile" />
+        </head>
+        <body>
+          <p>There was an error processing your request. Please try again.</p>
+        </body>
+      </html>`,
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html',
+        },
+      }
     );
   }
 }

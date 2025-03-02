@@ -12,7 +12,7 @@ const firaCode = Fira_Code({
   weight: ['400', '600', '700'], // Regular (400), semi-bold (600), and bold (700)
 });
 
-export default function HomeComponent({ fid: initialFid, initialData }) {
+export default function HomeComponent({ fid: initialFid, initialData, spectralType: initialSpectralType }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState(initialData?.analysis || null);
   const [fid, setFid] = useState(initialFid);
@@ -28,33 +28,77 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   );
   const [isSharing, setIsSharing] = useState(false);
 
-  // Check for spectralType in URL on initial load
+  // Check for spectralType on initial load
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (!analysis && initialSpectralType && initialSpectralType >= 1 && initialSpectralType <= 3) {
+      console.log('Creating mock analysis from initialSpectralType:', initialSpectralType);
+      setAnalysis({
+        spectralType: initialSpectralType,
+        type: {
+          number: initialSpectralType,
+          name: SPECTRAL_TYPES[initialSpectralType].name,
+          motto: SPECTRAL_TYPES[initialSpectralType].motto
+        },
+        researchProfile: {
+          coreIdentity: "This is a sample analysis based on your Farcaster Frame interaction.",
+          functionalImpact: "Your research style shows potential for significant contributions.",
+          alignmentConsiderations: "Your approach aligns well with collaborative research environments.",
+          researchDeployment: {
+            metrics: {
+              exploratoryDepth: initialSpectralType === 1 ? 5 : Math.floor(Math.random() * 4) + 1,
+              dataRetention: initialSpectralType === 2 ? 5 : Math.floor(Math.random() * 4) + 1,
+              systematicThinking: initialSpectralType === 3 ? 5 : Math.floor(Math.random() * 4) + 1
+            }
+          },
+          fieldEvidence: [
+            { observation: "This is a sample observation based on your interaction." },
+            { observation: "Your research style indicates a unique approach to problem-solving." },
+            { observation: "You tend to explore concepts in a way that aligns with your spectral type." }
+          ]
+        }
+      });
+    }
+  }, [analysis, initialSpectralType]);
+
+  // Also check URL parameters for spectralType
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !analysis && !initialSpectralType) {
       const urlParams = new URLSearchParams(window.location.search);
-      const spectralType = urlParams.get('spectralType');
+      const spectralTypeParam = urlParams.get('spectralType');
       
-      if (spectralType && !analysis) {
-        // If we have a spectralType parameter but no analysis, create a mock analysis
-        const typeNumber = parseInt(spectralType, 10);
+      if (spectralTypeParam) {
+        const typeNumber = parseInt(spectralTypeParam, 10);
         if (typeNumber >= 1 && typeNumber <= 3) {
+          console.log('Creating mock analysis from URL spectralType:', typeNumber);
           setAnalysis({
+            spectralType: typeNumber,
             type: {
               number: typeNumber,
               name: SPECTRAL_TYPES[typeNumber].name,
               motto: SPECTRAL_TYPES[typeNumber].motto
             },
-            sections: {
+            researchProfile: {
               coreIdentity: "This is a sample analysis based on your Farcaster Frame interaction.",
               functionalImpact: "Your research style shows potential for significant contributions.",
               alignmentConsiderations: "Your approach aligns well with collaborative research environments.",
-              researchDeployment: "You would excel in projects requiring creative problem-solving."
+              researchDeployment: {
+                metrics: {
+                  exploratoryDepth: typeNumber === 1 ? 5 : Math.floor(Math.random() * 4) + 1,
+                  dataRetention: typeNumber === 2 ? 5 : Math.floor(Math.random() * 4) + 1,
+                  systematicThinking: typeNumber === 3 ? 5 : Math.floor(Math.random() * 4) + 1
+                }
+              },
+              fieldEvidence: [
+                { observation: "This is a sample observation based on your interaction." },
+                { observation: "Your research style indicates a unique approach to problem-solving." },
+                { observation: "You tend to explore concepts in a way that aligns with your spectral type." }
+              ]
             }
           });
         }
       }
     }
-  }, [analysis]);
+  }, [analysis, initialSpectralType]);
 
   // Listen for userFid changes
   useEffect(() => {
