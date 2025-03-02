@@ -4,7 +4,7 @@ export async function generateFrameMetadata({ searchParams }) {
   const { fid } = await searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
   console.log('base url', baseUrl);
-  let imageUrl = "https://cover-art.kasra.codes/enneagram-icon-512-square.png";
+  let imageUrl = `${baseUrl}/images/optimized/spectral-landing.png`;
   let targetUrl = baseUrl;
   let buttonText = "REVEAL YOUR SPECTRAL ALIGNMENT";
 
