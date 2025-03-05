@@ -45,7 +45,7 @@ export async function generateFrameMetadata({ searchParams }) {
             "type": "launch_frame",
             "name": "Spectral Researcher",
             "url": "https://spec0222.vercel.app",
-            "splashImageUrl": `${baseUrl}/splash.png`,
+            "splashImageUrl": "https://spec0222.vercel.app/splash.png",
             "splashBackgroundColor": "#191919"
           }
         }
