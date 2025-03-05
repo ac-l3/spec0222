@@ -1,46 +1,30 @@
-import { getFromKV } from './cloudflare-kv';
+import { getFrameMetadata } from 'frames.js';
 
-export async function generateFrameMetadata({ searchParams }) {
-  const { fid } = await searchParams;
+export function generateFrameMetadata(searchParams) {
+  const fid = searchParams.get('fid');
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
-  console.log('base url', baseUrl);
-  let imageUrl = `${baseUrl}/images/optimized/spectral-landing.png`;
-  let targetUrl = baseUrl;
-  let buttonText = "REVEAL YOUR SPECTRAL ALIGNMENT";
-
-  if (fid) {
-    // Try to get the share image URL from KV
-    const cacheKey = `spectral:share-image:${fid}`;
-    const cachedImageUrl = await getFromKV(cacheKey);
-    if (cachedImageUrl) {
-      try {
-        imageUrl = JSON.parse(cachedImageUrl);
-        buttonText = "Discover Your Research Style";
-      } catch (e) {
-        console.error('Error parsing cached image URL:', e);
-        imageUrl = cachedImageUrl; // fallback to raw value if parsing fails
+  const imageUrl = fid ? `${baseUrl}/api/generate-image?fid=${fid}` : `${baseUrl}/images/optimized/spectral-landing.png`;
+  
+  const frameMetadata = {
+    version: 'vNext',
+    title: 'Spectral Lab Frame',
+    description: 'Discover your spectral type and unlock your research potential.',
+    image: imageUrl,
+    buttons: [
+      {
+        label: fid ? 'VIEW ANALYSIS' : 'ANALYZE PROFILE',
+        action: 'post',
+        target: `${baseUrl}/api/analyze-profile`
       }
-    }
-    // Add fid to the target URL
-    targetUrl = `${baseUrl}?fid=${fid}`;
-  }
+    ]
+  };
 
-  console.log('image url', imageUrl);
+  const { openGraph, other } = getFrameMetadata(frameMetadata);
 
   return {
-    title: "Spectral Researcher",
-    description: "Discover your unique research style in the Spectral ecosystem",
-    openGraph: {
-      title: "Spectral Researcher",
-      description: "Discover your unique research style in the Spectral ecosystem",
-      images: [imageUrl],
-    },
-    other: {
-      'fc:frame': 'vNext',
-      'fc:frame:image': imageUrl,
-      'fc:frame:post_url': `${baseUrl}/api/analyze-profile`,
-      'fc:frame:button:1': buttonText,
-      'fc:frame:button:1:action': 'post',
-    }
+    title: 'Spectral Lab Frame',
+    description: 'Discover your spectral type and unlock your research potential.',
+    openGraph,
+    other
   };
 } 

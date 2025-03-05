@@ -3,6 +3,7 @@ import HomeComponent from './components/HomeComponent';
 import { generateFrameMetadata } from '../lib/page-metadata';
 import { analyzePersonality, fetchUserInfo, fetchUserCasts } from '../lib/analysis';
 import { getFromKV, putToKV } from '../lib/cloudflare-kv';
+import { ENNEAGRAM_TYPES } from '../lib/constants';
 
 export const ENNEAGRAM_TYPES = {
   1: "Type 1 (The Reformer)",
@@ -18,57 +19,16 @@ export const ENNEAGRAM_TYPES = {
 
 // Generate metadata for the page, including Frame metadata
 export async function generateMetadata({ searchParams }) {
-  const metadata = await generateFrameMetadata({ searchParams });
-  return metadata;
+  return generateFrameMetadata(searchParams);
 }
 
-export default async function Page({ searchParams }) {
-  const params = await searchParams;
-  const rawFid = params?.fid;
-  const fid = rawFid ? parseInt(rawFid, 10) : null;
-  const spectralType = params?.spectralType ? parseInt(params.spectralType, 10) : null;
-  
-  let initialData = null;
-  if (fid && !isNaN(fid)) {
-    try {
-      // Try to get from KV cache first
-      const cacheKey = `enneagram:analysis:${fid}`;
-      const cachedData = await getFromKV(cacheKey);
-      if (cachedData) {
-        try {
-          const parsed = JSON.parse(cachedData);
-          initialData = parsed.value ? JSON.parse(parsed.value) : parsed;
-        } catch (e) {
-          console.error('Error parsing cached data:', e);
-        }
-      }
+export default function Page({ searchParams }) {
+  const spectralType = searchParams.spectralType ? parseInt(searchParams.spectralType) : null;
+  const spectralInfo = spectralType ? ENNEAGRAM_TYPES[spectralType - 1] : null;
 
-      // If no cache hit, compute and cache
-      if (!initialData) {
-        console.log('Cache miss in SSR, computing analysis for FID:', fid);
-        const [userInfo, casts] = await Promise.all([
-          fetchUserInfo(fid),
-          fetchUserCasts(fid),
-        ]);
-        
-        const analysis = await analyzePersonality(userInfo.profile?.bio?.text || null, casts);
-        
-        initialData = {
-          fid,
-          analysis,
-          username: userInfo.username,
-          displayName: userInfo.display_name,
-          pfpUrl: userInfo.pfp_url,
-          bio: userInfo.profile?.bio?.text || null,
-        };
-
-        // Cache the result
-        await putToKV(cacheKey, initialData);
-      }
-    } catch (error) {
-      console.error('Error in SSR:', error);
-    }
-  }
-
-  return <HomeComponent fid={fid} initialData={initialData} spectralType={spectralType} />;
+  return (
+    <main>
+      <HomeComponent spectralInfo={spectralInfo} />
+    </main>
+  );
 }

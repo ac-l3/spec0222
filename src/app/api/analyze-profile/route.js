@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getFromKV, putToKV } from '../../../lib/cloudflare-kv.js';
 import { analyzePersonality, fetchUserInfo, fetchUserCasts } from '../../../lib/analysis.js';
+import { getFrameHtml } from 'frames.js';
 
 export const maxDuration = 60;
 
 export async function POST(request) {
   try {
-    // Handle Farcaster Frame POST request
     const formData = await request.formData();
     const frameData = formData.get('trustedData.messageBytes');
     
@@ -14,7 +14,6 @@ export async function POST(request) {
     const randomType = Math.floor(Math.random() * 3) + 1;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
     
-    // Create a Frame response with a new image and button
     let imageUrl;
     let buttonText;
     
@@ -35,55 +34,51 @@ export async function POST(request) {
         imageUrl = `${baseUrl}/images/optimized/spectral-landing.png`;
         buttonText = "VIEW ANALYSIS";
     }
+
+    const frameResponse = {
+      version: 'vNext',
+      image: imageUrl,
+      buttons: [
+        {
+          label: buttonText,
+          action: 'link',
+          target: `${baseUrl}?spectralType=${randomType}`
+        }
+      ]
+    };
+
+    const html = getFrameHtml(frameResponse);
     
-    // Return a Frame response
-    return new NextResponse(
-      `<!DOCTYPE html>
-      <html>
-        <head>
-          <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="${imageUrl}" />
-          <meta property="fc:frame:button:1" content="${buttonText}" />
-          <meta property="fc:frame:button:1:action" content="link" />
-          <meta property="fc:frame:button:1:target" content="${baseUrl}?spectralType=${randomType}" />
-        </head>
-        <body>
-          <p>Your spectral analysis is ready. Click the button to view it.</p>
-        </body>
-      </html>`,
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/html',
-        },
-      }
-    );
+    return new NextResponse(html, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html',
+      },
+    });
   } catch (error) {
     console.error('Error in POST handler:', error);
     
-    // Even in case of error, return a valid Frame response
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
-    return new NextResponse(
-      `<!DOCTYPE html>
-      <html>
-        <head>
-          <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="${baseUrl}/images/optimized/spectral-landing.png" />
-          <meta property="fc:frame:button:1" content="TRY AGAIN" />
-          <meta property="fc:frame:button:1:action" content="post" />
-          <meta property="fc:frame:post_url" content="${baseUrl}/api/analyze-profile" />
-        </head>
-        <body>
-          <p>There was an error processing your request. Please try again.</p>
-        </body>
-      </html>`,
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/html',
-        },
-      }
-    );
+    const errorFrameResponse = {
+      version: 'vNext',
+      image: `${baseUrl}/images/optimized/spectral-landing.png`,
+      buttons: [
+        {
+          label: 'TRY AGAIN',
+          action: 'post',
+          target: `${baseUrl}/api/analyze-profile`
+        }
+      ]
+    };
+
+    const html = getFrameHtml(errorFrameResponse);
+    
+    return new NextResponse(html, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html',
+      },
+    });
   }
 }
 
