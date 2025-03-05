@@ -4,9 +4,9 @@ export async function generateFrameMetadata({ searchParams }) {
   const { fid } = await searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   console.log('base url', baseUrl);
-  let imageUrl = "https://cover-art.kasra.codes/enneagram-icon-512-square.png";
+  let imageUrl = "https://spec0222.vercel.app/image.png";
   let targetUrl = baseUrl;
-  let buttonText = "Analyze My Research Style";
+  let buttonText = "Reveal Your Spectral Alignment";
 
   if (fid) {
     // Try to get the share image URL from KV
@@ -15,7 +15,7 @@ export async function generateFrameMetadata({ searchParams }) {
     if (cachedImageUrl) {
       try {
         imageUrl = JSON.parse(cachedImageUrl);
-        buttonText = "Discover Your Research Style";
+        buttonText = "Reveal Your Spectral Alignment";
       } catch (e) {
         console.error('Error parsing cached image URL:', e);
         imageUrl = cachedImageUrl; // fallback to raw value if parsing fails
@@ -38,9 +38,9 @@ export async function generateFrameMetadata({ searchParams }) {
     other: {
       'fc:frame': JSON.stringify({
         "version": "next",
-        "imageUrl": "https://cover-art.kasra.codes/enneagram-icon-512-square.png",
+        "imageUrl": "https://spec0222.vercel.app/image.png",
         "button": {
-          "title": "Analyze My Research Style",
+          "title": "Reveal Your Spectral Alignment",
           "action": {
             "type": "launch_frame",
             "name": "Spectral Researcher",
