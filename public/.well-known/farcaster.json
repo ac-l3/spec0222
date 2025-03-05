@@ -12,7 +12,7 @@
     "imageUrl": "https://spec0222.vercel.app/image.png",
     "buttonTitle": "Check this out",
     "splashImageUrl": "https://spec0222.vercel.app/splash.png",
-    "splashBackgroundColor": "#eeccff",
+    "splashBackgroundColor": "#191919",
     "webhookUrl": "https://spec0222.vercel.app/api/webhook"
   }
 } 
