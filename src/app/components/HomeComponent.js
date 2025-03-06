@@ -146,12 +146,24 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     setIsSharing(true);
     
     try {
+      // Generate share image
+      console.log('Generating share image for FID:', fid);
+      const response = await fetch('/api/generate-share-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fid })
+      });
+      
+      if (!response.ok) throw new Error('Failed to generate share image');
+      const { imageUrl } = await response.json();
+      console.log('Generated share image URL:', imageUrl);
+
       // Create share text with spectral type
       const shareText = `I've been classified as a ${SPECTRAL_TYPES[analysis.spectralType].name} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Create Warpcast share URL with app URL as embed
+      // Create Warpcast share URL with both image and app URL as embeds
       const appUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`;
-      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(appUrl)}`;
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(imageUrl)}&embeds[]=${encodeURIComponent(appUrl)}`;
       
       console.log('Opening Warpcast URL:', warpcastUrl);
       
