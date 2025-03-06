@@ -5,7 +5,7 @@
     "signature": "MHhlYjVjMTk2NWNjYWNhNDU4MjE2MGQ3Y2MwMmIxYTliMzJmNDVhYjViMTQxZmZhZDU5ZThlMDc1YTg4YmYxNWNiNzQ1ZGUxMDBjZTBiYTY4MzhlZmQxNmYxMzVhYzViMDQxZDc2MDkyMjM0Mzc3ZmZjMDQ3MDk5Mjk3NzdmMjlhODFi"
   },
   "frame": {
-    "version": "1",
+    "version": "next",
     "name": "Spectral Alignment",
     "iconUrl": "https://spec0222.vercel.app/icon.png",
     "homeUrl": "https://spec0222.vercel.app",

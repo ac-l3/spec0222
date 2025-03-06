@@ -1,86 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getFromKV, putToKV } from '../../../lib/cloudflare-kv.js';
 import { analyzePersonality, fetchUserInfo, fetchUserCasts } from '../../../lib/analysis.js';
-import { getFrameHtml } from 'frames.js';
 
 export const maxDuration = 60;
-
-export async function POST(request) {
-  try {
-    const formData = await request.formData();
-    const frameData = formData.get('trustedData.messageBytes');
-    
-    // Generate a random spectral type (1, 2, or 3)
-    const randomType = Math.floor(Math.random() * 3) + 1;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
-    
-    let imageUrl;
-    let buttonText;
-    
-    switch(randomType) {
-      case 1:
-        imageUrl = `${baseUrl}/images/optimized/axis-framer.png`;
-        buttonText = "VIEW $AXIS FRAMER ANALYSIS";
-        break;
-      case 2:
-        imageUrl = `${baseUrl}/images/optimized/flux-drifter.png`;
-        buttonText = "VIEW $FLUX DRIFTER ANALYSIS";
-        break;
-      case 3:
-        imageUrl = `${baseUrl}/images/optimized/edge-disruptor.png`;
-        buttonText = "VIEW $EDGE DISRUPTOR ANALYSIS";
-        break;
-      default:
-        imageUrl = `${baseUrl}/images/optimized/spectral-landing.png`;
-        buttonText = "VIEW ANALYSIS";
-    }
-
-    const frameResponse = {
-      version: 'vNext',
-      image: imageUrl,
-      buttons: [
-        {
-          label: buttonText,
-          action: 'link',
-          target: `${baseUrl}?spectralType=${randomType}`
-        }
-      ]
-    };
-
-    const html = getFrameHtml(frameResponse);
-    
-    return new NextResponse(html, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html',
-      },
-    });
-  } catch (error) {
-    console.error('Error in POST handler:', error);
-    
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://spec0222.vercel.app';
-    const errorFrameResponse = {
-      version: 'vNext',
-      image: `${baseUrl}/images/optimized/spectral-landing.png`,
-      buttons: [
-        {
-          label: 'TRY AGAIN',
-          action: 'post',
-          target: `${baseUrl}/api/analyze-profile`
-        }
-      ]
-    };
-
-    const html = getFrameHtml(errorFrameResponse);
-    
-    return new NextResponse(html, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html',
-      },
-    });
-  }
-}
 
 export async function GET(request) {
   try {

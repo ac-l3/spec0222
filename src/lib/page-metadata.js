@@ -37,7 +37,7 @@ export async function generateFrameMetadata({ searchParams }) {
     },
     other: {
       'fc:frame': JSON.stringify({
-        "version": "1",
+        "version": "next",
         "imageUrl": "https://spec0222.vercel.app/image.png",
         "button": {
           "title": "Reveal Your Spectral Alignment",

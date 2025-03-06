@@ -1,4 +1,4 @@
-const TIMEOUT = 30000;
+const TIMEOUT = 10000;
 
 async function waitForDOMContentLoaded() {
   return new Promise((resolve) => {
@@ -22,20 +22,13 @@ async function waitForFrameSDK() {
         setTimeout(checkSDK, 100);
       }
     };
-    
-    const timeoutId = setTimeout(() => {
-      console.warn('Frame SDK initialization timeout - continuing anyway');
-      resolve();
-    }, TIMEOUT);
-    
+    setTimeout(() => reject(new Error('Frame SDK initialization timeout')), TIMEOUT);
     checkSDK();
-    
-    return () => clearTimeout(timeoutId);
   });
 }
 
 async function waitForUser() {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const checkUser = () => {
       console.log('Checking user');
       if (window.frame?.sdk?.context?.user) {
@@ -44,15 +37,8 @@ async function waitForUser() {
         setTimeout(checkUser, 100);
       }
     };
-    
-    const timeoutId = setTimeout(() => {
-      console.warn('User context timeout - continuing without user context');
-      resolve(null);
-    }, TIMEOUT);
-    
+    setTimeout(() => reject(new Error('User context timeout')), TIMEOUT);
     checkUser();
-    
-    return () => clearTimeout(timeoutId);
   });
 }
 
@@ -70,25 +56,23 @@ export async function initializeFrame() {
     // Wait for user context
     const user = await waitForUser();
 
-    // Continue even if we don't have user info
-    window.userFid = user?.fid || null;
-    window.userName = user?.username || 'Anonymous';
+    if (!user || !user.fid) {
+      // we're probably not in a frame
+      return;
+    }
+
+    // Store user info
+    window.userFid = user.fid;
+    window.userName = user.username || 'Anonymous';
     console.log('User Info:', { fid: window.userFid, username: window.userName });
 
     // Initialize Frame SDK
     if (window.frame?.sdk?.actions?.ready) {
       console.log('Calling ready');
-      try {
-        await window.frame.sdk.actions.ready();
-        console.log('Frame SDK ready');
-      } catch (readyError) {
-        console.warn('Error calling ready, but continuing:', readyError);
-      }
-    } else {
-      console.log('Frame SDK ready action not available - continuing anyway');
+      await window.frame.sdk.actions.ready();
+      console.log('Frame SDK ready');
     }
   } catch (error) {
     console.error('Frame initialization error:', error);
-    // Continue execution even if there's an error
   }
 } 
