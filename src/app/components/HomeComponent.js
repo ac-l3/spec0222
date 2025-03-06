@@ -146,35 +146,17 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     setIsSharing(true);
     
     try {
-      // Generate share image
-      const response = await fetch('/api/generate-share-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fid })
-      });
-      
-      if (!response.ok) throw new Error('Failed to generate share image');
-      const { imageUrl } = await response.json();
-
       // Create share text with spectral type
       const shareText = `I've been classified as a ${SPECTRAL_TYPES[analysis.spectralType].name} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Create Warpcast share URL with app URL and image as embeds
-      const encodedText = encodeURI(shareText);
-      const encodedAppUrl = encodeURIComponent(`${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`);
-      const shareUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedAppUrl}`;
-
-      // Try to use Frame SDK first, fall back to window.open
-      if (window.frame?.sdk?.actions?.openUrl) {
-        console.log('Using Frame SDK to open URL:', shareUrl);
-        window.frame.sdk.actions.openUrl(shareUrl);
-      } else {
-        console.log('Frame SDK not available, using window.open:', shareUrl);
-        // Open in a new tab, not a new window
-        const newTab = window.open(shareUrl, '_blank');
-        // Ensure focus on the new tab (better user experience)
-        if (newTab) newTab.focus();
-      }
+      // Create Warpcast share URL with app URL as embed
+      const appUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`;
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(appUrl)}`;
+      
+      console.log('Opening Warpcast URL:', warpcastUrl);
+      
+      // Open in a new tab
+      window.open(warpcastUrl, '_blank');
     } catch (error) {
       console.error('Error sharing:', error);
       alert('Failed to share. Please try again.');
