@@ -6,6 +6,7 @@ import Layout from './Layout';
 import { Fira_Code } from 'next/font/google';
 import MetricBar from './MetricBar';
 import SpectralVisual from './SpectralVisual';
+import Image from 'next/image';
 
 const firaCode = Fira_Code({
   subsets: ['latin'],
@@ -496,12 +497,28 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
           
           {!analysis && (
             <div className="text-center mb-12 max-w-2xl mx-auto">
-              {/* Removed the heading with "How do you explore the unknown? Spectral Lab has the data." */}
-
-              <div className="bg-[#222222] border border-[#2A2A2A] p-6 mb-8">
-                <div className="mb-6 flex justify-center">
-                  <SpectralVisual isLanding={true} />
-                </div>
+              <div className="flex justify-center mb-4">
+                <Image 
+                  src="/title.png" 
+                  alt="SPECTRAL ALIGNMENT" 
+                  width={400} 
+                  height={200}
+                  priority
+                />
+              </div>
+              
+              <p className="text-[#C0C2C5] text-sm mb-4 text-left">
+                The Spectral Lab studies hidden structures, emergent behaviors, and unseen frequencies.
+              </p>
+              
+              <p className="text-[#C0C2C5] text-sm mb-6 text-left">
+                Approaches to the unknown reveal distinct realities—some disrupt boundaries, others flow across systems, and some create frameworks.
+              </p>
+              
+              <div className="bg-[#222222] p-4 mb-6">
+                <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
+                  Alignments reveal both insight into your methods and a corresponding Spectral position worth preserving.
+                </p>
                 
                 <button
                   onClick={handleAnalyze}
@@ -510,16 +527,6 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                 >
                   {isAnalyzing ? 'ANALYZING...' : 'REVEAL YOUR SPECTRAL ALIGNMENT'}
                 </button>
-              </div>
-              
-              <div className="text-left text-[#C0C2C5] space-y-8">
-                <p className="leading-relaxed text-sm">
-                  The Spectral Lab studies unseen structures, emergent behaviors, and hidden frequencies. Different approaches to the unknown reveal different aspects of reality—some disrupt boundaries, others flow between systems, and some establish frameworks.
-                </p>
-                
-                <p className="leading-relaxed text-sm">
-                  Your spectral signature is based on your current engagement with research frontiers. Alignments reveal both insight into your methods and a corresponding Spectral position worth preserving.
-                </p>
               </div>
             </div>
           )}
