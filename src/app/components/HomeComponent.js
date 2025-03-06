@@ -164,12 +164,16 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       const encodedAppUrl = encodeURIComponent(`${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`);
       const shareUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedAppUrl}`;
 
-      // Open share URL using Frame SDK
+      // Try to use Frame SDK first, fall back to window.open
       if (window.frame?.sdk?.actions?.openUrl) {
+        console.log('Using Frame SDK to open URL:', shareUrl);
         window.frame.sdk.actions.openUrl(shareUrl);
       } else {
-        console.error('Frame SDK not available for sharing');
-        throw new Error('Unable to open share dialog');
+        console.log('Frame SDK not available, using window.open:', shareUrl);
+        // Open in a new tab, not a new window
+        const newTab = window.open(shareUrl, '_blank');
+        // Ensure focus on the new tab (better user experience)
+        if (newTab) newTab.focus();
       }
     } catch (error) {
       console.error('Error sharing:', error);
