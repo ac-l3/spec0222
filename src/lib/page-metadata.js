@@ -28,12 +28,12 @@ export async function generateFrameMetadata({ searchParams }) {
   console.log('image url', imageUrl);
 
   return {
-    title: "Spectral Researcher",
-    description: "Discover your unique research style in the Spectral ecosystem",
+    title: "Spectral Alignment",
+    description: "Discover your Spectral Alignment in the research ecosystem",
     icons: {
-      icon: "https://cover-art.kasra.codes/enneagram-icon-512.png",
-      shortcut: "https://cover-art.kasra.codes/enneagram-icon-512.png",
-      apple: "https://cover-art.kasra.codes/enneagram-icon-512.png",
+      icon: "https://spec0222.vercel.app/icon.png",
+      shortcut: "https://spec0222.vercel.app/icon.png",
+      apple: "https://spec0222.vercel.app/icon.png",
     },
     other: {
       'fc:frame': JSON.stringify({
@@ -43,7 +43,7 @@ export async function generateFrameMetadata({ searchParams }) {
           "title": "Reveal Your Spectral Alignment",
           "action": {
             "type": "launch_frame",
-            "name": "Spectral Researcher",
+            "name": "Spectral Alignment",
             "url": "https://spec0222.vercel.app",
             "splashImageUrl": "https://spec0222.vercel.app/splash.png",
             "splashBackgroundColor": "#191919"
