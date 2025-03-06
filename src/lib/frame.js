@@ -54,7 +54,11 @@ export async function initializeFrame() {
     await waitForFrameSDK();
 
     // Wait for user context
-    const user = await waitForUser();
+    let user = await waitForUser();
+
+    if (user.user) {
+      user = user.user;
+    }
 
     if (!user || !user.fid) {
       // we're probably not in a frame
