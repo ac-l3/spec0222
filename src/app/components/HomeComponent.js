@@ -207,9 +207,9 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   return (
     <Layout>
       <div className={`min-h-screen bg-[#191919] ${firaCode.className} font-normal`}>
-        <div className="max-w-3xl mx-auto px-6 py-12">
+        <div className="max-w-4xl mx-auto px-3 py-12">
           {analysis && (
-            <div className="text-center text-[#C0C2C5] max-w-2xl mx-auto">
+            <div className="text-center text-[#C0C2C5] max-w-3xl mx-auto">
               {/* Removed the first "How do you explore the unknown?" heading */}
               
               {/* Spectral Type Visual - This will be different for each type */}
@@ -496,7 +496,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
           )}
           
           {!analysis && (
-            <div className="text-center mb-12 max-w-2xl mx-auto">
+            <div className="text-center mb-12 max-w-3xl mx-auto">
               <div className="flex justify-center mb-4">
                 <Image 
                   src="/title.png" 

@@ -8,7 +8,7 @@ export default function Layout({ children }) {
     <div className="relative min-h-screen overflow-hidden">
       <BackgroundBlob />
       <Wave />
-      <main className="relative max-w-[1024px] mx-auto flex flex-col items-center p-8">
+      <main className="relative max-w-[1024px] mx-auto flex flex-col items-center p-4">
         {children}
       </main>
     </div>
