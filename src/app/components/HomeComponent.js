@@ -153,11 +153,11 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       // Create share text with spectral type
       const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Create a URL with the spectral type and username in parameters
-      // This ensures the correct OG image is generated for the share
-      const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}&type=${spectralTypeNumber}&username=${encodeURIComponent(userInfo?.username || 'researcher')}`;
+      // Important: We need to share the base URL directly, not a parameterized URL
+      // This ensures we're sharing the frame itself with the button, not just a link
+      const frameUrl = process.env.NEXT_PUBLIC_BASE_URL;
       
-      console.log('Sharing result URL:', resultUrl);
+      console.log('Sharing frame URL:', frameUrl);
       
       // Create direct clipboard copy and twitter share fallback for mobile
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -166,19 +166,19 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
         // On mobile, we'll take a simpler approach
         try {
           // Create a combined text with URL for clipboard
-          const fullShareText = `${shareText}\n\n${resultUrl}`;
+          const fullShareText = `${shareText}\n\n${frameUrl}`;
           await navigator.clipboard.writeText(fullShareText);
-          alert('Share text and URL copied to clipboard! You can now paste it in Warpcast or any other app.');
+          alert('Share text and frame URL copied to clipboard! You can now paste it in Warpcast or any other app.');
         } catch (clipboardError) {
           console.error('Error copying to clipboard:', clipboardError);
           
           // Fallback to opening URL directly
-          window.open(resultUrl, '_blank');
+          window.open(frameUrl, '_blank');
         }
       } else {
         // On desktop, use the Warpcast compose URL
         const encodedText = encodeURIComponent(shareText);
-        const encodedUrl = encodeURIComponent(resultUrl);
+        const encodedUrl = encodeURIComponent(frameUrl);
         const warpcastUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedUrl}`;
         
         console.log('Opening Warpcast URL:', warpcastUrl);
