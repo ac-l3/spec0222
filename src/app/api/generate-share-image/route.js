@@ -6,6 +6,73 @@ export const runtime = 'edge';
 
 export const maxDuration = 60;
 
+// Add GET method to handle direct URL requests
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const username = searchParams.get('username');
+    const type = searchParams.get('type');
+    
+    if (!username || !type) {
+      return NextResponse.json(
+        { error: 'Username and type parameters are required' },
+        { status: 400 }
+      );
+    }
+
+    console.log('generate share image', { username, type });
+
+    // Generate a unique filename
+    const filename = `spectral/spectral-${username}-${type}-${Date.now()}.png`;
+    const cacheKey = `spectral:share-image:${username}-${type}`;
+    
+    try {
+      const exists = await checkIfExists(filename);
+      if (exists) {
+        const imageUrl = getPublicUrl(filename);
+        await putToKV(cacheKey, imageUrl);
+        return NextResponse.json({ imageUrl });
+      }
+    } catch (error) {
+      // Continue with generation if check fails
+    }
+
+    // Generate the OG image
+    const ogUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?username=${encodeURIComponent(username)}&type=${encodeURIComponent(type)}`;
+
+    console.log('calling og url', ogUrl);
+
+    const ogResponse = await fetch(ogUrl, { 
+      cache: 'no-store',
+      method: 'GET'
+    });
+    
+    if (!ogResponse.ok) {
+      return NextResponse.json(
+        { error: 'Failed to generate OG image' },
+        { status: ogResponse.status }
+      );
+    }
+
+    const imageBuffer = await ogResponse.arrayBuffer();
+    const imageUrl = await uploadToR2(imageBuffer, filename);
+
+    console.log('caching image url', imageUrl);
+
+    // Store the image URL in KV
+    await putToKV(cacheKey, imageUrl);
+    
+    return NextResponse.json({ imageUrl });
+  } catch (error) {
+    console.error('Share image generation error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to upload image' },
+      { status: 500 }
+    );
+  }
+}
+
+// Keep the POST method for backward compatibility
 export async function POST(request) {
   try {
     const { fid } = await request.json();

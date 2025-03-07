@@ -146,33 +146,23 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     setIsSharing(true);
     
     try {
-      // Step 1: Generate the share image
-      console.log('Generating share image for FID:', fid);
-      const response = await fetch('/api/generate-share-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fid })
-      });
+      // Get the spectral type name
+      const spectralTypeName = SPECTRAL_TYPES[analysis.spectralType].name;
       
-      if (!response.ok) {
-        throw new Error('Failed to generate share image');
-      }
+      // Create share text with spectral type
+      const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      const { imageUrl } = await response.json();
-      console.log('Generated share image URL:', imageUrl);
+      // Generate the share image URL directly with GET parameters
+      const shareImageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/generate-share-image?username=${encodeURIComponent(userInfo?.username || 'researcher')}&type=${encodeURIComponent(spectralTypeName)}`;
       
-      // Step 2: Create share text with spectral type
-      const shareText = `I've been classified as a ${SPECTRAL_TYPES[analysis.spectralType].name} in the Spectral Lab! Discover your research alignment below.`;
+      console.log('Share image URL:', shareImageUrl);
       
-      // Step 3: Create Warpcast share URL with both image and app URL as embeds
-      const appUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`;
+      // Create Warpcast share URL with the share image URL as embed
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareImageUrl)}`;
       
-      // Format: text=...&embeds[]=imageUrl&embeds[]=appUrl
-      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(imageUrl)}&embeds[]=${encodeURIComponent(appUrl)}`;
+      console.log('Opening Warpcast URL:', warpcastUrl);
       
-      console.log('Opening Warpcast URL with image embed:', warpcastUrl);
-      
-      // Step 4: Open in a new tab
+      // Open in a new tab
       window.open(warpcastUrl, '_blank');
     } catch (error) {
       console.error('Error sharing:', error);

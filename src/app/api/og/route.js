@@ -75,13 +75,47 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const fid = searchParams.get('fid');
+    const username = searchParams.get('username');
+    const type = searchParams.get('type');
 
-    if (!fid) {
-      return new Response('Missing FID', { status: 400 });
+    let analysis;
+
+    // If username and type are provided directly, use them
+    if (username && type) {
+      // Get the spectral type from the type parameter
+      const spectralTypeNumber = parseInt(type.match(/\d+/)?.[0] || type);
+      const spectralTypeName = type.replace(/\d+/g, '').trim();
+      
+      let spectralType;
+      if (isNaN(spectralTypeNumber)) {
+        // Try to find the type by name
+        const typeEntry = Object.entries(SPECTRAL_TYPES).find(([_, typeData]) => 
+          typeData.name.toLowerCase().includes(spectralTypeName.toLowerCase())
+        );
+        spectralType = typeEntry ? SPECTRAL_TYPES[typeEntry[0]] : SPECTRAL_TYPES[1];
+      } else {
+        spectralType = SPECTRAL_TYPES[spectralTypeNumber] || SPECTRAL_TYPES[1];
+      }
+
+      analysis = {
+        username,
+        pfp: "https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg", // Default profile pic
+        type: {
+          number: spectralTypeNumber || 1,
+          name: spectralType.name,
+          title: spectralType.name,
+          motto: spectralType.motto,
+          colors: spectralType.colors
+        }
+      };
+    } else if (fid) {
+      // Use the existing getAnalysis function if only fid is provided
+      analysis = await getAnalysis(fid);
+    } else {
+      return new Response('Missing required parameters', { status: 400 });
     }
 
-    const [analysis, regularFontData, mediumFontData, boldFontData] = await Promise.all([
-      getAnalysis(fid),
+    const [regularFontData, mediumFontData, boldFontData] = await Promise.all([
       firaCodeRegularData,
       firaCodeMediumData,
       firaCodeBoldData
