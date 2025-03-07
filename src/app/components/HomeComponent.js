@@ -146,31 +146,20 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     setIsSharing(true);
     
     try {
-      // Get the spectral type name
+      // Get the spectral type name and number
       const spectralTypeName = SPECTRAL_TYPES[analysis.spectralType].name;
+      const spectralTypeNumber = analysis.spectralType;
       
       // Create share text with spectral type
       const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Generate the share image URL with GET parameters
-      const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/generate-share-image?username=${encodeURIComponent(userInfo?.username || 'researcher')}&type=${encodeURIComponent(spectralTypeName)}`;
+      // Create a direct URL to the user's result page that will show as a card in Warpcast
+      const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`;
       
-      console.log('Fetching image from API URL:', apiUrl);
+      console.log('Sharing result URL:', resultUrl);
       
-      // Fetch the actual image URL from the API
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error('Failed to generate share image');
-      }
-      
-      const data = await response.json();
-      const actualImageUrl = data.imageUrl;
-      
-      console.log('Actual image URL:', actualImageUrl);
-      
-      // Create Warpcast share URL with the actual image URL as embed
-      const appUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`;
-      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(appUrl)}&embeds[]=${encodeURIComponent(actualImageUrl)}`;
+      // Create Warpcast share URL with the result URL as embed
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(resultUrl)}`;
       
       console.log('Opening Warpcast URL:', warpcastUrl);
       
