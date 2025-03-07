@@ -152,13 +152,25 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       // Create share text with spectral type
       const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Generate the share image URL directly with GET parameters
-      const shareImageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/generate-share-image?username=${encodeURIComponent(userInfo?.username || 'researcher')}&type=${encodeURIComponent(spectralTypeName)}`;
+      // Generate the share image URL with GET parameters
+      const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/generate-share-image?username=${encodeURIComponent(userInfo?.username || 'researcher')}&type=${encodeURIComponent(spectralTypeName)}`;
       
-      console.log('Share image URL:', shareImageUrl);
+      console.log('Fetching image from API URL:', apiUrl);
       
-      // Create Warpcast share URL with the share image URL as embed
-      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareImageUrl)}`;
+      // Fetch the actual image URL from the API
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error('Failed to generate share image');
+      }
+      
+      const data = await response.json();
+      const actualImageUrl = data.imageUrl;
+      
+      console.log('Actual image URL:', actualImageUrl);
+      
+      // Create Warpcast share URL with the actual image URL as embed
+      const appUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`;
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(appUrl)}&embeds[]=${encodeURIComponent(actualImageUrl)}`;
       
       console.log('Opening Warpcast URL:', warpcastUrl);
       
