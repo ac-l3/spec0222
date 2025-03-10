@@ -1,4 +1,5 @@
 import { getFromKV } from './cloudflare-kv';
+import { SPECTRAL_TYPES } from './constants';
 
 export async function generateFrameMetadata({ searchParams }) {
   const { fid, type, image } = await searchParams;
@@ -10,8 +11,26 @@ export async function generateFrameMetadata({ searchParams }) {
   let targetUrl = baseUrl;
   let buttonText = "Reveal Your Spectral Alignment";
   
-  // If an image parameter is provided, use it for the frame image
-  if (image) {
+  // If a type parameter is provided, use the corresponding spectral type image
+  if (type) {
+    const spectralTypeNumber = parseInt(type);
+    if (spectralTypeNumber >= 1 && spectralTypeNumber <= 3) {
+      // Use the appropriate image for this spectral type
+      if (spectralTypeNumber === 1) {
+        imageUrl = `${baseUrl}/images/axis-framer.png`;
+      } else if (spectralTypeNumber === 2) {
+        imageUrl = `${baseUrl}/images/flux-drifter.png`;
+      } else if (spectralTypeNumber === 3) {
+        imageUrl = `${baseUrl}/images/edge-disruptor.png`;
+      }
+      
+      // Set the target URL to include the type
+      targetUrl = `${baseUrl}?type=${spectralTypeNumber}`;
+      
+      console.log(`Using spectral type ${spectralTypeNumber} image:`, imageUrl);
+    }
+  } else if (image) {
+    // If an image parameter is provided, use it for the frame image
     console.log('Using provided image URL:', image);
     imageUrl = image;
   } else if (fid) {
@@ -29,9 +48,6 @@ export async function generateFrameMetadata({ searchParams }) {
     }
     // Add fid to the target URL
     targetUrl = `${baseUrl}?fid=${fid}`;
-  } else if (type) {
-    // If type is provided, use it for the target URL
-    targetUrl = `${baseUrl}?type=${type}`;
   }
 
   console.log('Using image URL for frame:', imageUrl);

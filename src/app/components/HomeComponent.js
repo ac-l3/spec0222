@@ -153,23 +153,10 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       // Create share text with spectral type
       const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Generate a custom share image using the API
-      console.log('Generating custom share image...');
-      const shareImageResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/generate-share-image?username=${encodeURIComponent(userInfo?.username || 'researcher')}&type=${encodeURIComponent(spectralTypeNumber)}`);
+      // Create a simplified URL with JUST the type parameter as suggested
+      const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?type=${spectralTypeNumber}`;
       
-      if (!shareImageResponse.ok) {
-        throw new Error('Failed to generate share image');
-      }
-      
-      const shareImageData = await shareImageResponse.json();
-      const shareImageUrl = shareImageData.imageUrl;
-      
-      console.log('Generated share image URL:', shareImageUrl);
-      
-      // Create a URL with the image parameter for the frame
-      const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?type=${spectralTypeNumber}&image=${encodeURIComponent(shareImageUrl)}`;
-      
-      console.log('Sharing URL with image parameter:', resultUrl);
+      console.log('Sharing simplified URL:', resultUrl);
       
       // Create Warpcast share URL with the result URL as embed
       const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(resultUrl)}`;
