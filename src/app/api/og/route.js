@@ -1,5 +1,4 @@
 import { ImageResponse } from 'next/og';
-import { getFromKV } from '@/lib/cloudflare-kv';
 import { SPECTRAL_TYPES } from '@/lib/constants';
 
 export const runtime = 'edge';
@@ -25,48 +24,21 @@ const imagePaths = {
   landing: `${process.env.NEXT_PUBLIC_BASE_URL}/images/spectral-landing.png`
 };
 
-async function getAnalysis(fid) {
-  const cacheKey = `spectral:analysis:${fid}`;
-  const cachedData = await getFromKV(cacheKey);
+// Simplified function to get analysis directly from parameters
+function getAnalysisFromParams(type, username = 'researcher') {
+  // Default to type 1 if not specified or invalid
+  const typeNumber = isNaN(parseInt(type)) ? 1 : parseInt(type);
+  const spectralType = typeNumber >= 1 && typeNumber <= 3 ? typeNumber : 1;
   
-  if (!cachedData) {
-    // For testing: Return mock data when KV lookup fails
-    console.log('No data found in KV, using test data');
-    
-    // Use the FID to determine which spectral type to use (for testing)
-    const spectralType = (parseInt(fid) % 3) + 1; // Will be 1, 2, or 3
-    
-    return {
-      username: "testuser",
-      pfp: "https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg", // Example profile pic
-      type: {
-        number: spectralType,
-        name: SPECTRAL_TYPES[spectralType].name,
-        title: SPECTRAL_TYPES[spectralType].name,
-        motto: SPECTRAL_TYPES[spectralType].motto,
-        colors: SPECTRAL_TYPES[spectralType].colors
-      }
-    };
-  }
-
-  const data = JSON.parse(cachedData);
-  const analysis = data.value ? JSON.parse(data.value) : data;
-
-  if (!analysis?.username || !analysis?.pfpUrl || !analysis?.analysis?.spectralType) {
-    throw new Error('Invalid analysis data');
-  }
-
-  const spectralType = SPECTRAL_TYPES[analysis.analysis.spectralType];
-
   return {
-    username: analysis.username,
-    pfp: analysis.pfpUrl,
+    username: username,
+    pfp: "https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg", // Default profile pic
     type: {
-      number: analysis.analysis.spectralType,
-      name: spectralType.name,
-      title: spectralType.name,
-      motto: spectralType.motto,
-      colors: spectralType.colors
+      number: spectralType,
+      name: SPECTRAL_TYPES[spectralType].name,
+      title: SPECTRAL_TYPES[spectralType].name,
+      motto: SPECTRAL_TYPES[spectralType].motto,
+      colors: SPECTRAL_TYPES[spectralType].colors
     }
   };
 }
@@ -75,43 +47,21 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const fid = searchParams.get('fid');
-    const username = searchParams.get('username');
+    const username = searchParams.get('username') || 'researcher';
     const type = searchParams.get('type');
 
     let analysis;
 
     // If username and type are provided directly, use them
-    if (username && type) {
-      // Get the spectral type from the type parameter
-      const spectralTypeNumber = parseInt(type.match(/\d+/)?.[0] || type);
-      const spectralTypeName = type.replace(/\d+/g, '').trim();
-      
-      let spectralType;
-      if (isNaN(spectralTypeNumber)) {
-        // Try to find the type by name
-        const typeEntry = Object.entries(SPECTRAL_TYPES).find(([_, typeData]) => 
-          typeData.name.toLowerCase().includes(spectralTypeName.toLowerCase())
-        );
-        spectralType = typeEntry ? SPECTRAL_TYPES[typeEntry[0]] : SPECTRAL_TYPES[1];
-      } else {
-        spectralType = SPECTRAL_TYPES[spectralTypeNumber] || SPECTRAL_TYPES[1];
-      }
-
-      analysis = {
-        username,
-        pfp: "https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg", // Default profile pic
-        type: {
-          number: spectralTypeNumber || 1,
-          name: spectralType.name,
-          title: spectralType.name,
-          motto: spectralType.motto,
-          colors: spectralType.colors
-        }
-      };
-    } else if (fid) {
-      // Use the existing getAnalysis function if only fid is provided
-      analysis = await getAnalysis(fid);
-    } else {
+    if (type) {
+      analysis = getAnalysisFromParams(type, username);
+    } 
+    // If only FID is provided, use it to generate a deterministic type for demo
+    else if (fid) {
+      const deterministicType = (parseInt(fid) % 3) + 1; // 1, 2, or 3 based on FID
+      analysis = getAnalysisFromParams(deterministicType, username);
+    } 
+    else {
       return new Response('Missing required parameters', { status: 400 });
     }
 

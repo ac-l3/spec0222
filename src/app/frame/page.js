@@ -1,6 +1,5 @@
 // This is a server component (no 'use client' directive)
 import { SPECTRAL_TYPES } from '../../lib/constants';
-import { getFromKV } from '../../lib/cloudflare-kv';
 
 // This is a simple Frame implementation using the Farcaster Frame specification
 export default async function FramePage({ searchParams }) {
@@ -16,32 +15,32 @@ export default async function FramePage({ searchParams }) {
   if (type) {
     const typeNumber = parseInt(type);
     if (!isNaN(typeNumber) && SPECTRAL_TYPES[typeNumber]) {
-      // Use the specific spectral type image
+      // Use the specific spectral type image for static files
       const typeImagePath = typeNumber === 1 ? 'axis-framer.png' : 
                           typeNumber === 2 ? 'flux-drifter.png' : 
                           'edge-disruptor.png';
-      imageUrl = `${baseUrl}/images/${typeImagePath}`;
       
-      // If username is also provided, customize button text
+      // Check if we need static image or dynamic OG
       if (username) {
+        // Use dynamic OG image with username and type
+        imageUrl = `${baseUrl}/api/og?username=${encodeURIComponent(username)}&type=${typeNumber}`;
+        
         const decodedUsername = decodeURIComponent(username);
         buttonText = `View ${decodedUsername}'s Spectral Alignment`;
+      } else {
+        // Use static image
+        imageUrl = `${baseUrl}/images/${typeImagePath}`;
       }
     }
   }
   // Fallback to using FID if type not provided
   else if (fid) {
-    // Try to get the share image URL from KV
-    const cacheKey = `spectral:share-image:${fid}`;
-    const cachedImageUrl = await getFromKV(cacheKey);
-    if (cachedImageUrl) {
-      try {
-        imageUrl = JSON.parse(cachedImageUrl);
-      } catch (e) {
-        console.error('Error parsing cached image URL:', e);
-        imageUrl = cachedImageUrl; // fallback to raw value if parsing fails
-      }
+    // Generate OG URL directly instead of using KV
+    imageUrl = `${baseUrl}/api/og?fid=${fid}`;
+    if (username) {
+      imageUrl += `&username=${encodeURIComponent(username)}`;
     }
+    
     // Add fid to the target URL
     targetUrl = `${baseUrl}?fid=${fid}`;
   }

@@ -154,6 +154,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       const shareText = `I've been classified as a $${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
       // Create a URL specifically for frame sharing that points to our dedicated frame page
+      // Using direct GET parameters for simplicity
       let frameUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/frame?type=${spectralTypeNumber}&username=${encodeURIComponent(userInfo?.username || 'researcher')}`;
       
       // For users with FID, include it in the URL
