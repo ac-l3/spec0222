@@ -62,7 +62,8 @@ export async function GET(request) {
       analysis = getAnalysisFromParams(deterministicType, username);
     } 
     else {
-      return new Response('Missing required parameters', { status: 400 });
+      // Default to type 1 if no parameters provided
+      analysis = getAnalysisFromParams(1, username);
     }
 
     const [regularFontData, mediumFontData, boldFontData] = await Promise.all([
@@ -158,7 +159,7 @@ export async function GET(request) {
               color: '#C0C2C5',
               textAlign: 'center',
             }}>
-              {analysis.type.name}
+              ${analysis.type.name}
             </span>
           </div>
         </div>

@@ -15,27 +15,18 @@ export default async function FramePage({ searchParams }) {
   if (type) {
     const typeNumber = parseInt(type);
     if (!isNaN(typeNumber) && SPECTRAL_TYPES[typeNumber]) {
-      // Use the specific spectral type image for static files
-      const typeImagePath = typeNumber === 1 ? 'axis-framer.png' : 
-                          typeNumber === 2 ? 'flux-drifter.png' : 
-                          'edge-disruptor.png';
+      // Always use dynamic OG image with username and type for personalized visualization
+      imageUrl = `${baseUrl}/api/og?username=${encodeURIComponent(username || 'researcher')}&type=${typeNumber}`;
       
-      // Check if we need static image or dynamic OG
       if (username) {
-        // Use dynamic OG image with username and type
-        imageUrl = `${baseUrl}/api/og?username=${encodeURIComponent(username)}&type=${typeNumber}`;
-        
         const decodedUsername = decodeURIComponent(username);
         buttonText = `View ${decodedUsername}'s Spectral Alignment`;
-      } else {
-        // Use static image
-        imageUrl = `${baseUrl}/images/${typeImagePath}`;
       }
     }
   }
   // Fallback to using FID if type not provided
   else if (fid) {
-    // Generate OG URL directly instead of using KV
+    // Generate OG URL directly with username for personalized visualization
     imageUrl = `${baseUrl}/api/og?fid=${fid}`;
     if (username) {
       imageUrl += `&username=${encodeURIComponent(username)}`;
@@ -64,7 +55,7 @@ export default async function FramePage({ searchParams }) {
         <meta property="og:description" content="Discover your Spectral Alignment in the research ecosystem" />
         <meta property="og:image" content={imageUrl} />
         
-        {/* Farcaster Frame tags */}
+        {/* Farcaster Frame tags - explicitly set version and ensure all required properties */}
         <meta property="fc:frame" content="vNext" />
         <meta property="fc:frame:image" content={imageUrl} />
         <meta property="fc:frame:button:1" content={buttonText} />
