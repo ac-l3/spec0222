@@ -3,40 +3,18 @@ import { SPECTRAL_TYPES } from '../../lib/constants';
 
 // This is a simple Frame implementation using the Farcaster Frame specification
 export default async function FramePage({ searchParams }) {
-  const { fid, type, username, cb } = searchParams;
+  const { fid, type, username } = searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   
-  // Use cache buster if provided or generate a new one
-  const cacheBuster = cb || Date.now().toString();
-  
-  // Determine image URL based on type or FID
-  let imageUrl = `${baseUrl}/image.png`;
+  // Always use the static SPECTRAL ALIGNMENT image for consistent frame rendering
+  let imageUrl = `${baseUrl}/images/spectral-landing.png`;
   let targetUrl = baseUrl;
   let buttonText = "Reveal Your Spectral Alignment";
   
-  // If type is directly provided, use it for the image URL
-  if (type) {
-    const typeNumber = parseInt(type);
-    if (!isNaN(typeNumber) && SPECTRAL_TYPES[typeNumber]) {
-      // Always use dynamic OG image with username and type for personalized visualization
-      imageUrl = `${baseUrl}/api/og?username=${encodeURIComponent(username || 'researcher')}&type=${typeNumber}&cb=${cacheBuster}`;
-      
-      if (username) {
-        const decodedUsername = decodeURIComponent(username);
-        buttonText = `View ${decodedUsername}'s Spectral Alignment`;
-      }
-    }
-  }
-  // Fallback to using FID if type not provided
-  else if (fid) {
-    // Generate OG URL directly with username for personalized visualization
-    imageUrl = `${baseUrl}/api/og?fid=${fid}&cb=${cacheBuster}`;
-    if (username) {
-      imageUrl += `&username=${encodeURIComponent(username)}`;
-    }
-    
-    // Add fid to the target URL
-    targetUrl = `${baseUrl}?fid=${fid}`;
+  // If username is provided, customize button text
+  if (username) {
+    const decodedUsername = decodeURIComponent(username);
+    buttonText = `View ${decodedUsername}'s Spectral Alignment`;
   }
   
   // Construct parameter string for the redirect URL
@@ -49,7 +27,7 @@ export default async function FramePage({ searchParams }) {
     ? `${baseUrl}?${redirectParams.join('&')}` 
     : baseUrl;
 
-  // Following the tutorial guidance for frame implementation
+  // Return HTML with frame meta tags
   return (
     <html>
       <head>
@@ -67,8 +45,9 @@ export default async function FramePage({ searchParams }) {
         <meta property="og:image" content={imageUrl} />
       </head>
       <body>
-        <h1>Spectral Alignment</h1>
-        <p>If you're seeing this page, you can <a href={redirectUrl}>click here</a> to view the results.</p>
+        <script dangerouslySetInnerHTML={{
+          __html: `window.location.href = "${redirectUrl}";`
+        }} />
       </body>
     </html>
   );
