@@ -153,37 +153,25 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       // Create share text with spectral type
       const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Create a URL with the spectral type and username in parameters 
-      // This ensures we get the dynamic result card in the share preview
+      // Create a URL with the spectral type and username in parameters
+      // This ensures the correct OG image is generated for the share
       const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}&type=${spectralTypeNumber}&username=${encodeURIComponent(userInfo?.username || 'researcher')}`;
       
       console.log('Sharing result URL:', resultUrl);
       
-      // Create direct clipboard copy and twitter share fallback for mobile
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      // Use a universal format that works on both mobile and desktop
+      // The fc:// protocol will open in the app on mobile if installed
+      const encodedText = encodeURIComponent(shareText);
+      const encodedUrl = encodeURIComponent(resultUrl);
       
-      if (isMobile) {
-        // On mobile, we'll take a simpler approach
-        try {
-          // Create a combined text with URL for clipboard
-          const fullShareText = `${shareText}\n\n${resultUrl}`;
-          await navigator.clipboard.writeText(fullShareText);
-          alert('Share text and URL copied to clipboard! You can now paste it in Warpcast or any other app.');
-        } catch (clipboardError) {
-          console.error('Error copying to clipboard:', clipboardError);
-          
-          // Fallback to opening URL directly
-          window.open(resultUrl, '_blank');
-        }
-      } else {
-        // On desktop, use the Warpcast compose URL
-        const encodedText = encodeURIComponent(shareText);
-        const encodedUrl = encodeURIComponent(resultUrl);
-        const warpcastUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedUrl}`;
-        
-        console.log('Opening Warpcast URL:', warpcastUrl);
-        window.open(warpcastUrl, '_blank');
-      }
+      // First attempt to use the mobile-friendly format
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedUrl}`;
+      
+      console.log('Opening Warpcast URL:', warpcastUrl);
+      
+      // Open in a new tab
+      window.open(warpcastUrl, '_blank');
+      
     } catch (error) {
       console.error('Error sharing:', error);
       alert('Failed to share. Please try again.');
