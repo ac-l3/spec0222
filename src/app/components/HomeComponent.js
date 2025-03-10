@@ -153,9 +153,12 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       // Create share text with spectral type
       const shareText = `I've been classified as a $${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
+      // Add a cache buster to prevent caching issues
+      const cacheBuster = Date.now().toString();
+      
       // Create a URL specifically for frame sharing that points to our dedicated frame page
       // Using direct GET parameters for simplicity
-      let frameUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/frame?type=${spectralTypeNumber}&username=${encodeURIComponent(userInfo?.username || 'researcher')}`;
+      let frameUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/frame?type=${spectralTypeNumber}&username=${encodeURIComponent(userInfo?.username || 'researcher')}&cb=${cacheBuster}`;
       
       // For users with FID, include it in the URL
       if (fid) {

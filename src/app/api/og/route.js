@@ -50,6 +50,10 @@ export async function GET(request) {
     const username = searchParams.get('username') || 'researcher';
     const type = searchParams.get('type');
 
+    // Cache busting parameter - helps prevent unwanted caching
+    const cacheBuster = searchParams.get('cb') || Date.now().toString();
+    console.log('Generating OG image with cache buster:', cacheBuster);
+
     let analysis;
 
     // If username and type are provided directly, use them
@@ -76,7 +80,7 @@ export async function GET(request) {
     const imagePath = imagePaths[analysis.type.number] || imagePaths[1];
 
     // Generate the image
-    return new ImageResponse(
+    const imageResponse = new ImageResponse(
       (
         <div style={{
           height: '100%',
@@ -189,6 +193,16 @@ export async function GET(request) {
         ],
       }
     );
+
+    // Set cache control headers
+    const headers = new Headers(imageResponse.headers);
+    headers.set('Cache-Control', 'public, max-age=60, s-maxage=60');
+    headers.set('Content-Type', 'image/png');
+    
+    return new Response(imageResponse.body, {
+      status: imageResponse.status,
+      headers
+    });
   } catch (error) {
     console.error('OG image generation error:', error);
     return new Response(error.message || 'Failed to generate image', { status: 500 });
