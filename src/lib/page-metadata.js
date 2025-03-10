@@ -1,19 +1,20 @@
 import { getFromKV } from './cloudflare-kv';
 
 export async function generateFrameMetadata({ searchParams }) {
-  const { fid, type } = await searchParams;
+  const { fid, type, image } = await searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   console.log('base url', baseUrl);
-  let imageUrl = "https://spec0222.vercel.app/image.png";
+  
+  // Default image URL
+  let imageUrl = `${baseUrl}/image.png`;
   let targetUrl = baseUrl;
   let buttonText = "Reveal Your Spectral Alignment";
-
-  // If type parameter is provided, generate a direct OG image URL
-  if (type) {
-    imageUrl = `${baseUrl}/api/og?type=${type}`;
-    console.log('Using type-based OG image:', imageUrl);
-  }
-  else if (fid) {
+  
+  // If an image parameter is provided, use it for the frame image
+  if (image) {
+    console.log('Using provided image URL:', image);
+    imageUrl = image;
+  } else if (fid) {
     // Try to get the share image URL from KV
     const cacheKey = `spectral:share-image:${fid}`;
     const cachedImageUrl = await getFromKV(cacheKey);
@@ -28,47 +29,36 @@ export async function generateFrameMetadata({ searchParams }) {
     }
     // Add fid to the target URL
     targetUrl = `${baseUrl}?fid=${fid}`;
+  } else if (type) {
+    // If type is provided, use it for the target URL
+    targetUrl = `${baseUrl}?type=${type}`;
   }
 
-  console.log('image url', imageUrl);
+  console.log('Using image URL for frame:', imageUrl);
 
-  // Create metadata object with Open Graph tags
-  const metadata = {
+  return {
     title: "Spectral Alignment",
     description: "Discover your Spectral Alignment in the research ecosystem",
-    openGraph: {
-      title: "Spectral Alignment",
-      description: "Discover your Spectral Alignment in the research ecosystem",
-      images: [imageUrl],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: "Spectral Alignment",
-      description: "Discover your Spectral Alignment in the research ecosystem",
-      images: [imageUrl],
-    },
     icons: {
-      icon: "https://spec0222.vercel.app/icon.png",
-      shortcut: "https://spec0222.vercel.app/icon.png",
-      apple: "https://spec0222.vercel.app/icon.png",
+      icon: `${baseUrl}/icon.png`,
+      shortcut: `${baseUrl}/icon.png`,
+      apple: `${baseUrl}/icon.png`,
     },
     other: {
       'fc:frame': JSON.stringify({
         "version": "next",
-        "imageUrl": "https://spec0222.vercel.app/image.png",
+        "imageUrl": imageUrl,
         "button": {
-          "title": "Reveal Your Spectral Alignment",
+          "title": buttonText,
           "action": {
             "type": "launch_frame",
             "name": "Spectral Alignment",
-            "url": "https://spec0222.vercel.app",
-            "splashImageUrl": "https://spec0222.vercel.app/splash.png",
+            "url": targetUrl,
+            "splashImageUrl": `${baseUrl}/splash.png`,
             "splashBackgroundColor": "#191919"
           }
         }
       })
     }
   };
-
-  return metadata;
 } 
