@@ -1,14 +1,19 @@
 import { getFromKV } from './cloudflare-kv';
 
 export async function generateFrameMetadata({ searchParams }) {
-  const { fid } = await searchParams;
+  const { fid, type } = await searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   console.log('base url', baseUrl);
   let imageUrl = "https://spec0222.vercel.app/image.png";
   let targetUrl = baseUrl;
   let buttonText = "Reveal Your Spectral Alignment";
 
-  if (fid) {
+  // If type parameter is provided, generate a direct OG image URL
+  if (type) {
+    imageUrl = `${baseUrl}/api/og?type=${type}`;
+    console.log('Using type-based OG image:', imageUrl);
+  }
+  else if (fid) {
     // Try to get the share image URL from KV
     const cacheKey = `spectral:share-image:${fid}`;
     const cachedImageUrl = await getFromKV(cacheKey);
@@ -27,9 +32,21 @@ export async function generateFrameMetadata({ searchParams }) {
 
   console.log('image url', imageUrl);
 
-  return {
+  // Create metadata object with Open Graph tags
+  const metadata = {
     title: "Spectral Alignment",
     description: "Discover your Spectral Alignment in the research ecosystem",
+    openGraph: {
+      title: "Spectral Alignment",
+      description: "Discover your Spectral Alignment in the research ecosystem",
+      images: [imageUrl],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Spectral Alignment",
+      description: "Discover your Spectral Alignment in the research ecosystem",
+      images: [imageUrl],
+    },
     icons: {
       icon: "https://spec0222.vercel.app/icon.png",
       shortcut: "https://spec0222.vercel.app/icon.png",
@@ -52,4 +69,6 @@ export async function generateFrameMetadata({ searchParams }) {
       })
     }
   };
+
+  return metadata;
 } 
