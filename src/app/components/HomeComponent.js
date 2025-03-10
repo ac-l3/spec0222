@@ -153,18 +153,21 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       // Create share text with spectral type
       const shareText = `I've been classified as a $${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Create a URL specifically formatted for frame sharing
-      // This ensures the frame metadata is properly loaded when shared
-      const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/frame?fid=${fid}&type=${spectralTypeNumber}&username=${encodeURIComponent(userInfo?.username || 'researcher')}`;
+      // Create a URL specifically for frame sharing that points to our dedicated frame page
+      let frameUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/frame?type=${spectralTypeNumber}&username=${encodeURIComponent(userInfo?.username || 'researcher')}`;
       
-      console.log('Sharing result URL:', resultUrl);
+      // For users with FID, include it in the URL
+      if (fid) {
+        frameUrl += `&fid=${fid}`;
+      }
+      
+      console.log('Sharing frame URL:', frameUrl);
       
       // Encode parameters for URL safety
       const encodedText = encodeURIComponent(shareText);
-      const encodedUrl = encodeURIComponent(resultUrl);
+      const encodedUrl = encodeURIComponent(frameUrl);
       
-      // Use the standard Warpcast URL format for frame sharing
-      // Using url parameter for proper frame integration rather than embeds[]
+      // Use Warpcast URL format for sharing
       const warpcastUrl = `https://warpcast.com/~/compose?text=${encodedText}&url=${encodedUrl}`;
       
       console.log('Opening Warpcast URL:', warpcastUrl);
