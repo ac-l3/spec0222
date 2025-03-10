@@ -151,21 +151,21 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       const spectralTypeNumber = analysis.spectralType;
       
       // Create share text with spectral type
-      const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
+      const shareText = `I've been classified as a $${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Create a URL with the spectral type and username in parameters
+      // Create a direct URL with the spectral type and username in parameters
       // This ensures the correct OG image is generated for the share
       const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}&type=${spectralTypeNumber}&username=${encodeURIComponent(userInfo?.username || 'researcher')}`;
       
       console.log('Sharing result URL:', resultUrl);
       
-      // Use a universal format that works on both mobile and desktop
-      // The fc:// protocol will open in the app on mobile if installed
+      // Encode parameters for URL safety
       const encodedText = encodeURIComponent(shareText);
       const encodedUrl = encodeURIComponent(resultUrl);
       
-      // First attempt to use the mobile-friendly format
-      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedUrl}`;
+      // Warpcast URL - using standard format that works across devices
+      // Note: For Farcaster, adding $ before the spectral type name makes it stand out in the cast
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodedText}&url=${encodedUrl}`;
       
       console.log('Opening Warpcast URL:', warpcastUrl);
       
