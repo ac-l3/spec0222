@@ -11,23 +11,17 @@ export async function generateFrameMetadata({ searchParams }) {
   let targetUrl = baseUrl;
   let buttonText = "Reveal Your Spectral Alignment";
   
-  // If a type parameter is provided, use the corresponding spectral type image
+  // If a type parameter is provided, use the corresponding static share image
   if (type) {
     const spectralTypeNumber = parseInt(type);
     if (spectralTypeNumber >= 1 && spectralTypeNumber <= 3) {
-      // Use the appropriate image for this spectral type
-      if (spectralTypeNumber === 1) {
-        imageUrl = `${baseUrl}/images/axis-framer.png`;
-      } else if (spectralTypeNumber === 2) {
-        imageUrl = `${baseUrl}/images/flux-drifter.png`;
-      } else if (spectralTypeNumber === 3) {
-        imageUrl = `${baseUrl}/images/edge-disruptor.png`;
-      }
+      // Use the new static share image for this spectral type
+      imageUrl = `${baseUrl}/images/type-${spectralTypeNumber}-share.png`;
       
       // Set the target URL to include the type
       targetUrl = `${baseUrl}?type=${spectralTypeNumber}`;
       
-      console.log(`Using spectral type ${spectralTypeNumber} image:`, imageUrl);
+      console.log(`Using spectral type ${spectralTypeNumber} share image:`, imageUrl);
     }
   } else if (image) {
     // If an image parameter is provided, use it for the frame image

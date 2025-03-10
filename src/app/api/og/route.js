@@ -17,14 +17,6 @@ const firaCodeBoldData = fetch(
   'https://fonts.gstatic.com/s/firacode/v21/uU9eCBsR6Z2vfE9aq3bL0fxyUs4tcw4W_NprJVD7MOzlojwUKaJO.woff'
 ).then(res => res.arrayBuffer());
 
-// Define colors for each spectral type
-const spectralColors = {
-  1: '#FF69B4', // Pink for Axis
-  2: '#0000FF', // Blue for Flux
-  3: '#FF0000', // Red for Edge
-  landing: '#191919' // Default dark background
-};
-
 // Image paths for each spectral type
 const imagePaths = {
   1: `${process.env.NEXT_PUBLIC_BASE_URL}/images/axis-framer.png`,
@@ -129,8 +121,8 @@ export async function GET(request) {
       firaCodeBoldData
     ]);
 
-    // Get the correct color for this spectral type
-    const backgroundColor = spectralColors[analysis.type.number] || spectralColors[1];
+    // Get the correct image path for this spectral type
+    const imagePath = imagePaths[analysis.type.number] || imagePaths[1];
 
     // Generate the image
     return new ImageResponse(
@@ -182,9 +174,16 @@ export async function GET(request) {
             position: 'relative',
             overflow: 'hidden',
             marginTop: '30px',
-            backgroundColor: backgroundColor,
           }}>
-            {/* Removed image, using solid color background instead */}
+            <img
+              src={imagePath}
+              alt={`Spectral Type ${analysis.type.number} Visual`}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
           </div>
 
           <div style={{
