@@ -153,10 +153,13 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       // Create share text with spectral type
       const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Create a simplified URL with JUST the type parameter as suggested
-      const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?type=${spectralTypeNumber}`;
+      // Add a timestamp to force a refresh of the metadata
+      const timestamp = Date.now();
       
-      console.log('Sharing simplified URL:', resultUrl);
+      // Create a simplified URL with JUST the type parameter and a timestamp
+      const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?type=${spectralTypeNumber}&t=${timestamp}`;
+      
+      console.log('Sharing URL with timestamp:', resultUrl);
       
       // Create Warpcast share URL with the result URL as embed
       const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(resultUrl)}`;

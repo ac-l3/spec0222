@@ -2,9 +2,10 @@ import { getFromKV } from './cloudflare-kv';
 import { SPECTRAL_TYPES } from './constants';
 
 export async function generateFrameMetadata({ searchParams }) {
-  const { fid, type, image } = await searchParams;
+  const { fid, type, image, t } = await searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  console.log('base url', baseUrl);
+  console.log('Generating frame metadata with params:', { fid, type, image, t });
+  console.log('Base URL:', baseUrl);
   
   // Default image URL
   let imageUrl = `${baseUrl}/image.png`;
@@ -16,12 +17,16 @@ export async function generateFrameMetadata({ searchParams }) {
     const spectralTypeNumber = parseInt(type);
     if (spectralTypeNumber >= 1 && spectralTypeNumber <= 3) {
       // Use the new static share image for this spectral type
-      imageUrl = `${baseUrl}/images/type-${spectralTypeNumber}-share.png`;
+      const shareImagePath = `/images/type-${spectralTypeNumber}-share.png`;
+      imageUrl = `${baseUrl}${shareImagePath}`;
       
       // Set the target URL to include the type
       targetUrl = `${baseUrl}?type=${spectralTypeNumber}`;
       
       console.log(`Using spectral type ${spectralTypeNumber} share image:`, imageUrl);
+      
+      // Verify the image exists by logging
+      console.log(`Image path should be: ${shareImagePath}`);
     }
   } else if (image) {
     // If an image parameter is provided, use it for the frame image
@@ -44,9 +49,9 @@ export async function generateFrameMetadata({ searchParams }) {
     targetUrl = `${baseUrl}?fid=${fid}`;
   }
 
-  console.log('Using image URL for frame:', imageUrl);
-
-  return {
+  console.log('Final image URL for frame:', imageUrl);
+  
+  const frameMetadata = {
     title: "Spectral Alignment",
     description: "Discover your Spectral Alignment in the research ecosystem",
     icons: {
@@ -71,4 +76,8 @@ export async function generateFrameMetadata({ searchParams }) {
       })
     }
   };
+  
+  console.log('Generated frame metadata:', JSON.stringify(frameMetadata.other['fc:frame']));
+  
+  return frameMetadata;
 } 
