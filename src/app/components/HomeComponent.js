@@ -153,15 +153,11 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       // Create share text with spectral type
       const shareText = `I've been classified as a $${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // Create a URL specifically for frame sharing that points to our dedicated frame page
-      let frameUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/frame?type=${spectralTypeNumber}&username=${encodeURIComponent(userInfo?.username || 'researcher')}`;
+      // SIMPLIFIED: Use only type parameter to test the encoding issue
+      // Use a much simpler URL structure with just the type parameter to avoid & encoding issues
+      let frameUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/frame?type=${spectralTypeNumber}`;
       
-      // For users with FID, include it in the URL
-      if (fid) {
-        frameUrl += `&fid=${fid}`;
-      }
-      
-      console.log('Sharing frame URL:', frameUrl);
+      console.log('Sharing simple frame URL:', frameUrl);
       
       // Encode parameters for URL safety
       const encodedText = encodeURIComponent(shareText);

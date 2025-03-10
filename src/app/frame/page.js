@@ -3,31 +3,27 @@ import { SPECTRAL_TYPES } from '../../lib/constants';
 
 // This is a simple Frame implementation using the Farcaster Frame specification
 export default async function FramePage({ searchParams }) {
-  const { fid, type, username } = searchParams;
+  const { type } = searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   
-  // Always use the static SPECTRAL ALIGNMENT image for consistent frame rendering
-  let imageUrl = `${baseUrl}/images/spectral-landing.png`;
-  let targetUrl = baseUrl;
+  // Default values
+  let imageUrl = `${baseUrl}/image.png`;
   let buttonText = "Reveal Your Spectral Alignment";
+  let redirectUrl = baseUrl;
   
-  // If username is provided, customize button text
-  if (username) {
-    const decodedUsername = decodeURIComponent(username);
-    buttonText = `View ${decodedUsername}'s Spectral Alignment`;
+  // If type is provided, use it for the image URL
+  if (type) {
+    const typeNumber = parseInt(type);
+    if (!isNaN(typeNumber) && SPECTRAL_TYPES[typeNumber]) {
+      // SIMPLIFIED VERSION: Just generate an image for the type
+      imageUrl = `${baseUrl}/api/og?type=${typeNumber}`;
+      
+      // Set redirect URL to just have the type parameter
+      redirectUrl = `${baseUrl}?type=${typeNumber}`;
+    }
   }
-  
-  // Construct parameter string for the redirect URL
-  let redirectParams = [];
-  if (fid) redirectParams.push(`fid=${fid}`);
-  if (type) redirectParams.push(`type=${type}`);
-  if (username) redirectParams.push(`username=${encodeURIComponent(username || '')}`);
-  
-  const redirectUrl = redirectParams.length > 0 
-    ? `${baseUrl}?${redirectParams.join('&')}` 
-    : baseUrl;
 
-  // Return HTML with frame meta tags
+  // Following the tutorial guidance for frame implementation
   return (
     <html>
       <head>
@@ -45,9 +41,8 @@ export default async function FramePage({ searchParams }) {
         <meta property="og:image" content={imageUrl} />
       </head>
       <body>
-        <script dangerouslySetInnerHTML={{
-          __html: `window.location.href = "${redirectUrl}";`
-        }} />
+        <h1>Spectral Alignment</h1>
+        <p>If you're seeing this page, you can <a href={redirectUrl}>click here</a> to view the results.</p>
       </body>
     </html>
   );

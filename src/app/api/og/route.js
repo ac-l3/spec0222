@@ -24,15 +24,14 @@ const imagePaths = {
   landing: `${process.env.NEXT_PUBLIC_BASE_URL}/images/spectral-landing.png`
 };
 
-// Simplified function to get analysis directly from parameters
-function getAnalysisFromParams(type, username = 'researcher') {
+// Simplified function to get analysis just from type
+function getAnalysisFromType(type) {
   // Default to type 1 if not specified or invalid
   const typeNumber = isNaN(parseInt(type)) ? 1 : parseInt(type);
   const spectralType = typeNumber >= 1 && typeNumber <= 3 ? typeNumber : 1;
   
   return {
-    username: username,
-    pfp: "https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg", // Default profile pic
+    username: "Spectral",
     type: {
       number: spectralType,
       name: SPECTRAL_TYPES[spectralType].name,
@@ -46,28 +45,17 @@ function getAnalysisFromParams(type, username = 'researcher') {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const fid = searchParams.get('fid');
-    const username = searchParams.get('username') || 'researcher';
     const type = searchParams.get('type');
+    const username = searchParams.get('username') || 'Spectral';
+    
+    console.log('Generating simple OG image for type:', type);
 
-    // Cache busting parameter - helps prevent unwanted caching
-    const cacheBuster = searchParams.get('cb') || Date.now().toString();
-    console.log('Generating OG image with cache buster:', cacheBuster);
-
-    let analysis;
-
-    // If username and type are provided directly, use them
-    if (type) {
-      analysis = getAnalysisFromParams(type, username);
-    } 
-    // If only FID is provided, use it to generate a deterministic type for demo
-    else if (fid) {
-      const deterministicType = (parseInt(fid) % 3) + 1; // 1, 2, or 3 based on FID
-      analysis = getAnalysisFromParams(deterministicType, username);
-    } 
-    else {
-      // Default to type 1 if no parameters provided
-      analysis = getAnalysisFromParams(1, username);
+    // SIMPLIFIED VERSION: Just use type parameter
+    const analysis = getAnalysisFromType(type);
+    
+    // Add username if provided
+    if (username) {
+      analysis.username = username;
     }
 
     const [regularFontData, mediumFontData, boldFontData] = await Promise.all([
