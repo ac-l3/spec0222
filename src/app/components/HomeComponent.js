@@ -151,26 +151,20 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       const spectralTypeNumber = analysis.spectralType;
       
       // Create share text with spectral type
-      const shareText = `I've been classified as a $${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
+      const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
       
-      // SIMPLIFIED: Use only type parameter to test the encoding issue
-      // Use a much simpler URL structure with just the type parameter to avoid & encoding issues
-      let frameUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/frame?type=${spectralTypeNumber}`;
+      // Create a direct URL to the user's result page that will show as a card in Warpcast
+      const resultUrl = `${process.env.NEXT_PUBLIC_BASE_URL}?fid=${fid}`;
       
-      console.log('Sharing simple frame URL:', frameUrl);
+      console.log('Sharing result URL:', resultUrl);
       
-      // Encode parameters for URL safety
-      const encodedText = encodeURIComponent(shareText);
-      const encodedUrl = encodeURIComponent(frameUrl);
-      
-      // Use Warpcast URL format for sharing
-      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodedText}&url=${encodedUrl}`;
+      // Create Warpcast share URL with the result URL as embed
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(resultUrl)}`;
       
       console.log('Opening Warpcast URL:', warpcastUrl);
       
       // Open in a new tab
       window.open(warpcastUrl, '_blank');
-      
     } catch (error) {
       console.error('Error sharing:', error);
       alert('Failed to share. Please try again.');

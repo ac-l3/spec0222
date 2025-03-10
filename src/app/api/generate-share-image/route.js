@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
+import { uploadToR2, checkIfExists, getPublicUrl } from '../../../lib/cloudflare-r2';
+import { getFromKV, putToKV } from '../../../lib/cloudflare-kv';
 
 export const runtime = 'edge';
 
 export const maxDuration = 60;
 
-// Simplified GET method that directly returns the OG image URL
+// Add GET method to handle direct URL requests
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -18,25 +20,59 @@ export async function GET(request) {
       );
     }
 
-    console.log('generate share image URL for', { username, type });
+    console.log('generate share image', { username, type });
 
-    // Simply construct the OG image URL directly
+    // Generate a unique filename
+    const filename = `spectral/spectral-${username}-${type}-${Date.now()}.png`;
+    const cacheKey = `spectral:share-image:${username}-${type}`;
+    
+    try {
+      const exists = await checkIfExists(filename);
+      if (exists) {
+        const imageUrl = getPublicUrl(filename);
+        await putToKV(cacheKey, imageUrl);
+        return NextResponse.json({ imageUrl });
+      }
+    } catch (error) {
+      // Continue with generation if check fails
+    }
+
+    // Generate the OG image
     const ogUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?username=${encodeURIComponent(username)}&type=${encodeURIComponent(type)}`;
+
+    console.log('calling og url', ogUrl);
+
+    const ogResponse = await fetch(ogUrl, { 
+      cache: 'no-store',
+      method: 'GET'
+    });
     
-    console.log('Created OG URL:', ogUrl);
+    if (!ogResponse.ok) {
+      return NextResponse.json(
+        { error: 'Failed to generate OG image' },
+        { status: ogResponse.status }
+      );
+    }
+
+    const imageBuffer = await ogResponse.arrayBuffer();
+    const imageUrl = await uploadToR2(imageBuffer, filename);
+
+    console.log('caching image url', imageUrl);
+
+    // Store the image URL in KV
+    await putToKV(cacheKey, imageUrl);
     
-    // Return the URL directly - no need to store in KV or R2
-    return NextResponse.json({ imageUrl: ogUrl });
+    return NextResponse.json({ imageUrl });
   } catch (error) {
-    console.error('Share image URL generation error:', error);
+    console.error('Share image generation error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate share image URL' },
+      { error: error.message || 'Failed to upload image' },
       { status: 500 }
     );
   }
 }
 
-// Simplified POST method for backward compatibility
+// Keep the POST method for backward compatibility
 export async function POST(request) {
   try {
     const { fid } = await request.json();
@@ -48,19 +84,53 @@ export async function POST(request) {
       );
     }
 
-    console.log('generate share image URL for FID', fid);
+    console.log('generate share image', fid);
 
-    // Simply construct the OG image URL directly
+    // Check if image already exists
+    const filename = `spectral/spectral-${fid}-${Date.now()}.png`;
+    const cacheKey = `spectral:share-image:${fid}`;
+    
+    try {
+      const exists = await checkIfExists(filename);
+      if (exists) {
+        const imageUrl = getPublicUrl(filename);
+        await putToKV(cacheKey, imageUrl);
+        return NextResponse.json({ imageUrl });
+      }
+    } catch (error) {
+      // Continue with generation if check fails
+    }
+
+    // Generate the OG image
     const ogUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?fid=${fid}`;
+
+    console.log('calling og url', ogUrl);
+
+    const ogResponse = await fetch(ogUrl, { 
+      cache: 'no-store',
+      method: 'GET'
+    });
     
-    console.log('Created OG URL:', ogUrl);
+    if (!ogResponse.ok) {
+      return NextResponse.json(
+        { error: 'Failed to generate OG image' },
+        { status: ogResponse.status }
+      );
+    }
+
+    const imageBuffer = await ogResponse.arrayBuffer();
+    const imageUrl = await uploadToR2(imageBuffer, filename);
+
+    console.log('caching image url', imageUrl);
+
+    // Store the image URL in KV
+    await putToKV(cacheKey, imageUrl);
     
-    // Return the URL directly - no need to store in KV or R2
-    return NextResponse.json({ imageUrl: ogUrl });
+    return NextResponse.json({ imageUrl });
   } catch (error) {
-    console.error('Share image URL generation error:', error);
+    console.error('Share image generation error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate share image URL' },
+      { error: error.message || 'Failed to upload image' },
       { status: 500 }
     );
   }
