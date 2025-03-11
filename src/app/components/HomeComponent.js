@@ -291,7 +291,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                 </p>
               </div>
               
-              {/* How do you explore the unknown? - Updated to focus on methodology */}
+              {/* How do you explore the unknown? - Updated to focus on poetic, philosophical exploration */}
               <div className="text-left mb-12">
                 <div className="mb-4">
                   <h3 className="text-base font-normal">How do you explore the unknown?</h3>
@@ -300,21 +300,27 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                   <div className="space-y-6">
                     <p className="leading-relaxed text-sm text-[#999999]">
                       {(() => {
+                        // Use the AI-generated explorationStyle if available
+                        if (analysis.researchProfile.explorationStyle) {
+                          return analysis.researchProfile.explorationStyle;
+                        }
+                        
+                        // Fallback to the poetic templates if explorationStyle is not available
                         // Get the spectral type to determine the exploration style
                         const spectralType = analysis.spectralType;
                         
-                        // Create a more concrete description based on spectral type that focuses on methodology
+                        // Create a poetic description based on spectral type
                         let explorationStyle = "";
                         
                         if (spectralType === 1) { // $AXIS Framer
-                          explorationStyle = "You investigate by breaking down complex systems into their fundamental components, then reconstructing them with greater clarity. Rather than accepting existing frameworks, you methodically test each element, refining and optimizing as you go. Your process involves creating structured models that expose underlying patterns, documenting your findings with precision, and building knowledge systems that others can build upon. When you encounter ambiguity, you respond by establishing clear parameters and developing frameworks that transform chaos into order.";
+                          explorationStyle = "You explore through patterns and resonance, finding the hidden rhythms in seemingly random data. Your mind transforms abstract concepts into geometric frameworks that reveal underlying truths. Where others see chaos, you perceive the mathematical harmonies that connect disparate elements. You navigate uncertainty by creating structures that illuminate the unseen - building bridges between intuition and analysis. Your frameworks aren't just tools, but windows into deeper understanding, allowing you to map territories where logic and imagination converge.";
                         } else if (spectralType === 2) { // $FLUX Drifter
-                          explorationStyle = "You investigate through constant movement and adaptation, flowing between different contexts to discover unexpected connections. Rather than following predetermined paths, you navigate by intuition, allowing yourself to be pulled toward emerging patterns before they're fully formed. Your process thrives on rapid iteration—testing ideas quickly, absorbing feedback, and evolving your approach in real-time. When faced with uncertainty, you respond by increasing your engagement, using direct experience as your primary research tool rather than abstract analysis.";
+                          explorationStyle = "You explore by immersing yourself in emerging patterns, adapting and flowing with new information rather than forcing predetermined paths. You gather insights through deep listening and observation, allowing connections to reveal themselves naturally. Your strength lies in recognizing meaningful signals within apparent noise, finding coherence where others see only randomness. This receptive approach lets you discover hidden relationships between concepts, creating a living map that evolves with each new discovery.";
                         } else if (spectralType === 3) { // $EDGE Disruptor
-                          explorationStyle = "You investigate by pushing systems to their breaking points, stress-testing assumptions until their limitations reveal new insights. Rather than refining existing models, you challenge their core premises, looking for gaps, contradictions, and points of failure. Your approach thrives in chaos—by navigating ambiguity, disrupting norms, and introducing perspectives that force recalibration. Your work is about exposing overlooked truths rather than reinforcing stable narratives, finding value precisely where others see only disorder.";
+                          explorationStyle = "You explore by challenging established boundaries and questioning fundamental assumptions. Your approach combines critical analysis with creative reimagining, breaking open conventional thinking to discover what lies beyond. You systematically identify blind spots in existing models, then experiment with alternative perspectives that reveal new possibilities. This balanced tension between deconstruction and creation allows you to transform limitations into gateways, uncovering insights that remain hidden to those who stay within comfortable frameworks.";
                         } else {
-                          // Fallback to a generic exploration style if spectral type is unknown
-                          explorationStyle = "You investigate through a combination of critical analysis and intuitive exploration, challenging assumptions while remaining open to unexpected discoveries. Your approach balances structured thinking with creative leaps, allowing you to navigate uncertainty with both rigor and flexibility. When confronting the unknown, you draw on multiple methodologies, adapting your process to the specific context rather than applying a single formula.";
+                          // Fallback to a generic poetic exploration style if spectral type is unknown
+                          explorationStyle = "You explore the unknown through a balanced interplay of structure and intuition, creating frameworks that organize complexity while remaining open to unexpected discoveries. Your approach combines methodical analysis with creative leaps, allowing you to map territories while recognizing that no map is ever complete. You excel at finding patterns within apparent randomness, transforming abstract concepts into tangible models that reveal hidden connections. This dynamic balance between order and possibility creates a unique lens through which new understanding emerges.";
                         }
                         
                         return explorationStyle;
@@ -323,7 +329,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                     
                     <div className="pt-4 mt-4 border-t border-[#333333]">
                       <p className="text-[#888888] mb-3 text-sm">Field Evidence</p>
-                      <ul className="list-disc pl-6 space-y-2 text-[#BEBFC2] text-sm">
+                      <ul className="list-none pl-0 space-y-3 text-[#BEBFC2] text-sm">
                         {(() => {
                           // Get all field evidence
                           const allEvidence = analysis.researchProfile.fieldEvidence || [];
@@ -342,8 +348,14 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                           
                           // Only use actual casts from the user's content, up to 3
                           return filteredEvidence.slice(0, 3).map((evidence, index) => (
-                            <li key={index} className="leading-relaxed">
-                              "{evidence.observation.replace(/^"+|"+$/g, '')}"
+                            <li key={index} className="leading-relaxed mb-3">
+                              <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                              {evidence.title && evidence.analysis && (
+                                <div className="ml-4">
+                                  <span className="text-[#999999] text-sm">{evidence.title}: </span>
+                                  <span className="text-[#999999] text-sm">{evidence.analysis}</span>
+                                </div>
+                              )}
                             </li>
                           ));
                         })()}
