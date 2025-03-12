@@ -337,24 +337,33 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                 </div>
                 <div className="bg-[#222222] border border-[#333333] p-6">
                   <ul className="list-none pl-0 space-y-3 text-[#BEBFC2] text-sm">
-                    {(() => {
-                      // Get all field evidence
-                      const allEvidence = analysis.researchProfile.fieldEvidence || [];
-                      
-                      // Filter out problematic content
-                      const filteredEvidence = allEvidence.filter(evidence => {
-                        const observation = evidence.observation || '';
-                        return !(
-                          observation.toLowerCase().includes("hitler") || 
-                          observation.toLowerCase().includes("nazi") ||
-                          observation.toLowerCase().includes("rodeo") ||
-                          observation.toLowerCase().includes("zora") ||
-                          observation.toLowerCase().includes("fuck")
-                        );
-                      });
-                      
-                      // Only show up to 3 unique casts - no duplicates
+                        {(() => {
+                          // Get all field evidence
+                          const allEvidence = analysis.researchProfile.fieldEvidence || [];
+                          
+                          // Filter out problematic content
+                          const filteredEvidence = allEvidence.filter(evidence => {
+                            const observation = evidence.observation || '';
+                            return !(
+                              observation.toLowerCase().includes("hitler") || 
+                              observation.toLowerCase().includes("nazi") ||
+                              observation.toLowerCase().includes("rodeo") ||
+                              observation.toLowerCase().includes("zora") ||
+                              observation.toLowerCase().includes("fuck")
+                            );
+                          });
+                          
+                      // Only show up to 3 unique casts - no duplication
                       const castsToShow = filteredEvidence.slice(0, 3);
+                      
+                      // If we have no casts at all, show a placeholder message
+                      if (castsToShow.length === 0) {
+                        return (
+                          <li className="leading-relaxed mb-3">
+                            <p className="mb-1 text-[#999999]">No casts available to analyze. Your cosmic transmissions remain a mystery... for now.</p>
+                          </li>
+                        );
+                      }
                       
                       return castsToShow.map((evidence, index) => {
                         // Generate humorous interpretation based on spectral type and content
@@ -512,11 +521,11 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                             <div className="ml-4">
                               <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
                             </div>
-                          </li>
+                            </li>
                         );
                       });
-                    })()}
-                  </ul>
+                        })()}
+                      </ul>
                 </div>
               </div>
               
