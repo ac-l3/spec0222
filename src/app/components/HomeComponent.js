@@ -353,14 +353,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         );
                       });
                       
-                      // Ensure we display exactly 3 casts if available
+                      // Only show up to 3 unique casts - no duplicates
                       const castsToShow = filteredEvidence.slice(0, 3);
-                      
-                      // If we have fewer than 3 casts, duplicate the last one to reach 3
-                      // This ensures we always show 3 casts if at least one is available
-                      while (castsToShow.length < 3 && castsToShow.length > 0) {
-                        castsToShow.push(castsToShow[castsToShow.length - 1]);
-                      }
                       
                       return castsToShow.map((evidence, index) => {
                         // Generate humorous interpretation based on spectral type and content
