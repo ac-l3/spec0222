@@ -34,7 +34,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   // Initialize audio on client side only
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      buttonSoundRef.current = new Audio('/sounds/button-sound.wav');
+      buttonSoundRef.current = new Audio('/sounds/button-sound.mp3');
     }
   }, []);
 
