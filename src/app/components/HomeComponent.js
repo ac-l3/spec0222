@@ -348,45 +348,144 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                           
                           // Only use actual casts from the user's content, up to 3
                           return filteredEvidence.slice(0, 3).map((evidence, index) => {
-                            // Generate humorous, mystical interpretation based on spectral type
+                            // Generate humorous interpretation based on spectral type and content
                             let humorousInterpretation = "";
+                            const observation = evidence.observation || "";
+                            const observationLower = observation.toLowerCase();
                             const spectralType = analysis.spectralType;
-                            const observation = evidence.observation.toLowerCase();
+                            
+                            // Extract key words and phrases from the observation
+                            const words = observation.split(/\s+/);
+                            const keyWords = words.filter(word => 
+                              word.length > 3 && 
+                              !["this", "that", "with", "from", "have", "what", "when", "where", "will", "just", "like", "your", "their", "they", "about"].includes(word.toLowerCase())
+                            );
+                            
+                            // Function to get a random element from an array
+                            const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
+                            
+                            // Function to check if observation contains any of the terms
+                            const containsAny = (terms) => terms.some(term => observationLower.includes(term));
                             
                             if (spectralType === 1) { // $AXIS Framer
-                              if (observation.includes("framework") || observation.includes("structure") || observation.includes("build")) {
-                                humorousInterpretation = "You create cosmic scaffolding where others see only chaos - your mind instinctively transforms the universe into elegant frameworks that would make sacred geometers weep with joy.";
-                              } else if (observation.includes("pattern") || observation.includes("system") || observation.includes("organize")) {
-                                humorousInterpretation = "Even the stars envy how effortlessly you organize the cosmos - categorizing reality with a precision that transforms random elements into divine patterns.";
-                              } else {
-                                humorousInterpretation = "You categorize the uncategorizable - a celestial librarian whose mind creates order from chaos with such elegance that even quantum uncertainty bows to your frameworks.";
+                              // Tech/coding related
+                              if (containsAny(["code", "build", "dev", "api", "function", "app", "website", "program", "framework", "system", "design", "architecture"])) {
+                                humorousInterpretation = `You approach ${getRandomElement(keyWords)} with the precision of an architect designing a cathedral. Your brain probably renders wireframes while others are still deciding what to build.`;
                               }
-                            } else if (spectralType === 2) { // $FLUX Drifter
-                              if (observation.includes("flow") || observation.includes("vibe") || observation.includes("feel")) {
-                                humorousInterpretation = "You surf the waves of cosmic consciousness with a wetsuit made of pure intuition - somehow always landing on the perfect shore while the rest of us are still reading tide charts.";
-                              } else if (observation.includes("change") || observation.includes("adapt") || observation.includes("evolve")) {
-                                humorousInterpretation = "You adapt to change like water adapts to its container - with such natural grace that it makes the rest of us look like we're trying to fit square pegs in round cosmic holes.";
-                              } else {
-                                humorousInterpretation = "You navigate reality's currents with the casual ease of someone who somehow always knows which way the cosmic wind is blowing - while the rest of us are still trying to find the weather app.";
+                              // Organization/structure related
+                              else if (containsAny(["organize", "structure", "plan", "map", "model", "pattern", "grid", "align", "order", "sort", "category", "classify"])) {
+                                humorousInterpretation = `Your comment about ${getRandomElement(keyWords)} reveals someone who alphabetizes their spice rack and color-codes their calendar notifications. Beautifully structured chaos.`;
                               }
-                            } else if (spectralType === 3) { // $EDGE Disruptor
-                              if (observation.includes("break") || observation.includes("disrupt") || observation.includes("challenge")) {
-                                humorousInterpretation = "You dismantle paradigms before breakfast - a cosmic wrecking ball with the precision of a surgeon and the vision to see what should rise from the rubble.";
-                              } else if (observation.includes("edge") || observation.includes("boundary") || observation.includes("limit")) {
-                                humorousInterpretation = "You dance on the edge where others fear to even peek - treating the boundaries of possibility like they're just polite suggestions from a universe that hasn't met you yet.";
-                              } else {
-                                humorousInterpretation = "You question reality with such delightful audacity that the cosmos itself has to double-check its assumptions - a divine troublemaker who creates new possibilities by breaking the old rules.";
+                              // Analysis/thinking related
+                              else if (containsAny(["think", "analyze", "consider", "understand", "logic", "reason", "rational", "examine", "evaluate"])) {
+                                humorousInterpretation = `You don't just think about ${getRandomElement(keyWords)} - you create a multi-dimensional framework to analyze it from every possible angle. Casual overthinking as an art form.`;
                               }
-                            } else {
-                              // Generic fallback
-                              humorousInterpretation = "Your cosmic perspective transforms ordinary observations into profound insights - seeing patterns in the stars that others mistake for random twinkling.";
+                              // Problem-solving related
+                              else if (containsAny(["fix", "solve", "issue", "problem", "bug", "error", "solution", "resolve"])) {
+                                humorousInterpretation = `You don't just see a problem with ${getRandomElement(keyWords)} - you see an architectural flaw in the universe's blueprint that must be corrected with mathematical precision.`;
+                              }
+                              // Morning greetings
+                              else if (containsAny(["gm", "morning", "hello", "hi", "hey"])) {
+                                humorousInterpretation = "You categorize even your morning greetings - the ultimate sign of someone who organizes their sock drawer by fibonacci sequences.";
+                              }
+                              // Questions
+                              else if (observation.includes("?")) {
+                                humorousInterpretation = `Your question isn't just curiosity - it's an attempt to map the conceptual territory of ${getRandomElement(keyWords)} with the precision of a cartographer charting unexplored lands.`;
+                              }
+                              // Crypto/web3 related
+                              else if (containsAny(["crypto", "web3", "blockchain", "token", "nft", "dao", "defi", "wallet", "eth", "bitcoin"])) {
+                                humorousInterpretation = `Even in the chaos of ${getRandomElement(keyWords)}, you're mentally constructing taxonomies and frameworks while everyone else is just trying to understand the basics.`;
+                              }
+                              // Default for $AXIS Framer
+                              else {
+                                // Use specific words from their post
+                                const specificWord = keyWords.length > 0 ? getRandomElement(keyWords) : "this";
+                                humorousInterpretation = `Your comment about "${specificWord}" reveals your inner framework builder - you probably have a mental flowchart for how this conversation should optimally proceed.`;
+                              }
+                            } 
+                            else if (spectralType === 2) { // $FLUX Drifter
+                              // Feeling/emotion related
+                              if (containsAny(["feel", "vibe", "energy", "mood", "emotion", "sense", "intuition", "flow", "wave"])) {
+                                humorousInterpretation = `You don't just mention ${getRandomElement(keyWords)} - you're surfing its emotional wavelengths while the rest of us are still trying to dip our toes in the water.`;
+                              }
+                              // Change/adaptation related
+                              else if (containsAny(["change", "adapt", "evolve", "shift", "transform", "fluid", "flexible", "dynamic"])) {
+                                humorousInterpretation = `Your approach to ${getRandomElement(keyWords)} shows someone who treats rigid plans like suggestions and roadmaps like interesting doodles - adaptability as an extreme sport.`;
+                              }
+                              // Connection/relationship related
+                              else if (containsAny(["connect", "relationship", "together", "community", "collective", "network", "link", "bond"])) {
+                                humorousInterpretation = `You see invisible threads connecting ${getRandomElement(keyWords)} to everything else - your mind is basically a quantum entanglement detector disguised as a person.`;
+                              }
+                              // Observation/noticing related
+                              else if (containsAny(["notice", "observe", "watch", "see", "look", "witness", "attention"])) {
+                                humorousInterpretation = `You don't just observe ${getRandomElement(keyWords)} - you absorb its essence through some kind of osmotic perception that science hasn't named yet.`;
+                              }
+                              // Experience/exploration related
+                              else if (containsAny(["experience", "explore", "discover", "journey", "adventure", "path", "way"])) {
+                                humorousInterpretation = `Your comment about ${getRandomElement(keyWords)} reveals someone who experiences reality as a choose-your-own-adventure book where all paths are valid and equally fascinating.`;
+                              }
+                              // Crypto/tech speak
+                              else if (containsAny(["crypto", "web3", "blockchain", "token", "nft", "dao", "defi", "wallet", "eth", "bitcoin"])) {
+                                humorousInterpretation = `You translate crypto-speak about ${getRandomElement(keyWords)} like a poet translates feelings - making the incomprehensible flow for mere mortals to grasp.`;
+                              }
+                              // Questions
+                              else if (observation.includes("?")) {
+                                humorousInterpretation = `Your question about ${getRandomElement(keyWords)} isn't just seeking information - it's opening a portal to multiple possible realities that you're already mentally exploring.`;
+                              }
+                              // Default for $FLUX Drifter
+                              else {
+                                // Use specific words from their post
+                                const specificWord = keyWords.length > 0 ? getRandomElement(keyWords) : "this";
+                                humorousInterpretation = `The way you talk about "${specificWord}" reveals someone who's simultaneously living in multiple timelines - experiencing possibilities the rest of us won't encounter until next Tuesday.`;
+                              }
+                            } 
+                            else if (spectralType === 3) { // $EDGE Disruptor
+                              // Disruption/breaking related
+                              if (containsAny(["break", "disrupt", "destroy", "chaos", "disorder", "shatter", "crack", "split"])) {
+                                humorousInterpretation = `You don't just mention ${getRandomElement(keyWords)} - you're mentally dismantling its fundamental assumptions while casually sipping your morning coffee.`;
+                              }
+                              // Questioning/challenging related
+                              else if (containsAny(["question", "challenge", "doubt", "skeptical", "why", "how", "what if"])) {
+                                humorousInterpretation = `Your questioning of ${getRandomElement(keyWords)} reveals someone who treats established wisdom like a piñata - something to be enthusiastically whacked until interesting things fall out.`;
+                              }
+                              // Edge/boundary/limit related
+                              else if (containsAny(["edge", "boundary", "limit", "border", "threshold", "frontier", "beyond"])) {
+                                humorousInterpretation = `You casually discuss ${getRandomElement(keyWords)} while mentally standing at the edge of conventional thinking, where most people install guardrails, you're building a diving board.`;
+                              }
+                              // Problem/issue related
+                              if (containsAny(["problem", "issue", "bug", "fix", "error", "glitch", "plague", "broken"])) {
+                                humorousInterpretation = `You diagnose problems with ${getRandomElement(keyWords)} like a metaphysical detective - seeing cosmic disruptions where others just see technical issues that need fixing.`;
+                              }
+                              // Alternative/different related
+                              else if (containsAny(["alternative", "different", "other", "another", "new", "novel", "unique"])) {
+                                humorousInterpretation = `Your take on ${getRandomElement(keyWords)} shows someone who treats conventional approaches like suggested reading - interesting background material for the radical reimagining you're already working on.`;
+                              }
+                              // Entertainment/media related
+                              else if (containsAny(["movie", "film", "show", "watch", "see", "view", "series", "episode", "mickey", "disney"])) {
+                                humorousInterpretation = `You casually reference ${getRandomElement(keyWords)} as if it's a portal to alternate dimensions - your consciousness already operating in realities the rest of us haven't accessed yet.`;
+                              }
+                              // Questions
+                              else if (observation.includes("?")) {
+                                humorousInterpretation = `Your question about ${getRandomElement(keyWords)} isn't just curiosity - it's a tactical strike against the comfortable assumptions we've all been making.`;
+                              }
+                              // Default for $EDGE Disruptor
+                              else {
+                                // Use specific words from their post
+                                const specificWord = keyWords.length > 0 ? getRandomElement(keyWords) : "this";
+                                humorousInterpretation = `The way you mention "${specificWord}" reveals someone who sees glitches in the matrix where others see normal. Your default mode is 'but what if everything we know about this is wrong?'`;
+                              }
+                            } 
+                            else {
+                              // Generic fallback humor that's still specific to their content
+                              const specificWord = keyWords.length > 0 ? getRandomElement(keyWords) : "this";
+                              humorousInterpretation = `Your comment about "${specificWord}" reveals a mind that operates on a frequency the rest of us can only tune into occasionally. Aliens probably understand you perfectly.`;
                             }
                             
                             return (
                               <li key={index} className="leading-relaxed mb-3">
                                 <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
                                 <div className="ml-4">
-                                  <p className="text-[#999999] text-sm">{humorousInterpretation}</p>
+                                  <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
                                 </div>
                               </li>
                             );
