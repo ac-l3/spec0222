@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SPECTRAL_TYPES } from '../../lib/constants';
 import Layout from './Layout';
 import { Fira_Code } from 'next/font/google';
 import MetricBar from './MetricBar';
 import SpectralVisual from './SpectralVisual';
+import TypewriterEffect from './TypewriterEffect';
 import Image from 'next/image';
 
 const firaCode = Fira_Code({
@@ -900,7 +901,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                       <div className="text-center mb-12 max-w-3xl mx-auto">
                         <div className="flex justify-center mb-4">
                           <Image 
-                            src="/title.png" 
+                            src="/images/title.png" 
                             alt="SPECTRAL ALIGNMENT" 
                             width={400} 
                             height={200}
@@ -909,16 +910,19 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         </div>
                         
                         <p className="text-[#C0C2C5] text-sm mb-4 text-left">
-                          The Spectral Lab studies hidden structures, emergent behaviors, and unseen frequencies.
+                          <TypewriterEffect 
+                            text="THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY." 
+                            speed={40}
+                          />
                         </p>
                         
                         <p className="text-[#C0C2C5] text-sm mb-6 text-left">
-                          Approaches to the unknown reveal distinct realities—some disrupt boundaries, others flow across systems, and some create frameworks.
+                          
                         </p>
                         
                         <div className="bg-[#222222] p-4 mb-6">
                           <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
-                            Alignments reveal both insight into your methods and a corresponding Spectral position worth preserving.
+                            Your alignment reveals your methods and a Spectral identity worth embracing.
                           </p>
                           
                           <button
