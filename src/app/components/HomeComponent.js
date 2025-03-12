@@ -161,21 +161,9 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       
       console.log('Sharing URL with timestamp:', resultUrl);
       
-      // Detect if user is on mobile
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      let warpcastUrl;
-      
-      if (isMobile) {
-        // On mobile, use the farcaster:// scheme for deep linking
-        // This format works better on mobile devices to open the app directly
-        warpcastUrl = `farcaster://compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(resultUrl)}`;
-        console.log('Opening mobile Warpcast URL:', warpcastUrl);
-      } else {
-        // On desktop, use the web URL
-        warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(resultUrl)}`;
-        console.log('Opening desktop Warpcast URL:', warpcastUrl);
-      }
+      // Use warpcast.com/~/ link format which works on both mobile and desktop
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(resultUrl)}`;
+      console.log('Opening Warpcast URL:', warpcastUrl);
       
       // Open in a new tab
       window.open(warpcastUrl, '_blank');
