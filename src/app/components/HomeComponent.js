@@ -7,7 +7,6 @@ import { Fira_Code } from 'next/font/google';
 import MetricBar from './MetricBar';
 import SpectralVisual from './SpectralVisual';
 import TypewriterEffect from './TypewriterEffect';
-import WaveMetricBar from './WaveMetricBar';
 import Image from 'next/image';
 
 const firaCode = Fira_Code({
@@ -30,6 +29,14 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     } : null
   );
   const [isSharing, setIsSharing] = useState(false);
+  const buttonSoundRef = useRef(null);
+
+  // Initialize audio on client side only
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      buttonSoundRef.current = new Audio('/sounds/button-sound.wav');
+    }
+  }, []);
 
   // Listen for userFid changes
   useEffect(() => {
@@ -102,6 +109,14 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   }, [initialFid, initialData]);
 
   const handleAnalyze = async () => {
+    // Play sound when button is clicked
+    if (buttonSoundRef.current) {
+      buttonSoundRef.current.currentTime = 0; // Reset sound to beginning
+      buttonSoundRef.current.play().catch(error => {
+        console.error('Error playing audio:', error);
+      });
+    }
+    
     setIsAnalyzing(true);
     try {
       const userFid = window.userFid;
@@ -826,23 +841,71 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                             <div>
                               <h4 className="text-sm mb-3 text-[#888888] mt-4 pt-4 border-t border-[#333333]">Alignment Metrics</h4>
                               <div className="space-y-4 text-[#999999] text-sm">
-                                <WaveMetricBar 
-                                  label="$AXIS Framer"
-                                  value={analysis.spectralType === 1 ? 5 : Math.min(4, (typeof metrics?.exploratoryDepth === 'object' ? metrics?.exploratoryDepth.score : metrics?.exploratoryDepth || 0))}
-                                  maxValue={5}
-                                />
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[#BEBFC2] text-sm">$AXIS Framer</span>
+                                  <span className="text-right text-[#BEBFC2] text-sm">
+                                    {(() => {
+                                      // If this is the user's spectral type, always show 5/5
+                                      if (analysis.spectralType === 1) {
+                                        return "5/5";
+                                      } else {
+                                        // Otherwise use the calculated score, max 4
+                                        const score = typeof metrics?.exploratoryDepth === 'object' ? 
+                                          metrics?.exploratoryDepth.score : metrics?.exploratoryDepth || 0;
+                                        return `${Math.min(4, score)}/5`;
+                                      }
+                                    })()}
+                                  </span>
+                                </div>
+                                <div className="w-full bg-[#333333] h-2">
+                                  <div className="bg-[#C8FA1A] h-2" style={{ 
+                                    width: `${analysis.spectralType === 1 ? 100 : Math.min(4, (typeof metrics?.exploratoryDepth === 'object' ? metrics?.exploratoryDepth.score : metrics?.exploratoryDepth || 0)) * 20}%` 
+                                  }}></div>
+                                </div>
                                 
-                                <WaveMetricBar 
-                                  label="$FLUX Drifter"
-                                  value={analysis.spectralType === 2 ? 5 : Math.min(4, (typeof metrics?.dataRetention === 'object' ? metrics?.dataRetention.score : metrics?.dataRetention || 0))}
-                                  maxValue={5}
-                                />
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[#BEBFC2] text-sm">$FLUX Drifter</span>
+                                  <span className="text-right text-[#BEBFC2] text-sm">
+                                    {(() => {
+                                      // If this is the user's spectral type, always show 5/5
+                                      if (analysis.spectralType === 2) {
+                                        return "5/5";
+                                      } else {
+                                        // Otherwise use the calculated score, max 4
+                                        const score = typeof metrics?.dataRetention === 'object' ? 
+                                          metrics?.dataRetention.score : metrics?.dataRetention || 0;
+                                        return `${Math.min(4, score)}/5`;
+                                      }
+                                    })()}
+                                  </span>
+                                </div>
+                                <div className="w-full bg-[#333333] h-2">
+                                  <div className="bg-[#C8FA1A] h-2" style={{ 
+                                    width: `${analysis.spectralType === 2 ? 100 : Math.min(4, (typeof metrics?.dataRetention === 'object' ? metrics?.dataRetention.score : metrics?.dataRetention || 0)) * 20}%` 
+                                  }}></div>
+                                </div>
                                 
-                                <WaveMetricBar 
-                                  label="$EDGE Disruptor"
-                                  value={analysis.spectralType === 3 ? 5 : Math.min(4, (typeof metrics?.systematicThinking === 'object' ? metrics?.systematicThinking.score : metrics?.systematicThinking || 0))}
-                                  maxValue={5}
-                                />
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[#BEBFC2] text-sm">$EDGE Disruptor</span>
+                                  <span className="text-right text-[#BEBFC2] text-sm">
+                                    {(() => {
+                                      // If this is the user's spectral type, always show 5/5
+                                      if (analysis.spectralType === 3) {
+                                        return "5/5";
+                                      } else {
+                                        // Otherwise use the calculated score, max 4
+                                        const score = typeof metrics?.systematicThinking === 'object' ? 
+                                          metrics?.systematicThinking.score : metrics?.systematicThinking || 0;
+                                        return `${Math.min(4, score)}/5`;
+                                      }
+                                    })()}
+                                  </span>
+                                </div>
+                                <div className="w-full bg-[#333333] h-2">
+                                  <div className="bg-[#C8FA1A] h-2" style={{ 
+                                    width: `${analysis.spectralType === 3 ? 100 : Math.min(4, (typeof metrics?.systematicThinking === 'object' ? metrics?.systematicThinking.score : metrics?.systematicThinking || 0)) * 20}%` 
+                                  }}></div>
+                                </div>
                               </div>
                             </div>
                           </div>
