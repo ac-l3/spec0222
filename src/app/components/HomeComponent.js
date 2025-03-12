@@ -910,7 +910,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         </div>
                         
                         <div className="flex-grow flex items-center justify-center">
-                          <p className="text-[#C0C2C5] text-sm mb-4 text-center">
+                          <p className="text-[#C0C2C5] text-sm mb-4 text-left w-full">
                             <TypewriterEffect 
                               phrases={[
                                 "THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY.",
@@ -925,7 +925,6 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                                 "CARRY YOUR ALIGNMENT AS A BADGE OF HONOR. OWN YOUR SPECTRAL TRUTH."
                               ]}
                               typeSpeed={40}
-                              deleteSpeed={15}
                               pauseDuration={1500}
                             />
                           </p>
@@ -933,7 +932,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         
                         <div className="bg-[#222222] p-4 mb-6 mt-auto">
                           <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
-                            Your alignment reveals your methods and a Spectral identity worth embracing.
+                            Your alignment exposes your nature and a Spectral identity worth embracing.
                           </p>
                           
                           <button

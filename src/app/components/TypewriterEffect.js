@@ -9,23 +9,45 @@ const firaCode = Fira_Code({
 });
 
 /**
- * Matrix-style typewriter effect component with rotating phrases
- * Displays sequences of phrases with typing and deletion animations
+ * Fisher-Yates shuffle algorithm to randomize array order
  */
-export default function TypewriterEffect({ phrases, typeSpeed = 40, deleteSpeed = 15, pauseDuration = 1500 }) {
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    // Pick a random index from 0 to i
+    const j = Math.floor(Math.random() * (i + 1));
+    // Swap elements at i and j
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * Matrix-style typewriter effect component with randomized rotating phrases
+ * Displays sequences of phrases with typing animation
+ */
+export default function TypewriterEffect({ phrases, typeSpeed = 40, pauseDuration = 1500 }) {
+  const [shuffledPhrases, setShuffledPhrases] = useState([]);
   const [displayText, setDisplayText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [phraseIndex, setPhraseIndex] = useState(0);
   const charIndex = useRef(0);
   const pauseTimeout = useRef(null);
   
-  // Animation effect for typing and deleting
+  // Randomize phrases on component mount
   useEffect(() => {
-    const currentPhrase = phrases[phraseIndex];
+    setShuffledPhrases(shuffleArray(phrases));
+  }, [phrases]);
+  
+  // Animation effect for typing
+  useEffect(() => {
+    // Don't start typing until phrases are shuffled
+    if (shuffledPhrases.length === 0) return;
+    
+    const currentPhrase = shuffledPhrases[phraseIndex];
     
     // Handle typing animation
-    if (!isDeleting && charIndex.current < currentPhrase.length) {
+    if (charIndex.current < currentPhrase.length) {
       const char = currentPhrase.charAt(charIndex.current);
       
       // Longer pauses at punctuation during typing
@@ -38,34 +60,18 @@ export default function TypewriterEffect({ phrases, typeSpeed = 40, deleteSpeed 
       
       return () => clearTimeout(timer);
     } 
-    // Handle completed typing - pause before deletion
-    else if (!isDeleting && charIndex.current === currentPhrase.length) {
+    // Handle completed typing - pause then switch to next phrase
+    else if (charIndex.current === currentPhrase.length) {
       pauseTimeout.current = setTimeout(() => {
-        setIsDeleting(true);
+        // Reset and move to next phrase immediately
+        setDisplayText('');
+        charIndex.current = 0;
+        setPhraseIndex((current) => (current + 1) % shuffledPhrases.length);
       }, pauseDuration);
       
       return () => clearTimeout(pauseTimeout.current);
-    } 
-    // Handle deletion animation
-    else if (isDeleting && displayText.length > 0) {
-      const timer = setTimeout(() => {
-        setDisplayText(current => current.slice(0, -1));
-        charIndex.current -= 1;
-      }, deleteSpeed);
-      
-      return () => clearTimeout(timer);
-    } 
-    // Handle completed deletion - move to next phrase
-    else if (isDeleting && displayText.length === 0) {
-      setIsDeleting(false);
-      setPhraseIndex((current) => (current + 1) % phrases.length);
-      charIndex.current = 0;
-      
-      // Add a small pause after deletion before starting the next phrase
-      const timer = setTimeout(() => {}, 300);
-      return () => clearTimeout(timer);
     }
-  }, [displayText, phrases, phraseIndex, isDeleting, typeSpeed, deleteSpeed, pauseDuration]);
+  }, [displayText, shuffledPhrases, phraseIndex, typeSpeed, pauseDuration]);
   
   // Blinking cursor effect
   useEffect(() => {
@@ -77,11 +83,11 @@ export default function TypewriterEffect({ phrases, typeSpeed = 40, deleteSpeed 
   }, []);
   
   return (
-    <div className={`${firaCode.className} font-mono tracking-wider text-center min-h-[3.5rem]`}>
+    <div className={`${firaCode.className} font-mono tracking-wider text-left min-h-[3.5rem]`}>
       <span>{displayText}</span>
       <span 
         className={`${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity`}
-        style={{ color: '#C8FA1A' }}
+        style={{ color: '#C8FA1A', transform: 'scaleX(0.5)', display: 'inline-block' }}
       >
         ▌
       </span>
