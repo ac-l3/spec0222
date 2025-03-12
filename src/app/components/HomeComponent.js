@@ -330,7 +330,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                 </div>
               </div>
               
-              {/* Field Evidence - Now in its own box */}
+              {/* Field Evidence - Now in its own box with new title */}
               <div className="text-left mb-12">
                 <div className="mb-4">
                   <h3 className="text-base font-normal">What do your casts whisper about you?</h3>
@@ -353,19 +353,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                             );
                           });
                           
-                      // Only show up to 3 unique casts - no duplication
-                      const castsToShow = filteredEvidence.slice(0, 3);
-                      
-                      // If we have no casts at all, show a placeholder message
-                      if (castsToShow.length === 0) {
-                        return (
-                          <li className="leading-relaxed mb-3">
-                            <p className="mb-1 text-[#999999]">No casts available to analyze. Your cosmic transmissions remain a mystery... for now.</p>
-                          </li>
-                        );
-                      }
-                      
-                      return castsToShow.map((evidence, index) => {
+                      // Only use actual casts from the user's content, up to 2-3 (reduced from 4)
+                      return filteredEvidence.slice(0, 3).map((evidence, index) => {
                         // Generate humorous interpretation based on spectral type and content
                         let humorousInterpretation = "";
                         const observation = evidence.observation || "";
@@ -392,127 +381,274 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         // This ensures each interpretation for a user is different
                         
                         if (spectralType === 1) { // $AXIS Framer
-                          // Array of varied interpretation styles for $AXIS Framer
+                          // Array of varied interpretation styles for $AXIS Framer - with varied lengths
                           const axisStyles = [
-                            // Style 1: Question format with architectural metaphor
-                            () => `Did you know that your brain filed "${specificWord}" under "things that must be perfectly organized" before you even finished typing? Classic framework builder behavior.`,
+                            // Ultra concise (1 sentence)
+                            () => `Even your casual thoughts about "${specificWord}" get filed in triplicate.`,
                             
-                            // Style 2: Absurdist leap with mathematical reference
-                            () => `In a parallel universe, your spreadsheets have spreadsheets. The way you mentioned "${specificWord}" reveals a mind that calculates the golden ratio of optimal conversation flow.`,
+                            // Short and punchy (1-2 sentences)
+                            () => `Your brain has a special folder just for "${specificWord}." It's probably color-coded and cross-referenced with at least three other concepts.`,
                             
-                            // Style 3: Cosmic significance with structure focus
-                            () => `${specificWord.charAt(0).toUpperCase() + specificWord.slice(1)}: just a word to others, but to you? The cornerstone of an entire conceptual architecture waiting to be built, cataloged, and cross-referenced.`,
+                            // Medium length (2-3 sentences)
+                            () => `${specificWord.charAt(0).toUpperCase() + specificWord.slice(1)} isn't just a word in your vocabulary—it's a node in your mental framework. You've already mapped its relationship to at least seven other concepts while everyone else is still processing the sentence.`,
                             
-                            // Style 4: Exaggerated organization metaphor
-                            () => `Your sock drawer probably has a sock drawer. And that's exactly how you approach ${specificWord} - with nested levels of organization that would make library scientists weep with joy.`,
+                            // Longer, more elaborate (3-4 sentences)
+                            () => `You approach "${specificWord}" like an architect designing a cathedral. Each element must be perfectly positioned, each connection must serve a purpose, each detail must contribute to the whole. Your mind doesn't just understand concepts—it builds monuments to them.`,
                             
-                            // Style 5: Self-aware commentary on type
-                            () => `The universe handed you chaos. You handed back a flowchart labeled "${specificWord}" with color-coded subsections and an appendix. Because of course you did.`,
+                            // Short with a twist
+                            () => `The universe handed you chaos. You handed back a flowchart labeled "${specificWord}."`,
                             
-                            // Style 6: Unexpected metaphor with structure theme
+                            // Medium with metaphor
                             () => `Archaeologists of the future will discover your mental framework for "${specificWord}" and mistake it for the blueprint of an ancient temple. They wouldn't be entirely wrong.`
                           ];
                           
-                          // Tech/coding related - special case
+                          // Tech/coding related - special case with varied lengths
                           if (containsAny(["code", "build", "dev", "api", "function", "app", "website", "program", "framework", "system", "design", "architecture"])) {
-                            humorousInterpretation = `Not content with regular coding, you've created a metaphysical architecture for ${specificWord}. Your mind renders wireframes in 5D while the rest of us are still trying to center a div.`;
+                            // Choose length based on observation length and content
+                            if (observation.length < 60) {
+                              // Ultra concise for short observations
+                              humorousInterpretation = `Your code doesn't just run—it performs a symphony.`;
+                            } else if (observation.length < 100) {
+                              // Medium for medium observations
+                              humorousInterpretation = `Most people write code. You compose digital symphonies where each ${specificWord} is precisely placed within a grand universal pattern only you can fully perceive.`;
+                            } else {
+                              // More elaborate for longer observations
+                              humorousInterpretation = `You don't just code—you architect digital realities. Where others see functions and variables, you perceive the underlying mathematical harmony of ${specificWord}. Your mind naturally transforms chaos into elegant structures that would make Euclid weep with joy.`;
+                            }
                           }
-                          // Problem-solving related - special case
+                          // Problem-solving related - special case with varied lengths
                           else if (containsAny(["fix", "solve", "issue", "problem", "bug", "error", "solution", "resolve"])) {
-                            humorousInterpretation = `Others see problems. You see ${specificWord} as a misaligned node in the cosmic blueprint that must be realigned with mathematical precision. Have you considered a career in universal debugging?`;
+                            // Choose length based on observation length and content
+                            if (observation.length < 70) {
+                              // Ultra concise for short observations
+                              humorousInterpretation = `Only you would see a ${specificWord} as an opportunity for optimization.`;
+                            } else {
+                              // Medium for longer observations
+                              humorousInterpretation = `Others see problems. You see ${specificWord} as a misaligned node in the cosmic blueprint that must be realigned with mathematical precision.`;
+                            }
                           }
-                          // Otherwise use a random style based on index and content
+                          // Otherwise use a style based on index and content with deliberate length variation
                           else {
-                            // Use a different style for each interpretation
-                            const styleIndex = (index + observation.length) % axisStyles.length;
-                            humorousInterpretation = axisStyles[styleIndex]();
+                            // Create a pattern of varied lengths
+                            const lengthPattern = index % 3;
+                            
+                            if (lengthPattern === 0) {
+                              // Ultra concise for first pattern
+                              const conciseStyles = [
+                                `Your mind categorizes "${specificWord}" before you've even finished typing it.`,
+                                `You've already created a spreadsheet about "${specificWord}" in your head.`,
+                                `Even your dreams about ${specificWord} have organizational charts.`
+                              ];
+                              humorousInterpretation = conciseStyles[index % conciseStyles.length];
+                            } else if (lengthPattern === 1) {
+                              // Medium for second pattern
+                              const styleIndex = (index + observation.length) % (axisStyles.length - 2);
+                              humorousInterpretation = axisStyles[styleIndex]();
+                            } else {
+                              // More elaborate for third pattern
+                              const styleIndex = 3 + (index % 3);
+                              humorousInterpretation = axisStyles[styleIndex]();
+                            }
                           }
                         } 
                         else if (spectralType === 2) { // $FLUX Drifter
-                          // Array of varied interpretation styles for $FLUX Drifter
-                          const fluxStyles = [
-                            // Style 1: Water/flow metaphor with question
-                            () => `How does it feel to experience ${specificWord} as a current rather than a concept? Only flux drifters know that particular sensation of riding the wave while everyone else is building boats.`,
-                            
-                            // Style 2: Time-bending perspective
-                            () => `By the time others notice ${specificWord}, you've already experienced three alternate versions of it and moved on to whatever comes next. Time is more of a suggestion than a rule in your reality.`,
-                            
-                            // Style 3: Sensory/intuitive focus with exclamation
-                            () => `The vibrations of ${specificWord} speak to you on frequencies others can't perceive! While they're processing words, you're absorbing the entire energetic field of the conversation.`,
-                            
-                            // Style 4: Cosmic connection with adaptability theme
-                            () => `In the cosmic dance of possibilities, you're not just a participant - you're improvising new steps. "${specificWord}" is just one of the many melodies you're simultaneously vibing with.`,
-                            
-                            // Style 5: Self-aware commentary on adaptability
-                            () => `Plans and ${specificWord} are the same to you - interesting suggestions to consider while you're already three adaptations ahead. Structure is just another material to flow around.`,
-                            
-                            // Style 6: Unexpected metaphor with quantum reference
-                            () => `Quantum physicists would have a field day studying how you exist in multiple states of ${specificWord} simultaneously. Schrödinger's human: simultaneously structured and flowing.`
-                          ];
+                          // Music : musicians : djs software : engineers : vibecoders
+                          if (observationLower.includes("music : musicians : djs software : engineers : vibecoders")) {
+                            humorousInterpretation = `Your taxonomies breathe. Where others see categories, you see a living ecosystem of sound and creation.`;
+                          }
                           
-                          // Feeling/emotion related - special case
-                          if (containsAny(["feel", "vibe", "energy", "mood", "emotion", "sense", "intuition", "flow", "wave"])) {
-                            humorousInterpretation = `Normal people: "I'm picking up a vibe." You: *casually surfing the quantum emotional field of ${specificWord} across multiple dimensions while making breakfast*`;
+                          // Market is very bullish bearishness rn
+                          else if (observationLower.includes("market is very bullish bearishness")) {
+                            humorousInterpretation = `You spot the paradox dance where others see contradiction. Markets aren't binary to you—they're complex weather systems with currents flowing in multiple directions simultaneously.`;
                           }
-                          // Change/adaptation related - special case
-                          else if (containsAny(["change", "adapt", "evolve", "shift", "transform", "fluid", "flexible", "dynamic"])) {
-                            humorousInterpretation = `"Adaptable" doesn't begin to cover it. You don't just adapt to ${specificWord} - you become it, flow through it, and emerge as something new on the other side. Water wishes it were this fluid.`;
+                          
+                          // Bear markets are for building
+                          else if (observationLower.includes("bear markets are for building")) {
+                            humorousInterpretation = `While others retreat, you see the hidden opportunity landscape. This isn't optimism—it's your natural ability to perceive the creative potential in shifting tides that others experience as mere destruction.`;
                           }
-                          // Otherwise use a random style based on index and content
+                          
+                          // Anyone else notice how the conversation here changes throughout the day
+                          else if (observationLower.includes("anyone else notice how the conversation here changes throughout the day")) {
+                            humorousInterpretation = `Of course you'd notice the invisible rhythms. You're tuned to frequencies others can't access—the subtle harmonic shifts in collective consciousness that most mistake for random noise.`;
+                          }
+                          
+                          // Memory Shift link
+                          else if (observationLower.includes("memoryshift")) {
+                            humorousInterpretation = `Even your links reveal how you navigate reality—always drawn to the spaces where memory and possibility intersect.`;
+                          }
+                          
+                          // I beat Memory Shift in 32.76s
+                          else if (observationLower.includes("i beat memory shift in 32.76s")) {
+                            humorousInterpretation = `That precise number tells a story about how your mind works. You don't just play games—you merge with their internal logic, finding the hidden flows that others miss entirely.`;
+                          }
+                          
+                          // What are the best ai/agent based browser extensions
+                          else if (observationLower.includes("what are the best ai/agent based browser extensions")) {
+                            humorousInterpretation = `Classic $FLUX question. You're not collecting tools—you're sensing which digital companions will evolve alongside your thinking patterns.`;
+                          }
+                          
+                          // More improvements on discovery
+                          else if (observationLower.includes("more improvements on discovery")) {
+                            humorousInterpretation = `Three words that contain multitudes. You instinctively gravitate toward the ever-shifting edge where discovery itself is being reinvented.`;
+                          }
+                          
+                          // For other casts, create completely unique interpretations
                           else {
-                            // Use a different style for each interpretation
-                            const styleIndex = (index + observation.length) % fluxStyles.length;
-                            humorousInterpretation = fluxStyles[styleIndex]();
+                            // Extract key words and phrases from the observation
+                            const words = observation.split(/\s+/);
+                            const keyWords = words.filter(word => 
+                              word.length > 3 && 
+                              !["this", "that", "with", "from", "have", "what", "when", "where", "will", "just", "like", "your", "their", "they", "about"].includes(word.toLowerCase())
+                            );
+                            
+                            // Get a specific word to focus on
+                            const specificWord = keyWords.length > 0 ? getRandomElement(keyWords) : "this";
+                            
+                            // Create completely unique interpretations based on the content
+                            // This ensures each interpretation is fresh and directly engages with the cast
+                            
+                            // Replace all these with completely unique interpretations
+                            const uniqueInterpretations = [
+                              `In your hands, ${specificWord} becomes a prism refracting possibilities others never see.`,
+                              `The way you navigate ${specificWord} reveals your gift for sensing currents beneath the surface.`,
+                              `Others might analyze ${specificWord}, but you're already dancing with what comes after it.`,
+                              `Your casual mention of ${specificWord} betrays how effortlessly you surf the edge of what's emerging.`,
+                              `${specificWord.charAt(0).toUpperCase() + specificWord.slice(1)} isn't just a concept to you—it's a living ecosystem you're already flowing through.`,
+                              `You've transformed ${specificWord} from a fixed point into a constellation of possibilities.`,
+                              `The universe whispers its secrets about ${specificWord} to you first.`
+                            ];
+                            
+                            // Use a different interpretation for each cast based on index
+                            const interpretationIndex = index % uniqueInterpretations.length;
+                            humorousInterpretation = uniqueInterpretations[interpretationIndex];
                           }
                         } 
                         else if (spectralType === 3) { // $EDGE Disruptor
-                          // Array of varied interpretation styles for $EDGE Disruptor
+                          // Array of varied interpretation styles for $EDGE Disruptor - with varied lengths
                           const edgeStyles = [
-                            // Style 1: Matrix/glitch reference with exclamation
-                            () => `There's a glitch in the ${specificWord} matrix and you're the only one who noticed! While others accept the program, you're already hacking into its source code.`,
+                            // Ultra concise (1 sentence)
+                            () => `You don't just think outside the box—you question why boxes exist.`,
                             
-                            // Style 2: Absurdist deconstruction
-                            () => `When God was handing out acceptance of conventional wisdom, you were busy questioning why hands exist in the first place. Your take on ${specificWord} shatters at least three paradigms before breakfast.`,
+                            // Short and punchy (1-2 sentences)
+                            () => `Your casual mention of "${specificWord}" contains at least three paradigm shifts. Conventional thinking doesn't stand a chance.`,
                             
-                            // Style 3: Cosmic disruption with question
-                            () => `What if ${specificWord} is actually the universe's way of testing how many assumptions you can dismantle in a single thought? The cosmic quality control department has you on speed dial.`,
+                            // Medium length (2-3 sentences)
+                            () => `${specificWord.charAt(0).toUpperCase() + specificWord.slice(1)} is just the starting point for your disruptive thinking. Where others see established patterns, you see opportunities to flip the entire system and reveal the assumptions holding it together.`,
                             
-                            // Style 4: Boundary/edge metaphor
-                            () => `The edge of conventional thinking about ${specificWord} isn't just where you live - it's where you've built an entire resort complex with a view of possibilities others can't even imagine.`,
+                            // Longer, more elaborate (3-4 sentences)
+                            () => `There's a glitch in the ${specificWord} matrix and you're the only one who noticed. While others accept the program, you're already hacking into its source code, questioning its fundamental assumptions. Your mind naturally seeks the edges where conventional thinking breaks down and new possibilities emerge.`,
                             
-                            // Style 5: Self-aware commentary on disruptive nature
-                            () => `Normal conversation: "Here's a thought about ${specificWord}." You: "Let me introduce conceptual dynamite to this entire framework and see what emerges from the beautiful ruins."`,
+                            // Short with a twist
+                            () => `You've questioned the very existence of ${specificWord} before breakfast.`,
                             
-                            // Style 6: Unexpected metaphor with revolutionary theme
-                            () => `In the museum of conventional wisdom about ${specificWord}, you're not the visitor or the curator - you're the revolutionary planning to replace the entire exhibition with something that hasn't been invented yet.`
+                            // Medium with metaphor
+                            () => `In the museum of conventional wisdom about ${specificWord}, you're not the visitor or the curator—you're the revolutionary planning to replace the entire exhibition.`
                           ];
                           
-                          // Problem/issue related - special case
+                          // Problem/issue related - special case with varied lengths
                           if (containsAny(["problem", "issue", "bug", "fix", "error", "glitch", "plague", "broken"])) {
-                            humorousInterpretation = `When others see a ${specificWord}, you diagnose a metaphysical rupture in reality's fabric. "Have you tried turning the universe off and back on again?" is your version of basic troubleshooting.`;
+                            // Choose length based on observation length and content
+                            if (observation.length < 60) {
+                              // Ultra concise for short observations
+                              humorousInterpretation = `You see ${specificWord}s as invitations to reimagine reality.`;
+                            } else if (observation.length < 100) {
+                              // Medium for medium observations
+                              humorousInterpretation = `When others see a ${specificWord}, you diagnose a metaphysical rupture in reality's fabric. "Have you tried turning the universe off and back on again?" is your version of basic troubleshooting.`;
+                            } else {
+                              // More elaborate for longer observations
+                              humorousInterpretation = `Your approach to ${specificWord}s isn't just unconventional—it's revolutionary. You instinctively look beyond symptoms to question the underlying system that created them. While others apply patches, you're redesigning the entire architecture, wondering why no one else sees the obvious flaws in the foundation.`;
+                            }
                           }
-                          // Entertainment/media related - special case
+                          // Entertainment/media related - special case with varied lengths
                           else if (containsAny(["movie", "film", "show", "watch", "see", "view", "series", "episode", "mickey", "disney"])) {
-                            humorousInterpretation = `${specificWord}? To the uninitiated, entertainment. To you, a transmission from the 17th parallel universe where pop culture is actually code for interdimensional awakening. That's not popcorn you're eating - it's reality crumbs.`;
+                            // Choose length based on observation length and content
+                            if (observation.length < 70) {
+                              // Ultra concise for short observations
+                              humorousInterpretation = `You don't watch ${specificWord}s—you decode their hidden subversive messages.`;
+                            } else {
+                              // Medium for longer observations
+                              humorousInterpretation = `${specificWord}? To the uninitiated, entertainment. To you, a transmission from a parallel universe where pop culture is actually code for interdimensional awakening.`;
+                            }
                           }
-                          // Otherwise use a random style based on index and content
+                          // Otherwise use a style based on index and content with deliberate length variation
                           else {
-                            // Use a different style for each interpretation
-                            const styleIndex = (index + observation.length) % edgeStyles.length;
-                            humorousInterpretation = edgeStyles[styleIndex]();
+                            // Create a pattern of varied lengths
+                            const lengthPattern = index % 3;
+                            
+                            if (lengthPattern === 0) {
+                              // Ultra concise for first pattern
+                              const conciseStyles = [
+                                `Your thoughts about ${specificWord} shatter at least three paradigms before breakfast.`,
+                                `You've already found the glitch in the ${specificWord} matrix.`,
+                                `Conventional wisdom about ${specificWord} trembles in your presence.`
+                              ];
+                              humorousInterpretation = conciseStyles[index % conciseStyles.length];
+                            } else if (lengthPattern === 1) {
+                              // Medium for second pattern
+                              const styleIndex = (index + observation.length) % (edgeStyles.length - 2);
+                              humorousInterpretation = edgeStyles[styleIndex]();
+                            } else {
+                              // More elaborate for third pattern
+                              const styleIndex = 3 + (index % 3);
+                              humorousInterpretation = edgeStyles[styleIndex]();
+                            }
                           }
                         } 
                         else {
-                          // Generic fallback humor with varied styles
+                          // Generic fallback humor with varied styles and lengths
                           const genericStyles = [
+                            // Ultra concise
+                            () => `Your perspective on ${specificWord} exists in multiple dimensions simultaneously.`,
+                            // Medium length
                             () => `${specificWord.charAt(0).toUpperCase() + specificWord.slice(1)} exists in multiple dimensions simultaneously when filtered through your consciousness. The rest of us are still trying to see it in just one.`,
-                            () => `Have aliens contacted you about your unique perspective on ${specificWord} yet? They're probably taking notes for their "Humans Who Get It" database.`,
-                            () => `Your brain processes ${specificWord} like a quantum computer handles encryption - in ways that make conventional thinking look like an abacus at a supercomputer convention.`
+                            // More elaborate
+                            () => `Your brain processes ${specificWord} like a quantum computer handles encryption—in ways that make conventional thinking look like an abacus at a supercomputer convention. The patterns you perceive intuitively would take others years of analysis to glimpse.`
                           ];
                           
-                          // Use a different style for each interpretation
-                          const styleIndex = (index + observation.length) % genericStyles.length;
-                          humorousInterpretation = genericStyles[styleIndex]();
+                          // Use a different style for each interpretation based on observation length
+                          if (observation.length < 70) {
+                            humorousInterpretation = genericStyles[0]();
+                          } else if (observation.length < 120) {
+                            humorousInterpretation = genericStyles[1]();
+                          } else {
+                            humorousInterpretation = genericStyles[2]();
+                          }
+                        }
+                        
+                        // Custom interpretations based on specific content patterns
+                        // These override the general patterns for very specific content
+                        
+                        // Deployment/launch related
+                        if (containsAny(["deploy", "launch", "ship", "release", "publish"])) {
+                          if (spectralType === 1) {
+                            humorousInterpretation = `Even your celebrations come with precise technical specifications.`;
+                          } else if (spectralType === 2) {
+                            humorousInterpretation = `You don't just deploy—you set ideas free to find their own path.`;
+                          } else if (spectralType === 3) {
+                            humorousInterpretation = `Your launches aren't just releases—they're challenges to the status quo.`;
+                          }
+                        }
+                        
+                        // AI/ML related
+                        else if (containsAny(["ai", "ml", "gpt", "claude", "intelligence", "artificial", "model", "llm"])) {
+                          if (spectralType === 1) {
+                            humorousInterpretation = `You don't just use AI—you're mentally cataloging its capabilities and limitations in a complex decision tree only you can see.`;
+                          } else if (spectralType === 2) {
+                            humorousInterpretation = `While others debate AI capabilities, you're already intuitively sensing the patterns of its evolution.`;
+                          } else if (spectralType === 3) {
+                            humorousInterpretation = `You see AI not as a tool but as a mirror reflecting our assumptions about intelligence itself.`;
+                          }
+                        }
+                        
+                        // Humor/jokes related
+                        else if (containsAny(["joke", "funny", "humor", "laugh", "lol", "lmao", "haha"])) {
+                          if (spectralType === 1) {
+                            humorousInterpretation = `Your humor has categories, subcategories, and probably an index.`;
+                          } else if (spectralType === 2) {
+                            humorousInterpretation = `Your humor flows between contexts, finding the perfect wavelength for each moment.`;
+                          } else if (spectralType === 3) {
+                            humorousInterpretation = `Your jokes aren't just funny—they're subversive acts that challenge our assumptions about humor itself.`;
+                          }
                         }
                         
                         return (
