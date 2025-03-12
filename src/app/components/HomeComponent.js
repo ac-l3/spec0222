@@ -912,8 +912,21 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         <div className="flex-grow flex items-center justify-center">
                           <p className="text-[#C0C2C5] text-sm mb-4 text-center">
                             <TypewriterEffect 
-                              text="THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY." 
-                              speed={40}
+                              phrases={[
+                                "THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY.",
+                                "BETWEEN SIGNAL AND INTERFERENCE, YOUR APPROACH TO THE UNKNOWN REVEALS YOUR FUNDAMENTAL ALIGNMENT.",
+                                "YOUR METHOD OF ENGAGING WITH CHAOS ISN'T RANDOM—IT'S A SPECTRAL SIGNATURE WE CAN DETECT.",
+                                "THE SPECTRAL LAB TRACKS HOW MINDS TRANSFORM UNSEEN PATTERNS INTO MEANING THROUGH DISTINCT FREQUENCIES.",
+                                "SOME BUILD STRUCTURE FROM NOISE, OTHERS FLOW BETWEEN SIGNALS, AND A FEW INTENTIONALLY DISRUPT THE PATTERN.",
+                                "THE UNKNOWN ISN'T SIMPLY EXPLORED—IT'S WHERE YOUR CONSCIOUSNESS CREATES MEANING THROUGH SPECIFIC PATTERNS.",
+                                "BEYOND STATIC CLASSIFICATION LIES YOUR TRUE ALIGNMENT—HOW YOU MOVE BETWEEN ORDER AND CHAOS.",
+                                "$AXIS FRAMES, $FLUX FLOWS, $EDGE BREAKS.",
+                                "IN CHAOS: $AXIS CREATES ORDER, $FLUX RIDES CURRENTS, $EDGE TRANSFORMS.",
+                                "CARRY YOUR ALIGNMENT AS A BADGE OF HONOR. OWN YOUR SPECTRAL TRUTH."
+                              ]}
+                              typeSpeed={40}
+                              deleteSpeed={15}
+                              pauseDuration={1500}
                             />
                           </p>
                         </div>

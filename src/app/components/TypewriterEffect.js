@@ -9,21 +9,27 @@ const firaCode = Fira_Code({
 });
 
 /**
- * Matrix-style typewriter effect component
- * Displays text character by character with a blinking cursor
+ * Matrix-style typewriter effect component with rotating phrases
+ * Displays sequences of phrases with typing and deletion animations
  */
-export default function TypewriterEffect({ text, speed = 40 }) {
+export default function TypewriterEffect({ phrases, typeSpeed = 40, deleteSpeed = 15, pauseDuration = 1500 }) {
   const [displayText, setDisplayText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [phraseIndex, setPhraseIndex] = useState(0);
   const charIndex = useRef(0);
+  const pauseTimeout = useRef(null);
   
-  // Typing effect
+  // Animation effect for typing and deleting
   useEffect(() => {
-    if (charIndex.current < text.length) {
-      const char = text.charAt(charIndex.current);
+    const currentPhrase = phrases[phraseIndex];
+    
+    // Handle typing animation
+    if (!isDeleting && charIndex.current < currentPhrase.length) {
+      const char = currentPhrase.charAt(charIndex.current);
       
-      // Longer pauses at punctuation
-      const delay = ['.', ',', '?', '!'].includes(char) ? speed * 4 : speed;
+      // Longer pauses at punctuation during typing
+      const delay = ['.', ',', '?', '!', ':', ';', '-'].includes(char) ? typeSpeed * 4 : typeSpeed;
       
       const timer = setTimeout(() => {
         setDisplayText(current => current + char);
@@ -31,8 +37,35 @@ export default function TypewriterEffect({ text, speed = 40 }) {
       }, delay);
       
       return () => clearTimeout(timer);
+    } 
+    // Handle completed typing - pause before deletion
+    else if (!isDeleting && charIndex.current === currentPhrase.length) {
+      pauseTimeout.current = setTimeout(() => {
+        setIsDeleting(true);
+      }, pauseDuration);
+      
+      return () => clearTimeout(pauseTimeout.current);
+    } 
+    // Handle deletion animation
+    else if (isDeleting && displayText.length > 0) {
+      const timer = setTimeout(() => {
+        setDisplayText(current => current.slice(0, -1));
+        charIndex.current -= 1;
+      }, deleteSpeed);
+      
+      return () => clearTimeout(timer);
+    } 
+    // Handle completed deletion - move to next phrase
+    else if (isDeleting && displayText.length === 0) {
+      setIsDeleting(false);
+      setPhraseIndex((current) => (current + 1) % phrases.length);
+      charIndex.current = 0;
+      
+      // Add a small pause after deletion before starting the next phrase
+      const timer = setTimeout(() => {}, 300);
+      return () => clearTimeout(timer);
     }
-  }, [displayText, text, speed]);
+  }, [displayText, phrases, phraseIndex, isDeleting, typeSpeed, deleteSpeed, pauseDuration]);
   
   // Blinking cursor effect
   useEffect(() => {
@@ -44,7 +77,7 @@ export default function TypewriterEffect({ text, speed = 40 }) {
   }, []);
   
   return (
-    <div className={`${firaCode.className} font-mono tracking-wider text-center`}>
+    <div className={`${firaCode.className} font-mono tracking-wider text-center min-h-[3.5rem]`}>
       <span>{displayText}</span>
       <span 
         className={`${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity`}
