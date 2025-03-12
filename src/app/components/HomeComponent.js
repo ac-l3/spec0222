@@ -898,40 +898,66 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                     )}
                     
                     {!analysis && (
-                      <div className="text-center mb-12 max-w-3xl mx-auto">
-                        <div className="flex justify-center mb-4">
-                          <Image 
-                            src="/images/title.png" 
-                            alt="SPECTRAL ALIGNMENT" 
-                            width={400} 
-                            height={200}
-                            priority
-                          />
+                      <div className="text-center mb-12 max-w-3xl mx-auto min-h-screen flex flex-col justify-between pt-[6vh] pb-[6vh]">
+                        <div>
+                          <div className="flex justify-center mb-[8vh]">
+                            <Image 
+                              src="/images/title.png" 
+                              alt="SPECTRAL ALIGNMENT" 
+                              width={400} 
+                              height={200}
+                              priority
+                            />
+                          </div>
+                          
+                          <div className="flex flex-col space-y-[3vh] text-left">
+                            <p className="text-[#C0C2C5] text-sm">
+                              <TypewriterEffect 
+                                text="THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY." 
+                                speed={40}
+                              />
+                            </p>
+                            
+                            <p className="text-[#C0C2C5] text-sm">
+                              <TypewriterEffect 
+                                text="INITIAL SCANS INDICATE THREE FUNDAMENTAL FREQUENCIES: $AXIS, $FLUX, AND $EDGE." 
+                                speed={40}
+                                delay={3000}
+                              />
+                            </p>
+                            
+                            <p className="text-[#C0C2C5] text-sm">
+                              <TypewriterEffect 
+                                text="THESE SIGNATURES MANIFEST ACROSS ALL CREATIVE SYSTEMS REGARDLESS OF DOMAIN." 
+                                speed={40}
+                                delay={6000}
+                              />
+                            </p>
+                            
+                            <p className="text-[#C0C2C5] text-sm mb-[10vh]">
+                              <TypewriterEffect 
+                                text="ALIGNMENT IDENTIFICATION PROTOCOLS INITIALIZED..." 
+                                speed={40}
+                                delay={9000}
+                              />
+                            </p>
+                          </div>
                         </div>
                         
-                        <p className="text-[#C0C2C5] text-sm mb-4 text-left">
-                          <TypewriterEffect 
-                            text="THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY." 
-                            speed={40}
-                          />
-                        </p>
-                        
-                        <p className="text-[#C0C2C5] text-sm mb-6 text-left">
-                          
-                        </p>
-                        
-                        <div className="bg-[#222222] p-4 mb-6">
+                        <div className="bg-[#222222] p-[1.5vh] mb-0">
                           <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
                             Your alignment reveals your methods and a Spectral identity worth embracing.
                           </p>
                           
-                          <button
-                            onClick={handleAnalyze}
-                            disabled={isAnalyzing}
-                            className="w-full py-1 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50 text-xs"
-                          >
-                            {isAnalyzing ? 'ANALYZING...' : 'REVEAL YOUR SPECTRAL ALIGNMENT'}
-                          </button>
+                          <div className="flex justify-center">
+                            <button
+                              onClick={handleAnalyze}
+                              disabled={isAnalyzing}
+                              className="w-[60%] py-1 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50 text-xs"
+                            >
+                              {isAnalyzing ? 'ANALYZING...' : 'REVEAL YOUR SPECTRAL ALIGNMENT'}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
