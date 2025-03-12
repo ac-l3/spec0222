@@ -347,17 +347,50 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                           });
                           
                           // Only use actual casts from the user's content, up to 3
-                          return filteredEvidence.slice(0, 3).map((evidence, index) => (
-                            <li key={index} className="leading-relaxed mb-3">
-                              <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
-                              {evidence.title && evidence.analysis && (
+                          return filteredEvidence.slice(0, 3).map((evidence, index) => {
+                            // Generate humorous, mystical interpretation based on spectral type
+                            let humorousInterpretation = "";
+                            const spectralType = analysis.spectralType;
+                            const observation = evidence.observation.toLowerCase();
+                            
+                            if (spectralType === 1) { // $AXIS Framer
+                              if (observation.includes("framework") || observation.includes("structure") || observation.includes("build")) {
+                                humorousInterpretation = "You create cosmic scaffolding where others see only chaos - your mind instinctively transforms the universe into elegant frameworks that would make sacred geometers weep with joy.";
+                              } else if (observation.includes("pattern") || observation.includes("system") || observation.includes("organize")) {
+                                humorousInterpretation = "Even the stars envy how effortlessly you organize the cosmos - categorizing reality with a precision that transforms random elements into divine patterns.";
+                              } else {
+                                humorousInterpretation = "You categorize the uncategorizable - a celestial librarian whose mind creates order from chaos with such elegance that even quantum uncertainty bows to your frameworks.";
+                              }
+                            } else if (spectralType === 2) { // $FLUX Drifter
+                              if (observation.includes("flow") || observation.includes("vibe") || observation.includes("feel")) {
+                                humorousInterpretation = "You surf the waves of cosmic consciousness with a wetsuit made of pure intuition - somehow always landing on the perfect shore while the rest of us are still reading tide charts.";
+                              } else if (observation.includes("change") || observation.includes("adapt") || observation.includes("evolve")) {
+                                humorousInterpretation = "You adapt to change like water adapts to its container - with such natural grace that it makes the rest of us look like we're trying to fit square pegs in round cosmic holes.";
+                              } else {
+                                humorousInterpretation = "You navigate reality's currents with the casual ease of someone who somehow always knows which way the cosmic wind is blowing - while the rest of us are still trying to find the weather app.";
+                              }
+                            } else if (spectralType === 3) { // $EDGE Disruptor
+                              if (observation.includes("break") || observation.includes("disrupt") || observation.includes("challenge")) {
+                                humorousInterpretation = "You dismantle paradigms before breakfast - a cosmic wrecking ball with the precision of a surgeon and the vision to see what should rise from the rubble.";
+                              } else if (observation.includes("edge") || observation.includes("boundary") || observation.includes("limit")) {
+                                humorousInterpretation = "You dance on the edge where others fear to even peek - treating the boundaries of possibility like they're just polite suggestions from a universe that hasn't met you yet.";
+                              } else {
+                                humorousInterpretation = "You question reality with such delightful audacity that the cosmos itself has to double-check its assumptions - a divine troublemaker who creates new possibilities by breaking the old rules.";
+                              }
+                            } else {
+                              // Generic fallback
+                              humorousInterpretation = "Your cosmic perspective transforms ordinary observations into profound insights - seeing patterns in the stars that others mistake for random twinkling.";
+                            }
+                            
+                            return (
+                              <li key={index} className="leading-relaxed mb-3">
+                                <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
                                 <div className="ml-4">
-                                  <span className="text-[#999999] text-sm">{evidence.title}: </span>
-                                  <span className="text-[#999999] text-sm">{evidence.analysis}</span>
+                                  <p className="text-[#999999] text-sm">{humorousInterpretation}</p>
                                 </div>
-                              )}
-                            </li>
-                          ));
+                              </li>
+                            );
+                          });
                         })()}
                       </ul>
                     </div>
