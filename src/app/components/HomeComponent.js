@@ -341,255 +341,345 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                             );
                           });
                           
-                      // Only use actual casts from the user's content, up to 2-3 (reduced from 4)
-                      return filteredEvidence.slice(0, 3).map((evidence, index) => {
-                        // Generate holistic interpretation based on spectral type and the entire cast content
-                        let humorousInterpretation = "";
-                        const observation = evidence.observation || "";
-                        const observationLower = observation.toLowerCase();
-                        const spectralType = analysis.spectralType;
-                        
-                        // Function to check if observation contains any of the terms
-                        const containsAny = (terms) => terms.some(term => observationLower.includes(term));
-                        
-                        // HOLISTIC INTERPRETATION APPROACH
-                        // Analyze the entire cast based on spectral type and content themes
-                        
-                        // $AXIS Framer interpretations - focus on structure, frameworks, and systematic thinking
-                        if (spectralType === 1) {
+                          // Track used interpretations to prevent duplicates
+                          const usedInterpretations = new Set();
                           
-                          // Tech/coding related
-                          if (containsAny(["code", "build", "dev", "api", "function", "app", "website", "program", "framework", "system", "design", "architecture"])) {
-                            if (containsAny(["problem", "issue", "bug", "fix", "error"])) {
-                              humorousInterpretation = "You don't just solve problems—you categorize them into taxonomies of edge cases and systematic improvements. Where others see isolated bugs, you see patterns that reveal structural insights.";
-                            } else if (containsAny(["launch", "deploy", "ship", "release"])) {
-                              humorousInterpretation = "Even your deployment announcements reveal your architectural mindset. You're not just shipping code—you're extending a carefully designed system into the world.";
-                            } else {
-                              humorousInterpretation = "Your technical communications reveal how you naturally think in systems and structures. You don't just build—you architect solutions with an awareness of how each component relates to the whole.";
+                          // Only use actual casts from the user's content, up to 2-3 (reduced from 4)
+                          return filteredEvidence.slice(0, 3).map((evidence, index) => {
+                            // Generate holistic interpretation based on spectral type and the entire cast content
+                            let humorousInterpretation = "";
+                            const observation = evidence.observation || "";
+                            const observationLower = observation.toLowerCase();
+                            const spectralType = analysis.spectralType;
+                            
+                            // Function to check if observation contains any of the terms
+                            const containsAny = (terms) => terms.some(term => observationLower.includes(term));
+                            
+                            // Function to ensure interpretation uniqueness
+                            const ensureUnique = (interpretation) => {
+                              // If this exact interpretation has been used before, modify it slightly
+                              if (usedInterpretations.has(interpretation)) {
+                                // Add a variation marker to make it unique
+                                const variations = [
+                                  "Interestingly, ", 
+                                  "What's revealing is that ", 
+                                  "It's telling that ",
+                                  "Notably, ",
+                                  "Characteristically, "
+                                ];
+                                const variation = variations[Math.floor(Math.random() * variations.length)];
+                                return variation + interpretation.charAt(0).toLowerCase() + interpretation.slice(1);
+                              }
+                              
+                              // Add to used set and return
+                              usedInterpretations.add(interpretation);
+                              return interpretation;
+                            };
+                            
+                            // SPECIFIC CAST PATTERN MATCHING
+                            // These take precedence over general patterns to ensure unique interpretations
+                            
+                            // Memory Shift specific interpretations
+                            if (observationLower.includes("memory shift") && observationLower.includes("beat") && /\d+\.\d+s/.test(observationLower)) {
+                              // Extract the time from the cast
+                              const timeMatch = observationLower.match(/(\d+\.\d+)s/);
+                              const time = timeMatch ? timeMatch[1] : "fast";
+                              
+                              if (spectralType === 1) {
+                                humorousInterpretation = ensureUnique(`You quantify fun to the hundredth of a second. In the Venn diagram of 'people who track game times with two decimal places' and 'people who build frameworks,' you're comfortably in the overlap.`);
+                              } else if (spectralType === 2) {
+                                humorousInterpretation = ensureUnique(`That ${time}s isn't just a score—it's a snapshot of your mind in flow state. You don't just play Memory Shift; you temporarily merge with its patterns and rhythms.`);
+                              } else if (spectralType === 3) {
+                                humorousInterpretation = ensureUnique(`Most people just play Memory Shift. You're reverse-engineering its cognitive mechanics while simultaneously competing against yourself. Classic $EDGE approach.`);
+                              }
+                              return (
+                                <li key={index} className="leading-relaxed mb-3">
+                                  <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                  <div className="ml-4">
+                                    <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                  </div>
+                                </li>
+                              );
                             }
-                          }
-                          
-                          // Analysis/research related
-                          else if (containsAny(["analyze", "research", "study", "learn", "understand", "explore", "discover", "insight", "pattern", "data"])) {
-                            humorousInterpretation = "Your approach to knowledge reveals your framework-building nature. You don't just gather information—you're constantly organizing it into coherent systems that reveal hidden connections.";
-                          }
-                          
-                          // Organization/structure related
-                          else if (containsAny(["organize", "structure", "plan", "map", "model", "framework", "system", "process", "method"])) {
-                            humorousInterpretation = "This statement perfectly captures your $AXIS nature—you instinctively create order and structure, transforming ambiguity into clear frameworks that others can navigate.";
-                          }
-                          
-                          // Opinion/perspective statements
-                          else if (containsAny(["think", "believe", "opinion", "perspective", "view", "consider"])) {
-                            humorousInterpretation = "Even your casual opinions come with invisible footnotes and cross-references. Your mind naturally organizes thoughts into coherent frameworks rather than isolated viewpoints.";
-                          }
-                          
-                          // Questions/curiosity
-                          else if (observationLower.includes("?") || containsAny(["wonder", "curious", "question", "how", "why", "what if"])) {
-                            humorousInterpretation = "Your questions reveal how you think—not in isolated curiosities but in structured inquiries that map out conceptual territories and their boundaries.";
-                          }
-                          
-                          // Observations about trends/patterns
-                          else if (containsAny(["trend", "pattern", "notice", "observe", "seeing", "movement", "shift", "change"])) {
-                            humorousInterpretation = "You don't just notice trends—you automatically place them within larger systems of understanding. This pattern-recognition is the foundation of your framework-building approach.";
-                          }
-                          
-                          // Default for other content
-                          else {
-                            // Vary interpretation length based on cast length
-                            if (observation.length < 60) {
-                              humorousInterpretation = "Even your brief thoughts reveal your natural tendency to create structure and order from chaos.";
-                            } else {
-                              humorousInterpretation = "This statement reveals your $AXIS nature—you naturally organize information into coherent frameworks, finding patterns and structures where others see only isolated elements.";
+                            
+                            // Market sentiment specific interpretations
+                            else if (observationLower.includes("market") && (observationLower.includes("bull") || observationLower.includes("bear"))) {
+                              if (observationLower.includes("bullish bearishness")) {
+                                if (spectralType === 1) {
+                                  humorousInterpretation = ensureUnique(`You've created a taxonomy for market paradoxes that would make Linnaeus proud. Where others see contradictions, you see a perfectly categorizable phenomenon.`);
+                                } else if (spectralType === 2) {
+                                  humorousInterpretation = ensureUnique(`When most people see 'bullish bearishness,' they see a contradiction. You see Tuesday. Your mind naturally processes seemingly opposing forces as complementary currents.`);
+                                } else if (spectralType === 3) {
+                                  humorousInterpretation = ensureUnique(`'Bullish bearishness' is exactly the kind of conceptual tension that delights your $EDGE mind—you're drawn to the spaces where conventional categories break down and reveal their limitations.`);
+                                }
+                              } 
+                              else if (observationLower.includes("bear markets are for building")) {
+                                if (spectralType === 1) {
+                                  humorousInterpretation = ensureUnique(`Your relationship with bear markets is like an architect's relationship with winter—everyone else sees dormancy, you see the perfect time to draft blueprints.`);
+                                } else if (spectralType === 2) {
+                                  humorousInterpretation = ensureUnique(`You intuitively sense the creative potential in market downturns. While others retreat, you're already flowing with the hidden currents of opportunity that will emerge in the next cycle.`);
+                                } else if (spectralType === 3) {
+                                  humorousInterpretation = ensureUnique(`This isn't just optimism—it's your $EDGE perspective recognizing that transformation happens precisely when established systems are under stress. You build during bear markets because that's when the old rules are most vulnerable.`);
+                                }
+                              }
+                              else {
+                                if (spectralType === 1) {
+                                  humorousInterpretation = ensureUnique(`Your market commentary reveals how you naturally organize chaos into structured patterns. Bull, bear, or something in between—it all fits into your mental framework.`);
+                                } else if (spectralType === 2) {
+                                  humorousInterpretation = ensureUnique(`You don't just observe markets—you feel their rhythms and currents. Your commentary shows how you intuitively sense shifts that others only recognize in retrospect.`);
+                                } else if (spectralType === 3) {
+                                  humorousInterpretation = ensureUnique(`Your market analysis has that characteristic $EDGE quality—looking past the obvious narratives to identify the underlying contradictions and opportunities others miss.`);
+                                }
+                              }
+                              return (
+                                <li key={index} className="leading-relaxed mb-3">
+                                  <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                  <div className="ml-4">
+                                    <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                  </div>
+                                </li>
+                              );
                             }
-                          }
-                        }
-                        
-                        // $FLUX Drifter interpretations - focus on adaptability, flow, and intuitive navigation
-                        else if (spectralType === 2) {
-                          
-                          // Adaptability/change related
-                          if (containsAny(["adapt", "change", "evolve", "shift", "flow", "move", "transform"])) {
-                            humorousInterpretation = "This perfectly captures your $FLUX nature—you naturally sense and flow with emerging patterns, adapting to changes that others don't even perceive yet.";
-                          }
-                          
-                          // Trend/pattern observation
-                          else if (containsAny(["trend", "pattern", "notice", "observe", "seeing", "movement", "emerging", "developing"])) {
-                            humorousInterpretation = "You have a natural ability to sense subtle patterns in real-time. Where others need historical data, you can feel currents of change as they're happening.";
-                          }
-                          
-                          // Connection/relationship focused
-                          else if (containsAny(["connect", "relationship", "network", "community", "together", "collaboration", "ecosystem"])) {
-                            humorousInterpretation = "You naturally perceive the world as interconnected systems rather than isolated elements. This statement reveals how you navigate by sensing relationships and flows between concepts.";
-                          }
-                          
-                          // Experimentation/exploration
-                          else if (containsAny(["try", "experiment", "explore", "test", "play", "discover"])) {
-                            humorousInterpretation = "Your approach to discovery is quintessentially $FLUX—you learn through immersion and movement rather than rigid analysis, allowing insights to emerge through direct engagement.";
-                          }
-                          
-                          // Intuition/feeling based
-                          else if (containsAny(["feel", "sense", "intuition", "vibe", "energy", "resonance"])) {
-                            humorousInterpretation = "This statement reveals your natural attunement to subtle frequencies others miss. You navigate by sensing resonances and dissonances that exist beyond logical analysis.";
-                          }
-                          
-                          // Questions about emerging trends
-                          else if (observationLower.includes("?") && containsAny(["new", "next", "future", "coming", "emerging", "developing"])) {
-                            humorousInterpretation = "Your questions reveal how your mind naturally orients toward what's emerging. You're already sensing the shape of possibilities before they fully materialize.";
-                          }
-                          
-                          // Default for other content
-                          else {
-                            // Vary interpretation length based on cast length
-                            if (observation.length < 60) {
-                              humorousInterpretation = "Even in these few words, your adaptive $FLUX nature shines through—sensing patterns where others see only noise.";
-                            } else {
-                              humorousInterpretation = "This statement reveals your $FLUX sensibility—you naturally perceive the world as flows and currents rather than fixed structures, allowing you to navigate complexity through intuitive adaptation.";
+                            
+                            // "gm" or "gn" casts with humor
+                            else if (/^gm+[!.]*$/i.test(observationLower) || /^gn+[!.]*$/i.test(observationLower)) {
+                              const isGm = /^gm+[!.]*$/i.test(observationLower);
+                              if (spectralType === 1) {
+                                humorousInterpretation = ensureUnique(isGm ? 
+                                  `Your 'gm' isn't just a greeting—it's a calibration point in your daily framework. I bet you have a spreadsheet tracking community engagement metrics somewhere.` : 
+                                  `Even your 'gn' has perfect documentation. I suspect your dreams are organized into folders with clear naming conventions.`);
+                              } else if (spectralType === 2) {
+                                humorousInterpretation = ensureUnique(isGm ? 
+                                  `Your 'gm' is like a pebble dropped in a pond—you're sensing the ripples of connection it creates throughout the community ecosystem.` : 
+                                  `Your 'gn' is a subtle recalibration of the community's shared rhythms. You're attuning to the collective energy even as you sign off.`);
+                              } else if (spectralType === 3) {
+                                humorousInterpretation = ensureUnique(isGm ? 
+                                  `Your two-letter 'gm' somehow manages to both participate in and subtly critique social media rituals. That's peak $EDGE efficiency.` : 
+                                  `Your 'gn' simultaneously embraces and questions the convention of announcing one's departure. Classic $EDGE paradox.`);
+                              }
+                              return (
+                                <li key={index} className="leading-relaxed mb-3">
+                                  <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                  <div className="ml-4">
+                                    <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                  </div>
+                                </li>
+                              );
                             }
-                          }
-                        }
-                        
-                        // $EDGE Disruptor interpretations - focus on challenging assumptions and finding insights in disruption
-                        else if (spectralType === 3) {
-                          
-                          // Challenging assumptions/status quo
-                          if (containsAny(["wrong", "mistake", "problem", "issue", "broken", "fail", "missing", "overlooked"])) {
-                            humorousInterpretation = "Classic $EDGE perspective—you naturally identify the limitations in existing systems that others take for granted. This critical lens is how you discover opportunities for transformation.";
-                          }
-                          
-                          // Contrarian perspectives
-                          else if (containsAny(["actually", "contrary", "opposite", "instead", "rather", "however", "but", "different"])) {
-                            humorousInterpretation = "This statement perfectly captures your contrarian $EDGE thinking—you instinctively look at situations from angles others miss, finding value in perspectives that challenge conventional wisdom.";
-                          }
-                          
-                          // Boundary testing/breaking
-                          else if (containsAny(["limit", "boundary", "edge", "beyond", "outside", "break", "disrupt", "challenge"])) {
-                            humorousInterpretation = "You naturally gravitate toward boundaries and edges—not to stay safely within them, but to test, challenge, and ultimately transcend them. This is quintessential $EDGE thinking.";
-                          }
-                          
-                          // Questioning established ideas
-                          else if (containsAny(["why", "question", "wonder", "doubt", "skeptical"]) || observationLower.includes("?")) {
-                            humorousInterpretation = "Your questions aren't just about gathering information—they're about challenging fundamental assumptions that others take for granted. This is how $EDGE thinkers discover breakthrough insights.";
-                          }
-                          
-                          // Alternative perspectives/approaches
-                          else if (containsAny(["alternative", "different", "new way", "approach", "perspective", "angle", "lens"])) {
-                            humorousInterpretation = "You naturally seek alternative perspectives that challenge conventional thinking. This statement reveals how you find value in viewpoints that exist at the edges of mainstream discourse.";
-                          }
-                          
-                          // Humor/irony/satire
-                          else if (containsAny(["lol", "lmao", "haha", "joke", "funny", "irony", "satire"])) {
-                            humorousInterpretation = "Your humor reveals your $EDGE nature—you use irony and satire as tools to highlight contradictions and absurdities that conventional thinking overlooks.";
-                          }
-                          
-                          // Default for other content
-                          else {
-                            // Vary interpretation length based on cast length
-                            if (observation.length < 60) {
-                              humorousInterpretation = "Even in these few words, your disruptive $EDGE perspective shines through—challenging assumptions others take for granted.";
-                            } else {
-                              humorousInterpretation = "This statement reveals your $EDGE sensibility—you naturally question established frameworks and find value in perspectives that exist at the boundaries of conventional thinking.";
+                            
+                            // HOLISTIC INTERPRETATION APPROACH WITH ENHANCED HUMOR
+                            // Analyze the entire cast based on spectral type and content themes
+                            
+                            // $AXIS Framer interpretations - focus on structure, frameworks, and systematic thinking
+                            if (spectralType === 1) {
+                              
+                              // Tech/coding related
+                              if (containsAny(["code", "build", "dev", "api", "function", "app", "website", "program", "framework", "system", "design", "architecture"])) {
+                                if (containsAny(["problem", "issue", "bug", "fix", "error"])) {
+                                  humorousInterpretation = ensureUnique("You don't just fix bugs—you perform taxonomic classification on them. 'Ah yes, the rare Undefined Reference Exception, closely related to the more common Null Pointer. Fascinating specimen!'");
+                                } else if (containsAny(["launch", "deploy", "ship", "release"])) {
+                                  humorousInterpretation = ensureUnique("Your deployment announcements read like architectural unveilings. I can almost see you cutting a tiny ribbon with comically oversized scissors in front of your terminal.");
+                                } else {
+                                  humorousInterpretation = ensureUnique("You don't just write code—you craft digital cathedrals with perfect structural integrity. Your comments probably include load-bearing calculations.");
+                                }
+                              }
+                              
+                              // Analysis/research related
+                              else if (containsAny(["analyze", "research", "study", "learn", "understand", "explore", "discover", "insight", "pattern", "data"])) {
+                                humorousInterpretation = ensureUnique("Your brain doesn't just process information—it automatically creates a three-dimensional taxonomy with cross-referenced indices. Your casual thoughts have footnotes.");
+                              }
+                              
+                              // Organization/structure related
+                              else if (containsAny(["organize", "structure", "plan", "map", "model", "framework", "system", "process", "method"])) {
+                                humorousInterpretation = ensureUnique("You probably have a framework for organizing your frameworks. And yes, that meta-framework is itself perfectly organized in a higher-order structure. It's frameworks all the way up.");
+                              }
+                              
+                              // Opinion/perspective statements
+                              else if (containsAny(["think", "believe", "opinion", "perspective", "view", "consider"])) {
+                                humorousInterpretation = ensureUnique("Your opinions come pre-organized into a coherent worldview with supporting evidence and anticipated counterarguments. Casual conversation with you is like finding a perfectly formatted research paper in a fortune cookie.");
+                              }
+                              
+                              // Questions/curiosity
+                              else if (observationLower.includes("?") || containsAny(["wonder", "curious", "question", "how", "why", "what if"])) {
+                                humorousInterpretation = ensureUnique("Your questions aren't just curiosities—they're precision instruments designed to extract exactly the information needed to complete your mental model. You probably have a decision tree for follow-ups ready before anyone answers.");
+                              }
+                              
+                              // Observations about trends/patterns
+                              else if (containsAny(["trend", "pattern", "notice", "observe", "seeing", "movement", "shift", "change"])) {
+                                humorousInterpretation = ensureUnique("You don't just notice patterns—you automatically file them in your mental pattern library, cross-referenced by category, frequency, and potential applications. Your brain has a Dewey Decimal System for observations.");
+                              }
+                              
+                              // Default for other content
+                              else {
+                                // Vary interpretation length based on cast length
+                                if (observation.length < 60) {
+                                  humorousInterpretation = ensureUnique("Even this brief statement has been mentally cataloged, cross-referenced, and filed in your perfectly organized brain library. Your thoughts have call numbers.");
+                                } else {
+                                  humorousInterpretation = ensureUnique("I can almost hear the soft whirring of your mind as it processes this statement, extracting patterns, identifying structural elements, and filing everything in its proper conceptual location. Your brain makes librarians jealous.");
+                                }
+                              }
                             }
-                          }
-                        }
-                        
-                        // Generic fallback for unknown spectral types
-                        else {
-                          humorousInterpretation = "Your unique perspective reveals how you navigate complexity with a distinctive approach that balances structure, adaptation, and critical thinking.";
-                        }
-                        
-                        // CUSTOM INTERPRETATIONS FOR SPECIFIC CASTS
-                        // These override the general patterns for very specific content
-                        
-                        // Crypto/web3 specific interpretations
-                        if (containsAny(["crypto", "web3", "blockchain", "token", "nft", "dao", "defi"])) {
-                          if (spectralType === 1) {
-                            humorousInterpretation = "You approach crypto not as speculation but as systems architecture—mapping the structural relationships that others miss beneath the hype and volatility.";
-                          } else if (spectralType === 2) {
-                            humorousInterpretation = "You navigate crypto's chaotic landscape by sensing emergent patterns in real-time, flowing with currents of innovation rather than clinging to rigid frameworks.";
-                          } else if (spectralType === 3) {
-                            humorousInterpretation = "Your engagement with crypto reveals your $EDGE nature—you're interested in how it challenges fundamental assumptions about value, trust, and coordination.";
-                          }
-                        }
-                        
-                        // AI/ML specific interpretations
-                        else if (containsAny(["ai", "ml", "gpt", "claude", "intelligence", "artificial", "model", "llm"])) {
-                          if (spectralType === 1) {
-                            humorousInterpretation = "You see AI not just as tools but as components in larger systems—your mind naturally maps how these technologies fit into broader frameworks of knowledge and capability.";
-                          } else if (spectralType === 2) {
-                            humorousInterpretation = "Your approach to AI reveals your adaptive nature—you're attuned to how these technologies are evolving in real-time and how to flow with their emerging capabilities.";
-                          } else if (spectralType === 3) {
-                            humorousInterpretation = "Your interest in AI reflects your $EDGE perspective—you're drawn to how these technologies challenge our fundamental assumptions about intelligence, creativity, and human uniqueness.";
-                          }
-                        }
-                        
-                        // Farcaster/frames specific interpretations
-                        else if (containsAny(["farcaster", "frame", "cast", "warpcast"])) {
-                          if (spectralType === 1) {
-                            humorousInterpretation = "Even your engagement with social platforms reveals your architectural thinking—you're naturally aware of how features like Frames create structured possibilities for interaction.";
-                          } else if (spectralType === 2) {
-                            humorousInterpretation = "You engage with Farcaster as a living ecosystem, sensing how conversations and features evolve in real-time rather than treating them as fixed utilities.";
-                          } else if (spectralType === 3) {
-                            humorousInterpretation = "Your Farcaster activity reveals your boundary-testing nature—you're interested in how these new social primitives challenge conventional assumptions about online interaction.";
-                          }
-                        }
-                        
-                        // Specific cast pattern overrides
-                        // These are highly specific matches for common patterns
-                        
-                        // "gm" or "gn" casts
-                        if (/^gm+[!.]*$/i.test(observationLower) || /^gn+[!.]*$/i.test(observationLower)) {
-                          if (spectralType === 1) {
-                            humorousInterpretation = "Even your ritual greetings have an architectural quality—establishing consistent patterns that create structure within community spaces.";
-                          } else if (spectralType === 2) {
-                            humorousInterpretation = "Your simple greeting is actually a subtle act of community resonance—you're attuning to and reinforcing the rhythms that bind social spaces together.";
-                          } else if (spectralType === 3) {
-                            humorousInterpretation = "Your participation in greeting rituals has a subversive quality—simultaneously embracing and gently mocking the conventions of online community.";
-                          }
-                        }
-                        
-                        // "Looks like X" observation casts
-                        else if (observationLower.startsWith("looks like") || observationLower.includes("seems like")) {
-                          if (spectralType === 1) {
-                            humorousInterpretation = "Your observations reveal how you naturally classify and categorize—identifying patterns and fitting them into existing mental frameworks.";
-                          } else if (spectralType === 2) {
-                            humorousInterpretation = "You don't just observe—you sense the currents beneath the surface, intuitively grasping emerging patterns before they fully materialize.";
-                          } else if (spectralType === 3) {
-                            humorousInterpretation = "Your observations often contain subtle challenges to conventional interpretations—you see what others see, but from angles that reveal overlooked contradictions.";
-                          }
-                        }
-                        
-                        // Question casts
-                        else if (observationLower.includes("?") && observation.length < 50) {
-                          if (spectralType === 1) {
-                            humorousInterpretation = "Your questions reveal how you build knowledge—systematically identifying gaps in existing frameworks and seeking the precise information needed to complete them.";
-                          } else if (spectralType === 2) {
-                            humorousInterpretation = "Your questions emerge from intuitive sensing of what's missing—you're attuned to gaps in understanding that others haven't yet noticed.";
-                          } else if (spectralType === 3) {
-                            humorousInterpretation = "Your questions often contain implicit challenges to assumptions—not just seeking information but subtly highlighting contradictions in conventional thinking.";
-                          }
-                        }
-                        
-                        // "Just shipped/launched/deployed X" casts
-                        else if (containsAny(["just shipped", "just launched", "just deployed", "just released"])) {
-                          if (spectralType === 1) {
-                            humorousInterpretation = "Your launch announcements reveal your builder's mindset—you create structured solutions and systematically bring them into the world.";
-                          } else if (spectralType === 2) {
-                            humorousInterpretation = "You don't just ship products—you release adaptable solutions that can evolve with emerging user needs and environmental changes.";
-                          } else if (spectralType === 3) {
-                            humorousInterpretation = "Your launches often challenge existing paradigms—you're not just adding to the ecosystem but subtly disrupting it with alternatives to conventional approaches.";
-                          }
-                        }
-                        
-                        return (
-                          <li key={index} className="leading-relaxed mb-3">
-                            <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
-                            <div className="ml-4">
-                              <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
-                            </div>
-                            </li>
-                        );
-                      });
+                            
+                            // $FLUX Drifter interpretations - focus on adaptability, flow, and intuitive navigation
+                            else if (spectralType === 2) {
+                              
+                              // Adaptability/change related
+                              if (containsAny(["adapt", "change", "evolve", "shift", "flow", "move", "transform"])) {
+                                humorousInterpretation = ensureUnique("You don't just adapt to change—you're practically change's personal choreographer. 'Oh, you call that a paradigm shift? Hold my beverage and watch this.'");
+                              }
+                              
+                              // Trend/pattern observation
+                              else if (containsAny(["trend", "pattern", "notice", "observe", "seeing", "movement", "emerging", "developing"])) {
+                                humorousInterpretation = ensureUnique("You sense emerging patterns like sharks detect blood in water—from impossibly far away and with an almost supernatural precision. The rest of us are still using binoculars while you've got pattern-detecting sonar.");
+                              }
+                              
+                              // Connection/relationship focused
+                              else if (containsAny(["connect", "relationship", "network", "community", "together", "collaboration", "ecosystem"])) {
+                                humorousInterpretation = ensureUnique("You perceive relationships between concepts that are so distant from each other, they're practically in different area codes. Your mind doesn't just connect dots—it reveals constellations where others see random stars.");
+                              }
+                              
+                              // Experimentation/exploration
+                              else if (containsAny(["try", "experiment", "explore", "test", "play", "discover"])) {
+                                humorousInterpretation = ensureUnique("Your approach to discovery makes Lewis and Clark look like cautious homebodies. 'What's over that conceptual horizon? Only one way to find out!' *dives headfirst into unexplored territory*");
+                              }
+                              
+                              // Intuition/feeling based
+                              else if (containsAny(["feel", "sense", "intuition", "vibe", "energy", "resonance"])) {
+                                humorousInterpretation = ensureUnique("Your intuition isn't just good—it's suspiciously accurate. If you ever say you have 'a feeling about this,' I'm immediately placing all my bets on whatever you're sensing.");
+                              }
+                              
+                              // Questions about emerging trends
+                              else if (observationLower.includes("?") && containsAny(["new", "next", "future", "coming", "emerging", "developing"])) {
+                                humorousInterpretation = ensureUnique("Your questions about the future aren't really questions—they're your way of giving the rest of us a gentle heads-up about what you've already sensed is coming. It's like you're reading tomorrow's newspaper today.");
+                              }
+                              
+                              // Default for other content
+                              else {
+                                // Vary interpretation length based on cast length
+                                if (observation.length < 60) {
+                                  humorousInterpretation = ensureUnique("Even in these few words, I can sense you surfing invisible currents that the rest of us won't notice until they become tsunamis of change.");
+                                } else {
+                                  humorousInterpretation = ensureUnique("Reading your thoughts is like watching someone navigate a river that's simultaneously flowing in multiple directions. Somehow you're not just staying afloat but deliberately choosing which current to ride at any moment. The rest of us are still looking for our water wings.");
+                                }
+                              }
+                            }
+                            
+                            // $EDGE Disruptor interpretations - focus on challenging assumptions and finding insights in disruption
+                            else if (spectralType === 3) {
+                              
+                              // Challenging assumptions/status quo
+                              if (containsAny(["wrong", "mistake", "problem", "issue", "broken", "fail", "missing", "overlooked"])) {
+                                humorousInterpretation = ensureUnique("You don't just identify problems—you perform conceptual autopsies that reveal how seemingly functional systems are actually spectacular failures waiting to happen. 'This looks fine' is not in your vocabulary.");
+                              }
+                              
+                              // Contrarian perspectives
+                              else if (containsAny(["actually", "contrary", "opposite", "instead", "rather", "however", "but", "different"])) {
+                                humorousInterpretation = ensureUnique("Your contrarian takes aren't just reflexive opposition—they're precision strikes against the weak points in conventional thinking. You can find the load-bearing assumption in any argument and give it a gentle tap that brings the whole structure down.");
+                              }
+                              
+                              // Boundary testing/breaking
+                              else if (containsAny(["limit", "boundary", "edge", "beyond", "outside", "break", "disrupt", "challenge"])) {
+                                humorousInterpretation = ensureUnique("You approach boundaries the way cats approach closed doors—with a mixture of curiosity, skepticism, and the absolute conviction that they shouldn't apply to you specifically.");
+                              }
+                              
+                              // Questioning established ideas
+                              else if (containsAny(["why", "question", "wonder", "doubt", "skeptical"]) || observationLower.includes("?")) {
+                                humorousInterpretation = ensureUnique("Your questions aren't just seeking information—they're conceptual demolition charges placed precisely where they'll reveal the structural weaknesses in established thinking. 'Just asking questions' in your case should come with a warning label.");
+                              }
+                              
+                              // Alternative perspectives/approaches
+                              else if (containsAny(["alternative", "different", "new way", "approach", "perspective", "angle", "lens"])) {
+                                humorousInterpretation = ensureUnique("You collect alternative perspectives like some people collect stamps, except your collection is specifically curated to challenge every comfortable assumption in existence. Your mental museum of 'but what if we're all wrong about this?' is extensive.");
+                              }
+                              
+                              // Humor/irony/satire
+                              else if (containsAny(["lol", "lmao", "haha", "joke", "funny", "irony", "satire"])) {
+                                humorousInterpretation = ensureUnique("Your humor isn't just entertainment—it's a Trojan horse delivering subversive ideas past the guards of conventional thinking. You've weaponized laughter as a tool for cognitive disruption.");
+                              }
+                              
+                              // Default for other content
+                              else {
+                                // Vary interpretation length based on cast length
+                                if (observation.length < 60) {
+                                  humorousInterpretation = ensureUnique("Even this brief statement contains at least three challenges to conventional wisdom. You disrupt assumptions so naturally you probably do it in your sleep.");
+                                } else {
+                                  humorousInterpretation = ensureUnique("Reading your thoughts is like watching someone casually juggle conceptual hand grenades while everyone else is playing with tennis balls. The truly concerning part is how comfortable you look doing it.");
+                                }
+                              }
+                            }
+                            
+                            // Generic fallback for unknown spectral types
+                            else {
+                              humorousInterpretation = ensureUnique("Your perspective has that rare quality of being simultaneously structured, adaptive, and disruptive—like a Swiss Army knife that's also somehow a flowing river and occasionally explodes.");
+                            }
+                            
+                            // CUSTOM INTERPRETATIONS FOR SPECIFIC CASTS
+                            // These override the general patterns for very specific content
+                            
+                            // Crypto/web3 specific interpretations
+                            if (containsAny(["crypto", "web3", "blockchain", "token", "nft", "dao", "defi"])) {
+                              if (spectralType === 1) {
+                                humorousInterpretation = ensureUnique("You see crypto not as speculative chaos but as an architectural challenge—like someone handed you a pile of non-Euclidean building blocks and you're determined to create something with perfect structural integrity.");
+                              } else if (spectralType === 2) {
+                                humorousInterpretation = ensureUnique("You navigate crypto's wild currents like a surfer who's somehow reading the waves before they even form. While others are being tossed around, you're doing tricks off the whitecaps of volatility.");
+                              } else if (spectralType === 3) {
+                                humorousInterpretation = ensureUnique("Your interest in crypto isn't about gains—it's about the delicious chaos of watching traditional financial assumptions get turned inside out. You're here for the conceptual revolution, not the token prices.");
+                              }
+                            }
+                            
+                            // AI/ML specific interpretations
+                            else if (containsAny(["ai", "ml", "gpt", "claude", "intelligence", "artificial", "model", "llm"])) {
+                              if (spectralType === 1) {
+                                humorousInterpretation = ensureUnique("You approach AI like an architect examining a new building material with fascinating properties. 'Yes, but how does it handle load-bearing cognitive structures? What's its tolerance for logical stress?'");
+                              } else if (spectralType === 2) {
+                                humorousInterpretation = ensureUnique("You relate to AI as a dance partner in an evolving improvisation—sensing its movements, adapting to its capabilities, and intuitively finding the flow between human and machine cognition.");
+                              } else if (spectralType === 3) {
+                                humorousInterpretation = ensureUnique("Your interest in AI isn't just technological—it's philosophical disruption in digital form. You're fascinated by how it forces us to question our assumptions about intelligence, creativity, and what it means to be human.");
+                              }
+                            }
+                            
+                            // Farcaster/frames specific interpretations
+                            else if (containsAny(["farcaster", "frame", "cast", "warpcast"])) {
+                              if (spectralType === 1) {
+                                humorousInterpretation = ensureUnique("You don't just use Farcaster—you're mentally mapping its information architecture and probably designing improvements to its taxonomy. Your casual scrolling includes UML diagrams.");
+                              } else if (spectralType === 2) {
+                                humorousInterpretation = ensureUnique("You experience Farcaster as a living ecosystem of conversations and connections, intuitively sensing the ebb and flow of community attention. You probably know a trend is forming before the people starting it do.");
+                              } else if (spectralType === 3) {
+                                humorousInterpretation = ensureUnique("Your Farcaster activity has that characteristic $EDGE quality—simultaneously participating in the platform while subtly questioning its fundamental assumptions and limitations.");
+                              }
+                            }
+                            
+                            // "Looks like X" observation casts
+                            else if (observationLower.startsWith("looks like") || observationLower.includes("seems like")) {
+                              if (spectralType === 1) {
+                                humorousInterpretation = ensureUnique("Your observations come pre-categorized and cross-referenced with similar phenomena. I bet you have a mental filing system just for 'things that look like other things.'");
+                              } else if (spectralType === 2) {
+                                humorousInterpretation = ensureUnique("You don't just observe surface appearances—you intuitively sense the underlying currents and patterns that created what you're seeing. It's like you're reading the backstory of reality in real-time.");
+                              } else if (spectralType === 3) {
+                                humorousInterpretation = ensureUnique("Your observations come with built-in skepticism about appearances. 'Looks like' in your vocabulary is almost always followed by an unspoken 'but actually reveals something entirely different if you question the underlying assumptions.'");
+                              }
+                            }
+                            
+                            // "Just shipped/launched/deployed X" casts
+                            else if (containsAny(["just shipped", "just launched", "just deployed", "just released"])) {
+                              if (spectralType === 1) {
+                                humorousInterpretation = ensureUnique("Your launch announcements have the precise satisfaction of an architect unveiling a perfectly constructed building. I can almost hear the soft 'click' of the final piece falling into place.");
+                              } else if (spectralType === 2) {
+                                humorousInterpretation = ensureUnique("You don't just ship products—you release living organisms into the digital ecosystem, already sensing how they'll adapt and evolve through user interaction.");
+                              } else if (spectralType === 3) {
+                                humorousInterpretation = ensureUnique("Your launches aren't just new products—they're conceptual challenges wrapped in code. 'Here's something that questions how we've been thinking about this problem. Enjoy!'");
+                              }
+                            }
+                            
+                            return (
+                              <li key={index} className="leading-relaxed mb-3">
+                                <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                <div className="ml-4">
+                                  <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                </div>
+                                </li>
+                            );
+                          });
                         })()}
                       </ul>
                 </div>
