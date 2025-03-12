@@ -165,8 +165,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(resultUrl)}`;
       console.log('Opening Warpcast URL:', warpcastUrl);
       
-      // Open in a new tab
-      window.open(warpcastUrl, '_blank');
+      // Use the Frame SDK to open the URL
+      window.frame.sdk.actions.openUrl(warpcastUrl);
     } catch (error) {
       console.error('Error sharing:', error);
       alert('Failed to share. Please try again.');
