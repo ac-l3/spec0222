@@ -344,8 +344,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                           // Track used interpretations to prevent duplicates
                           const usedInterpretations = new Set();
                           
-                          // Only use actual casts from the user's content, up to 2-3 (reduced from 4)
-                          return filteredEvidence.slice(0, 3).map((evidence, index) => {
+                          // Only use actual casts from the user's content, up to 3-4
+                          return filteredEvidence.slice(0, 4).map((evidence, index) => {
                             // Generate holistic interpretation based on spectral type and the entire cast content
                             let humorousInterpretation = "";
                             const observation = evidence.observation || "";
