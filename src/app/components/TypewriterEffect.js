@@ -12,41 +12,27 @@ const firaCode = Fira_Code({
  * Matrix-style typewriter effect component
  * Displays text character by character with a blinking cursor
  */
-export default function TypewriterEffect({ text, speed = 40, delay = 0 }) {
+export default function TypewriterEffect({ text, speed = 40 }) {
   const [displayText, setDisplayText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
-  const [isStarted, setIsStarted] = useState(delay === 0);
   const charIndex = useRef(0);
-  
-  // Handle the initial delay before starting the animation
-  useEffect(() => {
-    if (!isStarted && delay > 0) {
-      const delayTimer = setTimeout(() => {
-        setIsStarted(true);
-      }, delay);
-      
-      return () => clearTimeout(delayTimer);
-    }
-  }, [delay, isStarted]);
   
   // Typing effect
   useEffect(() => {
-    if (!isStarted) return;
-    
     if (charIndex.current < text.length) {
       const char = text.charAt(charIndex.current);
       
       // Longer pauses at punctuation
-      const pauseTime = ['.', ',', '?', '!'].includes(char) ? speed * 4 : speed;
+      const delay = ['.', ',', '?', '!'].includes(char) ? speed * 4 : speed;
       
       const timer = setTimeout(() => {
         setDisplayText(current => current + char);
         charIndex.current += 1;
-      }, pauseTime);
+      }, delay);
       
       return () => clearTimeout(timer);
     }
-  }, [displayText, text, speed, isStarted]);
+  }, [displayText, text, speed]);
   
   // Blinking cursor effect
   useEffect(() => {
@@ -58,7 +44,7 @@ export default function TypewriterEffect({ text, speed = 40, delay = 0 }) {
   }, []);
   
   return (
-    <div className={`${firaCode.className} font-mono tracking-wider`}>
+    <div className={`${firaCode.className} font-mono tracking-wider text-center`}>
       <span>{displayText}</span>
       <span 
         className={`${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity`}
