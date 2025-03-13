@@ -712,58 +712,38 @@ export async function analyzePersonality(bio, casts) {
           topK: useFlashModel ? 60 : 40,
           topP: useFlashModel ? 0.95 : 0.9,
           maxOutputTokens: useFlashModel ? 3072 : 2048,
-        },
-        // Force the model to use JSON schema for more reliable responses
-        tools: [{
-          functionDeclarations: [{
-            name: "generateSpectralAnalysis",
-            description: "Generate a spectral alignment analysis based on user data",
-            parameters: personalitySchema
-          }]
-        }],
-        toolConfig: {
-          executionMode: "automated"
         }
       });
 
-      // Extract the function call response which should be JSON
-      const responseText = result.response.functionResponse?.response || result.response.text().trim();
-      console.log(`Raw response (${modelName}):`, typeof responseText === 'string' ? responseText.substring(0, 100) + "..." : JSON.stringify(responseText).substring(0, 100) + "...");
+      const responseText = result.response.text().trim();
+      console.log(`Raw response (${modelName}):`, responseText.substring(0, 100) + "...");
       
       try {
-        // Handle the response based on its type
+        // Clean up the response text to ensure it's valid JSON
         let cleanedText = responseText;
-        let analysis;
         
-        if (typeof responseText === 'object') {
-          // If it's already an object, use it directly
-          analysis = responseText;
-        } else {
-          // If it's a string, clean and parse it
-          // If the response starts with ```json or ``` and ends with ```, strip those markers
-          if (cleanedText.startsWith('```json')) {
-            cleanedText = cleanedText.substring(7);
-          } else if (cleanedText.startsWith('```')) {
-            cleanedText = cleanedText.substring(3);
-          }
-          
-          if (cleanedText.endsWith('```')) {
-            cleanedText = cleanedText.substring(0, cleanedText.length - 3);
-          }
-          
-          cleanedText = cleanedText.trim();
-          
-          // Try to extract JSON if it's wrapped in other text
-          const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            cleanedText = jsonMatch[0];
-          }
-          
-          console.log(`Cleaned JSON (${modelName}):`, cleanedText.substring(0, 100) + "...");
-          
-          analysis = JSON.parse(cleanedText);
+        // If the response starts with ```json or ``` and ends with ```, strip those markers
+        if (cleanedText.startsWith('```json')) {
+          cleanedText = cleanedText.substring(7);
+        } else if (cleanedText.startsWith('```')) {
+          cleanedText = cleanedText.substring(3);
         }
         
+        if (cleanedText.endsWith('```')) {
+          cleanedText = cleanedText.substring(0, cleanedText.length - 3);
+        }
+        
+        cleanedText = cleanedText.trim();
+        
+        // Try to extract JSON if it's wrapped in other text
+        const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanedText = jsonMatch[0];
+        }
+        
+        console.log(`Cleaned JSON (${modelName}):`, cleanedText.substring(0, 100) + "...");
+        
+        const analysis = JSON.parse(cleanedText);
         validateResponse(analysis);
         validateRoleConsistency(analysis);
         
