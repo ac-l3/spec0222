@@ -26,59 +26,58 @@ function shuffleArray(array) {
  * Matrix-style typewriter effect component with randomized rotating phrases
  * Displays sequences of phrases with typing animation
  */
-export default function TypewriterEffect({ phrases, typeSpeed = 40, pauseDuration = 1500 }) {
-  const [shuffledPhrases, setShuffledPhrases] = useState([]);
+export default function TypewriterEffect({ phrases, typeSpeed = 50, pauseDuration = 2000 }) {
   const [displayText, setDisplayText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
-  const [phraseIndex, setPhraseIndex] = useState(0);
-  const charIndex = useRef(0);
-  const pauseTimeout = useRef(null);
-  
-  // Randomize phrases on component mount
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+  const [isDone, setIsDone] = useState(false);
+  const timerRef = useRef(null);
+
+  // Effect for the typing animation
   useEffect(() => {
-    setShuffledPhrases(shuffleArray(phrases));
-  }, [phrases]);
-  
-  // Animation effect for typing
-  useEffect(() => {
-    // Don't start typing until phrases are shuffled
-    if (shuffledPhrases.length === 0) return;
-    
-    const currentPhrase = shuffledPhrases[phraseIndex];
-    
-    // Handle typing animation
-    if (charIndex.current < currentPhrase.length) {
-      const char = currentPhrase.charAt(charIndex.current);
-      
-      // Longer pauses at punctuation during typing
-      const delay = ['.', ',', '?', '!', ':', ';', '-'].includes(char) ? typeSpeed * 4 : typeSpeed;
-      
-      const timer = setTimeout(() => {
-        setDisplayText(current => current + char);
-        charIndex.current += 1;
-      }, delay);
-      
-      return () => clearTimeout(timer);
-    } 
-    // Handle completed typing - pause then switch to next phrase
-    else if (charIndex.current === currentPhrase.length) {
-      pauseTimeout.current = setTimeout(() => {
-        // Add a clear step with its own timeout to ensure full clearing before next phrase
-        setDisplayText('');
+    if (phrases.length === 0) return;
+
+    // Clear any existing timers
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    const currentPhrase = phrases[currentPhraseIndex];
+
+    if (isTyping) {
+      // Still typing the current phrase
+      if (displayText.length < currentPhrase.length) {
+        const nextChar = currentPhrase.charAt(displayText.length);
+        const delay = ['.', ',', '?', '!', ':', ';', '-'].includes(nextChar) ? typeSpeed * 4 : typeSpeed;
         
-        // Wait a bit before starting the next phrase to ensure clean transition
-        setTimeout(() => {
-          charIndex.current = 0;
-          setPhraseIndex((current) => (current + 1) % shuffledPhrases.length);
-        }, 100);
-      }, pauseDuration);
-      
-      return () => {
-        if (pauseTimeout.current) clearTimeout(pauseTimeout.current);
-      };
+        timerRef.current = setTimeout(() => {
+          setDisplayText(currentPhrase.substring(0, displayText.length + 1));
+        }, delay);
+      } else {
+        // Finished typing the current phrase, pause before erasing
+        setIsTyping(false);
+        setIsDone(true);
+        timerRef.current = setTimeout(() => {
+          setIsDone(false);
+        }, pauseDuration);
+      }
+    } else if (!isDone) {
+      // Erasing the current phrase
+      if (displayText.length > 0) {
+        timerRef.current = setTimeout(() => {
+          setDisplayText(displayText.substring(0, displayText.length - 1));
+        }, typeSpeed / 2);
+      } else {
+        // Fully erased, move to next phrase
+        setIsTyping(true);
+        setCurrentPhraseIndex((currentPhraseIndex + 1) % phrases.length);
+      }
     }
-  }, [displayText, shuffledPhrases, phraseIndex, typeSpeed, pauseDuration]);
-  
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [displayText, isTyping, isDone, currentPhraseIndex, phrases, typeSpeed, pauseDuration]);
+
   // Blinking cursor effect
   useEffect(() => {
     const blinkInterval = setInterval(() => {
