@@ -704,7 +704,131 @@ export async function analyzePersonality(bio, casts) {
       
       const enhancedPrompt = systemInstruction + "\n\n" + prompt;
       
-      // Use a simpler approach without tools
+      // Define the JSON schema for the response structure
+      const responseSchema = {
+        type: SchemaType.OBJECT,
+        properties: {
+          spectralType: {
+            type: SchemaType.STRING,
+            description: "The spectral type identifier (I, II, or III)",
+          },
+          researchProfile: {
+            type: SchemaType.OBJECT,
+            properties: {
+              coreIdentity: {
+                type: SchemaType.STRING,
+                description: "Core Identity section (300-800 characters)",
+              },
+              functionalImpact: {
+                type: SchemaType.STRING,
+                description: "Functional Impact section (250-700 characters)",
+              },
+              alignmentConsiderations: {
+                type: SchemaType.STRING,
+                description: "Alignment Considerations section (250-600 characters)",
+              },
+              researchDeployment: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  verdict: {
+                    type: SchemaType.STRING,
+                    description: "Research Deployment verdict (300-800 characters)",
+                  },
+                },
+                required: ["verdict"],
+              },
+            },
+            required: ["coreIdentity", "functionalImpact", "alignmentConsiderations", "researchDeployment"],
+          },
+          fieldEvidence: {
+            type: SchemaType.ARRAY,
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                title: {
+                  type: SchemaType.STRING,
+                  description: "Short title describing exploration method",
+                },
+                quote: {
+                  type: SchemaType.STRING,
+                  description: "Direct quote from user's original cast",
+                },
+                interpretation: {
+                  type: SchemaType.STRING,
+                  description: "Brief interpretation explaining exploration method",
+                },
+              },
+              required: ["title", "quote", "interpretation"],
+            },
+            description: "Array of evidence items with titles, quotes, and interpretations",
+          },
+          metrics: {
+            type: SchemaType.OBJECT,
+            properties: {
+              exploratoryDepth: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  score: {
+                    type: SchemaType.NUMBER,
+                    description: "Score between 1-5",
+                  },
+                  context: {
+                    type: SchemaType.STRING,
+                    description: "Brief context text",
+                  },
+                },
+                required: ["score", "context"],
+              },
+              dataRetention: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  score: {
+                    type: SchemaType.NUMBER,
+                    description: "Score between 1-5",
+                  },
+                  context: {
+                    type: SchemaType.STRING,
+                    description: "Brief context text",
+                  },
+                },
+                required: ["score", "context"],
+              },
+              systematicThinking: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  score: {
+                    type: SchemaType.NUMBER,
+                    description: "Score between 1-5",
+                  },
+                  context: {
+                    type: SchemaType.STRING,
+                    description: "Brief context text",
+                  },
+                },
+                required: ["score", "context"],
+              },
+              riskTolerance: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  score: {
+                    type: SchemaType.NUMBER,
+                    description: "Score between 1-5",
+                  },
+                  context: {
+                    type: SchemaType.STRING,
+                    description: "Brief context text",
+                  },
+                },
+                required: ["score", "context"],
+              },
+            },
+            required: ["exploratoryDepth", "dataRetention", "systematicThinking", "riskTolerance"],
+          },
+        },
+        required: ["spectralType", "researchProfile", "fieldEvidence", "metrics"],
+      };
+      
+      // Use schema validation with the model
       const result = await model.generateContent({
         contents: [{ role: 'user', parts: [{ text: enhancedPrompt }] }],
         generationConfig: {
@@ -712,38 +836,70 @@ export async function analyzePersonality(bio, casts) {
           topK: useFlashModel ? 60 : 40,
           topP: useFlashModel ? 0.95 : 0.9,
           maxOutputTokens: useFlashModel ? 3072 : 2048,
-        }
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_ONLY_HIGH"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_ONLY_HIGH"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_ONLY_HIGH"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_ONLY_HIGH"
+          }
+        ],
+        responseSchema: responseSchema,
       });
 
-      const responseText = result.response.text().trim();
-      console.log(`Raw response (${modelName}):`, responseText.substring(0, 100) + "...");
-      
+      // With schema validation, we can directly get the JSON data
+      let analysis;
       try {
-        // Clean up the response text to ensure it's valid JSON
-        let cleanedText = responseText;
-        
-        // If the response starts with ```json or ``` and ends with ```, strip those markers
-        if (cleanedText.startsWith('```json')) {
-          cleanedText = cleanedText.substring(7);
-        } else if (cleanedText.startsWith('```')) {
-          cleanedText = cleanedText.substring(3);
+        // Get the response candidate
+        const responseCandidate = result.response;
+        // Check if we have structured output (schema worked)
+        if (responseCandidate.functionResponse && responseCandidate.functionResponse.response) {
+          // Extract the schema-validated JSON data
+          analysis = responseCandidate.functionResponse.response;
+          console.log(`Structured JSON response received (${modelName})`);
+        } else {
+          // Fallback to old text parsing if schema validation failed
+          const responseText = responseCandidate.text().trim();
+          console.log(`Raw response (${modelName}):`, responseText.substring(0, 100) + "...");
+          
+          // Clean up the response text to ensure it's valid JSON
+          let cleanedText = responseText;
+          
+          // If the response starts with ```json or ``` and ends with ```, strip those markers
+          if (cleanedText.startsWith('```json')) {
+            cleanedText = cleanedText.substring(7);
+          } else if (cleanedText.startsWith('```')) {
+            cleanedText = cleanedText.substring(3);
+          }
+          
+          if (cleanedText.endsWith('```')) {
+            cleanedText = cleanedText.substring(0, cleanedText.length - 3);
+          }
+          
+          cleanedText = cleanedText.trim();
+          
+          // Try to extract JSON if it's wrapped in other text
+          const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            cleanedText = jsonMatch[0];
+          }
+          
+          console.log(`Cleaned JSON (${modelName}):`, cleanedText.substring(0, 100) + "...");
+          
+          analysis = JSON.parse(cleanedText);
         }
         
-        if (cleanedText.endsWith('```')) {
-          cleanedText = cleanedText.substring(0, cleanedText.length - 3);
-        }
-        
-        cleanedText = cleanedText.trim();
-        
-        // Try to extract JSON if it's wrapped in other text
-        const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          cleanedText = jsonMatch[0];
-        }
-        
-        console.log(`Cleaned JSON (${modelName}):`, cleanedText.substring(0, 100) + "...");
-        
-        const analysis = JSON.parse(cleanedText);
         validateResponse(analysis);
         validateRoleConsistency(analysis);
         
