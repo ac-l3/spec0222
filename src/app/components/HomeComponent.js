@@ -926,22 +926,22 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         </div>
                         
                         <div className="flex-grow flex items-center justify-center">
-                          <div className="text-[#C0C2C5] text-xs px-4 mb-4 text-left w-full max-w-[95%] mx-auto">
+                          <div className="text-[#C0C2C5] text-xs px-4 mb-4 text-left w-full max-w-[95%] mx-auto min-h-[7rem]">
                             <TypewriterEffect 
                               phrases={[
                                 "THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY.",
-                                "BETWEEN SIGNAL AND INTERFERENCE, YOUR APPROACH TO THE UNKNOWN REVEALS YOUR FUNDAMENTAL ALIGNMENT.",
+                                "BETWEEN SIGNAL AND INTERFERENCE, YOUR APPROACH TO THE UNKNOWN REVEALS YOUR ALIGNMENT.",
                                 "YOUR METHOD OF ENGAGING WITH CHAOS ISN'T RANDOM—IT'S A SPECTRAL SIGNATURE WE CAN DETECT.",
-                                "THE SPECTRAL LAB TRACKS HOW MINDS TRANSFORM UNSEEN PATTERNS INTO MEANING THROUGH DISTINCT FREQUENCIES.",
-                                "SOME BUILD STRUCTURE FROM NOISE, OTHERS FLOW BETWEEN SIGNALS, AND A FEW INTENTIONALLY DISRUPT THE PATTERN.",
-                                "THE UNKNOWN ISN'T SIMPLY EXPLORED—IT'S WHERE YOUR CONSCIOUSNESS CREATES MEANING THROUGH SPECIFIC PATTERNS.",
-                                "BEYOND STATIC CLASSIFICATION LIES YOUR TRUE ALIGNMENT—HOW YOU MOVE BETWEEN ORDER AND CHAOS.",
+                                "THE SPECTRAL LAB TRACKS HOW MINDS TRANSFORM PATTERNS INTO MEANING THROUGH FREQUENCIES.",
+                                "SOME BUILD STRUCTURE FROM NOISE, OTHERS FLOW WITH SIGNALS, A FEW DISRUPT THE PATTERN.",
+                                "THE UNKNOWN ISN'T SIMPLY EXPLORED—IT'S WHERE YOUR CONSCIOUSNESS CREATES MEANING.",
+                                "BEYOND STATIC CLASSIFICATION LIES YOUR TRUE ALIGNMENT.",
                                 "$AXIS FRAMES, $FLUX FLOWS, $EDGE BREAKS.",
                                 "IN CHAOS: $AXIS CREATES ORDER, $FLUX RIDES CURRENTS, $EDGE TRANSFORMS.",
                                 "CARRY YOUR ALIGNMENT AS A BADGE OF HONOR. OWN YOUR SPECTRAL TRUTH."
                               ]}
-                              typeSpeed={40}
-                              pauseDuration={1500}
+                              typeSpeed={50}
+                              pauseDuration={2000}
                             />
                           </div>
                         </div>

@@ -63,13 +63,19 @@ export default function TypewriterEffect({ phrases, typeSpeed = 40, pauseDuratio
     // Handle completed typing - pause then switch to next phrase
     else if (charIndex.current === currentPhrase.length) {
       pauseTimeout.current = setTimeout(() => {
-        // Reset and move to next phrase immediately
+        // Add a clear step with its own timeout to ensure full clearing before next phrase
         setDisplayText('');
-        charIndex.current = 0;
-        setPhraseIndex((current) => (current + 1) % shuffledPhrases.length);
+        
+        // Wait a bit before starting the next phrase to ensure clean transition
+        setTimeout(() => {
+          charIndex.current = 0;
+          setPhraseIndex((current) => (current + 1) % shuffledPhrases.length);
+        }, 100);
       }, pauseDuration);
       
-      return () => clearTimeout(pauseTimeout.current);
+      return () => {
+        if (pauseTimeout.current) clearTimeout(pauseTimeout.current);
+      };
     }
   }, [displayText, shuffledPhrases, phraseIndex, typeSpeed, pauseDuration]);
   
@@ -83,8 +89,8 @@ export default function TypewriterEffect({ phrases, typeSpeed = 40, pauseDuratio
   }, []);
   
   return (
-    <div className={`${firaCode.className} font-mono tracking-wider text-left min-h-[3.5rem]`}>
-      <span>{displayText}</span>
+    <div className={`${firaCode.className} font-mono tracking-wider text-left min-h-[5rem] overflow-hidden`}>
+      <span className="whitespace-pre-line">{displayText}</span>
       <span 
         className={`${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity`}
         style={{ color: '#C8FA1A', transform: 'scaleX(0.5)', display: 'inline-block' }}
