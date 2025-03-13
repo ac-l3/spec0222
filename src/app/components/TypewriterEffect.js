@@ -27,29 +27,28 @@ function shuffleArray(array) {
  * Displays sequences of phrases with typing animation
  */
 export default function TypewriterEffect({ phrases, typeSpeed = 40, pauseDuration = 1500 }) {
-  // Instead of shuffling all phrases, just pick one random phrase using a session-specific seed
-  const [selectedPhrase, setSelectedPhrase] = useState('');
+  const [shuffledPhrases, setShuffledPhrases] = useState([]);
   const [displayText, setDisplayText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
+  const [phraseIndex, setPhraseIndex] = useState(0);
   const charIndex = useRef(0);
+  const pauseTimeout = useRef(null);
   
-  // Select a single random phrase on mount
+  // Randomize phrases on component mount
   useEffect(() => {
-    // Pick a random index based on current timestamp (day) as a stable seed for the session
-    const date = new Date();
-    const daySeed = date.getDate() + (date.getMonth() * 31); // Different seed each day
-    const randomIndex = daySeed % phrases.length;
-    setSelectedPhrase(phrases[randomIndex]);
+    setShuffledPhrases(shuffleArray(phrases));
   }, [phrases]);
   
   // Animation effect for typing
   useEffect(() => {
-    // Don't start typing until phrase is selected
-    if (!selectedPhrase) return;
+    // Don't start typing until phrases are shuffled
+    if (shuffledPhrases.length === 0) return;
+    
+    const currentPhrase = shuffledPhrases[phraseIndex];
     
     // Handle typing animation
-    if (charIndex.current < selectedPhrase.length) {
-      const char = selectedPhrase.charAt(charIndex.current);
+    if (charIndex.current < currentPhrase.length) {
+      const char = currentPhrase.charAt(charIndex.current);
       
       // Longer pauses at punctuation during typing
       const delay = ['.', ',', '?', '!', ':', ';', '-'].includes(char) ? typeSpeed * 4 : typeSpeed;
@@ -60,9 +59,19 @@ export default function TypewriterEffect({ phrases, typeSpeed = 40, pauseDuratio
       }, delay);
       
       return () => clearTimeout(timer);
+    } 
+    // Handle completed typing - pause then switch to next phrase
+    else if (charIndex.current === currentPhrase.length) {
+      pauseTimeout.current = setTimeout(() => {
+        // Reset and move to next phrase immediately
+        setDisplayText('');
+        charIndex.current = 0;
+        setPhraseIndex((current) => (current + 1) % shuffledPhrases.length);
+      }, pauseDuration);
+      
+      return () => clearTimeout(pauseTimeout.current);
     }
-    // Once the phrase is fully typed, just leave it displayed (no cycling)
-  }, [displayText, selectedPhrase, typeSpeed]);
+  }, [displayText, shuffledPhrases, phraseIndex, typeSpeed, pauseDuration]);
   
   // Blinking cursor effect
   useEffect(() => {
@@ -74,8 +83,8 @@ export default function TypewriterEffect({ phrases, typeSpeed = 40, pauseDuratio
   }, []);
   
   return (
-    <div className={`${firaCode.className} font-mono tracking-wider text-left min-h-[5rem] overflow-hidden`}>
-      <span className="whitespace-pre-line">{displayText}</span>
+    <div className={`${firaCode.className} font-mono tracking-wider text-left min-h-[3.5rem]`}>
+      <span>{displayText}</span>
       <span 
         className={`${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity`}
         style={{ color: '#C8FA1A', transform: 'scaleX(0.5)', display: 'inline-block' }}

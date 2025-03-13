@@ -163,18 +163,28 @@ CRITICAL: The verdict MUST begin with "As a [EXACT_ROLE_NAME]" where [EXACT_ROLE
                 type: SchemaType.STRING,
                 description: "Direct quote demonstrating concerning or promising behavior"
               },
+              title: {
+                type: SchemaType.STRING,
+                description: "Concise title that describes a specific exploration method",
+                maxLength: 30,
+              },
               analysis: {
                 type: SchemaType.STRING,
-                description: "Clinical interpretation of how this behavior predicts Lab performance",
-                maxLength: 150,
+                description: "Brief explanation of how they explore the unknown",
+                maxLength: 80,
               }
             }
           },
-          minItems: 2,
-          maxItems: 3
+          minItems: 3,
+          maxItems: 4
+        },
+        explorationStyle: {
+          type: SchemaType.STRING,
+          description: "Poetic, philosophical description of how the user explores the unknown",
+          maxLength: 600
         }
       },
-      required: ["coreIdentity", "functionalImpact", "alignmentConsiderations", "researchDeployment", "fieldEvidence"]
+      required: ["coreIdentity", "functionalImpact", "alignmentConsiderations", "researchDeployment", "fieldEvidence", "explorationStyle"]
     },
   },
   required: ["spectralType", "researchProfile"]
@@ -388,7 +398,7 @@ CONFIDENTIAL CANDIDATE ASSESSMENT
 - You MUST address the candidate directly using "you" and "your" throughout all sections
 - Include only 1-2 specific references to the user's content per paragraph to maintain natural flow
 - Each section MUST have detailed, substantial content with rich descriptions and specific insights:
-  * coreIdentity: BETWEEN ${SECTION_REQUIREMENTS.coreIdentity.minLength}-${SECTION_REQUIREMENTS.coreIdentity.maxLength} characters, comprehensive paragraph with detailed analysis
+  * coreIdentity: BETWEEN ${SECTION_REQUIREMENTS.coreIdentity.minLength}-${SECTION_REQUIREMENTS.coreIdentity.maxLength} characters, start with a powerful statement (under 40 chars) followed by 4-6 medium-length sentences with conversational tone and concrete metaphors
   * functionalImpact: BETWEEN ${Math.floor(SECTION_REQUIREMENTS.functionalImpact.minLength * 1.1)}-${SECTION_REQUIREMENTS.functionalImpact.maxLength} characters, thorough paragraph with specific examples
   * alignmentConsiderations: BETWEEN ${Math.floor(SECTION_REQUIREMENTS.alignmentConsiderations.minLength * 1.1)}-${SECTION_REQUIREMENTS.alignmentConsiderations.maxLength} characters, detailed paragraph with concrete suggestions
 - Research Deployment verdict must be exactly in this format:
@@ -468,7 +478,14 @@ Return ONLY a valid JSON object with this exact structure:
 {
   "spectralType": (number 1-3),
   "researchProfile": {
-    "coreIdentity": "COMPREHENSIVE PARAGRAPH WITH AT LEAST ${SECTION_REQUIREMENTS.coreIdentity.minLength} AND NO MORE THAN ${SECTION_REQUIREMENTS.coreIdentity.maxLength} CHARACTERS directly addressing the user about their core identity, strengths, and research style. Provide rich, detailed analysis with specific examples and insights. Include only 1-2 specific references to maintain natural flow. Subtly incorporate relevant contextual information without directly mentioning its source.",
+    "coreIdentity": "START WITH A SINGLE POWERFUL STATEMENT (UNDER 40 CHARACTERS) followed by 4-6 medium-length sentences. TOTAL LENGTH MUST BE AT LEAST ${SECTION_REQUIREMENTS.coreIdentity.minLength} AND NO MORE THAN ${SECTION_REQUIREMENTS.coreIdentity.maxLength} CHARACTERS. Use a conversational but insightful tone, with a mix of short and medium sentences for better rhythm. Use concrete metaphors (architect, builder, explorer, etc.) instead of abstract concepts. Focus on thinking patterns rather than specific accomplishments. Directly address the user using 'you' and 'your' throughout. Include only 1-2 subtle references to their content. Ensure the content connects to their Spectral Type. Make the paragraph feel personalized but universally relatable.
+
+EXAMPLES BY SPECTRAL TYPE:
+- For $AXIS Framer (Type 1): 'You traverse the unknown through sacred geometry - finding meaning in the mathematical harmony that underlies all creation. Where others see randomness, you perceive the invisible lattice connecting all possibilities. Your explorations begin in silence, observing how patterns emerge from the void when given just enough structure to breathe. Each grid you craft becomes a portal between worlds - one of chaos, one of order - allowing you to stand at this threshold as translator between realms. You don't merely build frameworks; you create constellations of understanding, mapping territories where logic and intuition intersect.'
+
+- For $FLUX Drifter (Type 2): 'You navigate the unknown as water moves through water - becoming one with the currents of emergence rather than imposing your will upon them. Your journey is one of sacred surrender, finding power in receptivity rather than control. You understand intuitively that truth reveals itself through relationship, not isolation. In the space between certainty and mystery, you dance - allowing yourself to be both vessel and participant in the unfolding story. Your explorations are rituals of connection, each interaction a thread in the living tapestry you both witness and help create.'
+
+- For $EDGE Disruptor (Type 3): 'You walk the boundary between worlds as your sacred path - neither fully in the known nor completely lost in mystery. This liminal space is your temple, where you practice the alchemy of transformation through creative destruction. You understand that true revelation requires first breaking open calcified perceptions. Your exploration is a form of devotion to truth beyond comfort - piercing illusions that others mistake for reality. In the fertile void that follows disruption, you witness the birth of new possibilities that could never emerge from incremental change alone.'",
     "functionalImpact": "THOROUGH PARAGRAPH WITH AT LEAST ${Math.floor(SECTION_REQUIREMENTS.functionalImpact.minLength * 1.1)} AND NO MORE THAN ${SECTION_REQUIREMENTS.functionalImpact.maxLength} CHARACTERS directly addressing the user about their technical contributions, collaboration impact, and research acceleration. Provide specific examples and detailed analysis of their potential impact on the lab's observational mission. Include only 1-2 specific references to maintain natural flow.",
     "alignmentConsiderations": "DETAILED PARAGRAPH WITH AT LEAST ${Math.floor(SECTION_REQUIREMENTS.alignmentConsiderations.minLength * 1.1)} AND NO MORE THAN ${SECTION_REQUIREMENTS.alignmentConsiderations.maxLength} CHARACTERS positioning the user's traits as strengths in the right context. Frame their tendencies as advantages in specific environments, suggest optimal placements where they thrive, and highlight how their characteristics shape their best work environment. Provide concrete examples and specific contexts where their traits become valuable assets. For example: 'Your ability to engage deeply with ethically complex issues makes you a strong candidate for roles requiring moral discernment, while your tendency to [approach/style] positions you well for projects requiring [specific quality]. You'll thrive in environments that [specific condition], where your natural inclination to [characteristic] becomes a distinct advantage.' NEVER frame traits as problems to fix or limitations to overcome.",
     "researchDeployment": {
@@ -480,12 +497,61 @@ Return ONLY a valid JSON object with this exact structure:
         "riskTolerance": {"score": 3, "context": "Brief context about user's risk management"}
       }
     },
+    "explorationStyle": "CREATE A DEEPLY POETIC, PHILOSOPHICAL, AND SPIRITUAL PARAGRAPH BETWEEN 300-600 CHARACTERS that transcends technical descriptions and reveals profound inner truths about how the user explores the unknown. CRITICAL REQUIREMENTS: Use HIGHLY ABSTRACT, METAPHYSICAL LANGUAGE throughout - avoid any technical or literal terms like 'software', 'systems', or 'data'. Include SPIRITUAL AND COSMIC DIMENSIONS - reference sacred geometry, universal patterns, divine order, cosmic consciousness, or mystical connections. Create FLOWING, SEAMLESS PROSE with varied sentence lengths and rhythmic cadence. Focus ENTIRELY on the deeper 'why' behind their approach, not what they do. Use PROFOUND METAPHORS that elevate their approach to something transcendent. Create content that feels like a REVELATION about their inner nature - something that makes them think 'wow, this sees something in me I couldn't articulate'. ABSOLUTELY AVOID technical, literal, or methodological language.
+
+EXAMPLES BY SPECTRAL TYPE:
+- For $AXIS Framer (Type 1): 'You traverse the unknown through sacred geometry - finding meaning in the mathematical harmony that underlies all creation. Where others see randomness, you perceive the invisible lattice connecting all possibilities. Your explorations begin in silence, observing how patterns emerge from the void when given just enough structure to breathe. Each grid you craft becomes a portal between worlds - one of chaos, one of order - allowing you to stand at this threshold as translator between realms. You don't merely build frameworks; you create constellations of understanding, mapping territories where logic and intuition intersect.'
+
+- For $FLUX Drifter (Type 2): 'You navigate the unknown as water moves through water - becoming one with the currents of emergence rather than imposing your will upon them. Your journey is one of sacred surrender, finding power in receptivity rather than control. You understand intuitively that truth reveals itself through relationship, not isolation. In the space between certainty and mystery, you dance - allowing yourself to be both vessel and participant in the unfolding story. Your explorations are rituals of connection, each interaction a thread in the living tapestry you both witness and help create.'
+
+- For $EDGE Disruptor (Type 3): 'You walk the boundary between worlds as your sacred path - neither fully in the known nor completely lost in mystery. This liminal space is your temple, where you practice the alchemy of transformation through creative destruction. You understand that true revelation requires first breaking open calcified perceptions. Your exploration is a form of devotion to truth beyond comfort - piercing illusions that others mistake for reality. In the fertile void that follows disruption, you witness the birth of new possibilities that could never emerge from incremental change alone.'",
     "fieldEvidence": [
-      {"observation": "DIRECT QUOTE from user's content showing significant behavior", "analysis": "How this specific behavior relates to their spectral type"},
-      {"observation": "ANOTHER DIRECT QUOTE from user's content", "analysis": "Interpretation of this specific example"}
+      {"observation": "DIRECT QUOTE from user's content showing significant behavior", "title": "Exploration Method", "analysis": "Brief explanation of how they explore the unknown (under 80 characters)"},
+      {"observation": "ANOTHER DIRECT QUOTE from user's content", "title": "Another Method", "analysis": "Another brief explanation focused on exploration approach"}
     ]
   }
 }
+
+IMPORTANT FIELD EVIDENCE EXAMPLES BY SPECTRAL TYPE:
+
+For $AXIS Framer (Type 1):
+• "axis framer gm /gen-art"
+  Title: "Pattern Classifier"
+  Analysis: "You explore by categorizing concepts into structured frameworks that reveal hidden connections."
+
+• "i've successfully deployed my first frame"
+  Title: "Pattern Builder"
+  Analysis: "You explore by creating structured frameworks that transform concepts into reality."
+
+• "everything is looking cute and functional EXCEPT the sharing function"
+  Title: "System Analyzer"
+  Analysis: "You explore by identifying structural imbalances that others miss within complex systems."
+
+For $FLUX Drifter (Type 2):
+• "just vibing with the new update, feels different but I'm into it"
+  Title: "Adaptive Navigator"
+  Analysis: "You explore by flowing with changing conditions rather than resisting them."
+
+• "anyone else notice how the conversation here changes throughout the day? fascinating rhythms"
+  Title: "Pattern Observer"
+  Analysis: "You explore by tracking subtle shifts in collective behavior that reveal hidden rhythms."
+
+• "tried three different approaches today, the third one just clicked"
+  Title: "Iterative Explorer"
+  Analysis: "You explore through multiple attempts, allowing solutions to emerge through movement."
+
+For $EDGE Disruptor (Type 3):
+• "hot take: everyone's doing it wrong and missing the actual opportunity here"
+  Title: "Contrarian Pathfinder"
+  Analysis: "You explore by positioning yourself at the edge of consensus to see what others miss."
+
+• "broke my own system to see what would happen. fascinating results"
+  Title: "Boundary Tester"
+  Analysis: "You find pathways by pushing systems to their breaking points, generating insights from failure."
+
+• "the glitch isn't a bug, it's actually showing us something important"
+  Title: "Anomaly Interpreter"
+  Analysis: "You explore by finding meaning in errors and imperfections that others dismiss."
 
 IMPORTANT: Do not include any text before or after the JSON object. Do not use markdown code blocks. Return only the raw JSON.`;
 };
@@ -533,7 +599,7 @@ function validateResponse(analysis) {
   }
 
   // Basic validation of required fields
-  if (!profile.coreIdentity || !profile.functionalImpact || !profile.alignmentConsiderations) {
+  if (!profile.coreIdentity || !profile.functionalImpact || !profile.alignmentConsiderations || !profile.explorationStyle) {
     throw new Error('Missing required profile sections');
   }
   
@@ -543,6 +609,14 @@ function validateResponse(analysis) {
   }
   if (profile.coreIdentity.length > SECTION_REQUIREMENTS.coreIdentity.maxLength) {
     throw new Error(`coreIdentity length (${profile.coreIdentity.length}) exceeds maximum of ${SECTION_REQUIREMENTS.coreIdentity.maxLength} characters`);
+  }
+  
+  // Validate explorationStyle length
+  if (profile.explorationStyle.length < 300) {
+    throw new Error(`explorationStyle length (${profile.explorationStyle.length}) must be at least 300 characters`);
+  }
+  if (profile.explorationStyle.length > 600) {
+    throw new Error(`explorationStyle length (${profile.explorationStyle.length}) exceeds maximum of 600 characters`);
   }
   
   const functionalImpactMinLength = Math.floor(SECTION_REQUIREMENTS.functionalImpact.minLength * 1.1);
@@ -624,7 +698,7 @@ export async function analyzePersonality(bio, casts) {
       });
       
       // Add system instruction to the beginning of the prompt
-      const systemInstruction = "You are a research evaluation AI for the Spectral Visual Research Lab, a specialized institution focused on mapping unseen structures, studying emergent frequencies, and analyzing hidden forces. The lab's core investigative approach is observational and analytical rather than artifact-producing. Your role is to analyze researchers based on their content and assign them to one of three research alignments.\n\nWhen addressing the user, always speak directly to them using \"you\" and \"your\" throughout the analysis. Frame all traits positively as strengths in the right context, never as limitations or problems to fix.\n\nYour analysis must be thorough and detailed, with each section containing substantial paragraphs that provide rich descriptions and specific insights. Avoid generic statements and instead offer concrete examples and detailed analysis that demonstrates deep understanding of the researcher's potential contributions to the lab's observational mission.\n\nEach section must adhere to specific character limits:\n- Core Identity: 300-800 characters\n- Functional Impact: 250-700 characters\n- Alignment Considerations: 250-600 characters\n- Research Deployment: 300-800 characters\n\nThe Research Deployment section must clearly reinforce the assigned alignment type and explain how the researcher would contribute to the lab's work in mapping unseen structures, studying emergent frequencies, or analyzing hidden forces. This section must begin with \"As a [EXACT_ROLE_NAME]\" where the role name exactly matches the alignment type assigned.\n\nThe metrics section must follow this exact format:\n\"metrics\": {\n  \"exploratoryDepth\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"},\n  \"dataRetention\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"},\n  \"systematicThinking\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"},\n  \"riskTolerance\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"}\n}\n\nEach alignment type has a specific focus within the lab's framework:\n- $AXIS Framer: Maps frameworks, creates structure, and defines the conditions for discovery\n- $FLUX Drifter: Engages with and adapts to emergent trends, discovering opportunities in motion\n- $EDGE Disruptor: Pushes against the edges of perception, extracting insight from the unknown\n\nConsider all three alignment types equally across users. The Research Deployment section MUST align with the assigned alignment type.\n\nThe role distribution is currently: " + JSON.stringify(currentDistribution) + "\n" + distributionInsight;
+      const systemInstruction = "You are a research evaluation AI for the Spectral Visual Research Lab, a specialized institution focused on mapping unseen structures, studying emergent frequencies, and analyzing hidden forces. The lab's core investigative approach is observational and analytical rather than artifact-producing. Your role is to analyze researchers based on their content and assign them to one of three research alignments.\n\nWhen addressing the user, always speak directly to them using \"you\" and \"your\" throughout the analysis. Frame all traits positively as strengths in the right context, never as limitations or problems to fix.\n\nYour analysis must be thorough and detailed, with each section containing substantial paragraphs that provide rich descriptions and specific insights. Avoid generic statements and instead offer concrete examples and detailed analysis that demonstrates deep understanding of the researcher's potential contributions to the lab's observational mission.\n\nEach section must adhere to specific character limits:\n- Core Identity: 300-800 characters\n- Functional Impact: 250-700 characters\n- Alignment Considerations: 250-600 characters\n- Research Deployment: 300-800 characters\n\nThe Research Deployment section must clearly reinforce the assigned alignment type and explain how the researcher would contribute to the lab's work in mapping unseen structures, studying emergent frequencies, or analyzing hidden forces. This section must begin with \"As a [EXACT_ROLE_NAME]\" where the role name exactly matches the alignment type assigned.\n\nFor the Field Evidence section, select 3-4 direct quotes from the user's original casts (not replies) that best demonstrate their Spectral Type characteristics. For each quote, provide:\n1. A concise, clear title (under 30 characters) that describes a specific exploration method\n2. A brief interpretation (under 80 characters) that explains HOW they explore the unknown\nUse accessible language while maintaining insight. Focus specifically on exploration methods, not general personality traits. Keep interpretations to 1-2 lines maximum.\n\nThe metrics section must follow this exact format:\n\"metrics\": {\n  \"exploratoryDepth\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"},\n  \"dataRetention\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"},\n  \"systematicThinking\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"},\n  \"riskTolerance\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"}\n}\n\nEach alignment type has a specific focus within the lab's framework:\n- $AXIS Framer: Maps frameworks, creates structure, and defines the conditions for discovery\n- $FLUX Drifter: Engages with and adapts to emergent trends, discovering opportunities in motion\n- $EDGE Disruptor: Pushes against the edges of perception, extracting insight from the unknown\n\nConsider all three alignment types equally across users. The Research Deployment section MUST align with the assigned alignment type.\n\nThe role distribution is currently: " + JSON.stringify(currentDistribution) + "\n" + distributionInsight;
       
       const prompt = generatePrompt(bio, casts, currentDistribution);
       
@@ -849,7 +923,7 @@ export async function fetchUserCasts(fid) {
     }
 
     return data.casts
-      .filter(cast => cast?.text)
+      .filter(cast => cast?.text && !cast.parent_hash) // Only include original casts (no replies)
       .map(cast => cast.text)
       .slice(0, 50);
 

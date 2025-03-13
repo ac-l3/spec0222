@@ -914,7 +914,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                     )}
                     
                     {!analysis && (
-                      <div className="text-center flex flex-col justify-between min-h-[85vh] max-w-3xl mx-auto px-4">
+                      <div className="text-center flex flex-col justify-between min-h-[80vh] max-w-3xl mx-auto">
                         <div className="flex justify-center mt-12 mb-4">
                           <Image 
                             src="/images/title.png" 
@@ -926,7 +926,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         </div>
                         
                         <div className="flex-grow flex items-center justify-center">
-                          <div className="text-[#C0C2C5] text-xs px-6 mb-4 text-left w-full max-w-[80%] mx-auto">
+                          <div className="text-[#C0C2C5] text-xs px-8 mb-4 text-left w-full max-w-[90%] mx-auto">
                             <TypewriterEffect 
                               phrases={[
                                 "THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY.",

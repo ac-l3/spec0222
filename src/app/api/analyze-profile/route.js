@@ -8,6 +8,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const fid = searchParams.get('fid');
+    const noCache = searchParams.get('nocache');
     
     if (!fid) {
       return NextResponse.json(
@@ -17,15 +18,19 @@ export async function GET(request) {
     }
 
     const cacheKey = `spectral:analysis:${fid}`;
-    const cachedData = await getFromKV(cacheKey);
     
-    if (cachedData) {
-      try {
-        const parsed = JSON.parse(cachedData);
-        const data = parsed.value ? JSON.parse(parsed.value) : parsed;
-        return NextResponse.json(data);
-      } catch (e) {
-        console.error('Error parsing cached data:', e);
+    // Only check cache if nocache parameter is not present
+    if (!noCache) {
+      const cachedData = await getFromKV(cacheKey);
+      
+      if (cachedData) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          const data = parsed.value ? JSON.parse(parsed.value) : parsed;
+          return NextResponse.json(data);
+        } catch (e) {
+          console.error('Error parsing cached data:', e);
+        }
       }
     }
     

@@ -73,6 +73,11 @@ export const SECTION_REQUIREMENTS = {
     maxLength: 600,
     description: "Positioning researcher traits as strengths in optimal contexts"
   },
+  explorationStyle: {
+    minLength: 300,
+    maxLength: 600,
+    description: "Poetic, philosophical description of how the user explores the unknown"
+  },
   researchDeployment: {
     minLength: 300,
     maxLength: 800,
