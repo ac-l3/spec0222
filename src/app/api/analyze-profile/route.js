@@ -19,21 +19,27 @@ function canMakeRequest() {
   
   // Check if we've hit the limit
   if (requestTimestamps.length >= MAX_REQUESTS_PER_MINUTE) {
+    console.log(`Throttling activated - ${requestTimestamps.length} requests in the last minute exceeds limit of ${MAX_REQUESTS_PER_MINUTE}`);
     return false;
   }
   
   // Add current timestamp and allow the request
   requestTimestamps.push(now);
+  console.log(`Request allowed - current count: ${requestTimestamps.length}/${MAX_REQUESTS_PER_MINUTE} in the last minute`);
   return true;
 }
 
 export async function GET(request) {
+  console.log('API: analyze-profile route called');
   try {
     const { searchParams } = new URL(request.url);
     const fid = searchParams.get('fid');
     const noCache = searchParams.get('nocache');
     
+    console.log(`API: Processing request for FID: ${fid}, noCache: ${!!noCache}`);
+    
     if (!fid) {
+      console.error('API: Missing FID parameter');
       return NextResponse.json(
         { error: 'Missing FID parameter' },
         { status: 400 }
@@ -44,24 +50,27 @@ export async function GET(request) {
     
     // Only check cache if nocache parameter is not present
     if (!noCache) {
+      console.log(`API: Checking cache for key: ${cacheKey}`);
       const cachedData = await getFromKV(cacheKey);
       
       if (cachedData) {
+        console.log('API: Cache hit! Returning cached data');
         try {
-          // Parse the cache value string into a JSON object
           const parsed = JSON.parse(cachedData.value);
-          console.log('Successfully retrieved and parsed cached data');
           return NextResponse.json(parsed);
         } catch (e) {
-          console.error('Error parsing cached data:', e);
-          // If parsing fails, continue with the API request
+          console.error('API: Error parsing cached data:', e);
         }
+      } else {
+        console.log('API: Cache miss, proceeding to analyze');
       }
+    } else {
+      console.log('API: Cache bypass requested');
     }
     
     // Check if we're within rate limits before proceeding
     if (!canMakeRequest()) {
-      console.log('Throttling request - too many requests in the last minute');
+      console.log('API: Throttling request - too many requests in the last minute');
       return NextResponse.json(
         { error: 'Too many analysis requests. Please try again in a minute.' },
         { status: 429 }
@@ -69,12 +78,17 @@ export async function GET(request) {
     }
     
     try {
+      console.log(`API: Fetching user info and casts for FID: ${fid}`);
       const [userInfo, casts] = await Promise.all([
         fetchUserInfo(fid),
         fetchUserCasts(fid),
       ]);
 
+      console.log(`API: User info fetch result: ${!!userInfo}, bio length: ${userInfo?.profile?.bio?.text?.length || 0}`);
+      console.log(`API: Casts fetch result: ${!!casts}, count: ${casts?.length || 0}`);
+
       if (!userInfo) {
+        console.error(`API: User not found for FID: ${fid}`);
         return NextResponse.json(
           { error: 'User not found' },
           { status: 404 }
@@ -82,20 +96,25 @@ export async function GET(request) {
       }
 
       if (!casts || casts.length === 0) {
+        console.error(`API: No casts found for FID: ${fid}`);
         return NextResponse.json(
           { error: 'No casts found for user' },
           { status: 404 }
         );
       }
 
-      console.log(`Analyzing profile for FID ${fid}, bio length: ${userInfo.profile?.bio?.text?.length || 0}, casts: ${casts.length}`);
+      console.log(`API: Analyzing profile for FID ${fid}, bio length: ${userInfo.profile?.bio?.text?.length || 0}, casts: ${casts.length}`);
       
+      console.time('analyzePersonality');
       const analysis = await analyzePersonality(userInfo.profile?.bio?.text || null, casts);
+      console.timeEnd('analyzePersonality');
 
       if (!analysis) {
+        console.error('API: Analysis returned null or undefined');
         throw new Error('Analysis returned null or undefined');
       }
 
+      console.log('API: Analysis completed successfully, preparing response');
       const response = {
         fid,
         username: userInfo.username,
@@ -105,18 +124,19 @@ export async function GET(request) {
         analysis,
       };
 
-      // Store the response in the cache
+      console.log(`API: Saving results to cache key: ${cacheKey}`);
       await putToKV(cacheKey, response);
+      console.log('API: Request completed successfully');
       return NextResponse.json(response);
     } catch (innerError) {
-      console.error('Error in API processing:', innerError);
+      console.error('API: Error in API processing:', innerError);
       return NextResponse.json(
         { error: 'Failed to process user data', details: innerError.message },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('Error analyzing profile:', error);
+    console.error('API: Error analyzing profile:', error);
     return NextResponse.json(
       { error: 'Failed to analyze profile', details: error.message },
       { status: 500 }

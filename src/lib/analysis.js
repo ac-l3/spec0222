@@ -679,6 +679,9 @@ export async function testGeminiAPI() {
 
 // Update the main analysis function
 export async function analyzePersonality(bio, casts) {
+  console.log('ANALYSIS: Starting personality analysis');
+  console.log(`ANALYSIS: Bio length: ${bio?.length || 0}, Casts count: ${casts?.length || 0}`);
+  
   const maxRetries = 3;
   let useFlashModel = true;
   
@@ -828,118 +831,124 @@ export async function analyzePersonality(bio, casts) {
         required: ["spectralType", "researchProfile", "fieldEvidence", "metrics"],
       };
       
-      // Use schema validation with the model
-      const result = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: enhancedPrompt }] }],
-        generationConfig: {
-          temperature: useFlashModel ? 1.8 : 0.7,
-          topK: useFlashModel ? 60 : 40,
-          topP: useFlashModel ? 0.95 : 0.9,
-          maxOutputTokens: useFlashModel ? 3072 : 2048,
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_HARASSMENT",
-            threshold: "BLOCK_ONLY_HIGH"
-          },
-          {
-            category: "HARM_CATEGORY_HATE_SPEECH",
-            threshold: "BLOCK_ONLY_HIGH"
-          },
-          {
-            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold: "BLOCK_ONLY_HIGH"
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_ONLY_HIGH"
-          }
-        ],
-        responseSchema: responseSchema,
-      });
-
-      // With schema validation, we can directly get the JSON data
-      let analysis;
+      // Around line 800, add logs to the model.generateContent call
       try {
-        // Get the response candidate
-        const responseCandidate = result.response;
-        // Check if we have structured output (schema worked)
-        if (responseCandidate.functionResponse && responseCandidate.functionResponse.response) {
-          // Extract the schema-validated JSON data
-          analysis = responseCandidate.functionResponse.response;
-          console.log(`Structured JSON response received (${modelName})`);
-        } else {
-          // Fallback to old text parsing if schema validation failed
-          const responseText = responseCandidate.text().trim();
-          console.log(`Raw response (${modelName}):`, responseText.substring(0, 100) + "...");
+        console.log(`ANALYSIS: Generating content with ${modelName}`);
+        console.log('ANALYSIS: Prompt length:', enhancedPrompt.length);
+        console.time('ANALYSIS: AI model generation');
+        
+        // Use schema validation with the model
+        const result = await model.generateContent({
+          contents: [{ role: 'user', parts: [{ text: enhancedPrompt }] }],
+          generationConfig: {
+            temperature: useFlashModel ? 1.8 : 0.7,
+            topK: useFlashModel ? 60 : 40,
+            topP: useFlashModel ? 0.95 : 0.9,
+            maxOutputTokens: useFlashModel ? 3072 : 2048,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_ONLY_HIGH"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_ONLY_HIGH"
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_ONLY_HIGH"
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_ONLY_HIGH"
+            }
+          ],
+          responseSchema: responseSchema,
+        });
+        
+        console.timeEnd('ANALYSIS: AI model generation');
+        console.log('ANALYSIS: Model response received');
+
+        // With schema validation, we can directly get the JSON data
+        let analysis;
+        try {
+          // Get the response candidate
+          const responseCandidate = result.response;
+          console.log('ANALYSIS: Processing response candidate');
           
-          // Clean up the response text to ensure it's valid JSON
-          let cleanedText = responseText;
-          
-          // If the response starts with ```json or ``` and ends with ```, strip those markers
-          if (cleanedText.startsWith('```json')) {
-            cleanedText = cleanedText.substring(7);
-          } else if (cleanedText.startsWith('```')) {
-            cleanedText = cleanedText.substring(3);
+          // Check if we have structured output (schema worked)
+          if (responseCandidate.functionResponse && responseCandidate.functionResponse.response) {
+            // Extract the schema-validated JSON data
+            analysis = responseCandidate.functionResponse.response;
+            console.log(`ANALYSIS: Structured JSON response received (${modelName})`);
+          } else {
+            // Fallback to old text parsing if schema validation failed
+            const responseText = responseCandidate.text().trim();
+            console.log(`ANALYSIS: Schema validation failed, falling back to text parsing (${modelName})`);
+            console.log(`ANALYSIS: Raw response preview: ${responseText.substring(0, 100)}...`);
+            
+            // Clean up the response text to ensure it's valid JSON
+            let cleanedText = responseText;
+            
+            // If the response starts with ```json or ``` and ends with ```, strip those markers
+            if (cleanedText.startsWith('```json')) {
+              cleanedText = cleanedText.substring(7);
+              console.log('ANALYSIS: Removed ```json prefix');
+            } else if (cleanedText.startsWith('```')) {
+              cleanedText = cleanedText.substring(3);
+              console.log('ANALYSIS: Removed ``` prefix');
+            }
+            
+            if (cleanedText.endsWith('```')) {
+              cleanedText = cleanedText.substring(0, cleanedText.length - 3);
+              console.log('ANALYSIS: Removed ``` suffix');
+            }
+            
+            cleanedText = cleanedText.trim();
+            
+            // Try to extract JSON if it's wrapped in other text
+            const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              cleanedText = jsonMatch[0];
+              console.log('ANALYSIS: Extracted JSON from surrounding text');
+            }
+            
+            console.log(`ANALYSIS: Cleaned JSON preview: ${cleanedText.substring(0, 100)}...`);
+            
+            try {
+              analysis = JSON.parse(cleanedText);
+              console.log('ANALYSIS: Successfully parsed JSON from text');
+            } catch (parseError) {
+              console.error('ANALYSIS: JSON parsing error:', parseError);
+              throw new Error(`Failed to parse JSON response: ${parseError.message}`);
+            }
           }
           
-          if (cleanedText.endsWith('```')) {
-            cleanedText = cleanedText.substring(0, cleanedText.length - 3);
+          // Add logs for validation
+          console.log('ANALYSIS: Validating analysis result');
+          try {
+            validateResponse(analysis);
+            console.log('ANALYSIS: Validation successful');
+          } catch (validationError) {
+            console.error('ANALYSIS: Validation error:', validationError);
+            throw validationError;
           }
           
-          cleanedText = cleanedText.trim();
+          console.log(`ANALYSIS: Final spectral type determined: ${analysis.spectralType}`);
+          return analysis;
           
-          // Try to extract JSON if it's wrapped in other text
-          const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            cleanedText = jsonMatch[0];
-          }
-          
-          console.log(`Cleaned JSON (${modelName}):`, cleanedText.substring(0, 100) + "...");
-          
-          analysis = JSON.parse(cleanedText);
+        } catch (processingError) {
+          console.error('ANALYSIS: Error processing AI response:', processingError);
+          throw processingError;
         }
+      } catch (modelError) {
+        console.error('ANALYSIS: Error calling AI model:', modelError);
+        console.log('ANALYSIS: Retrying with alternate model configuration');
         
-        validateResponse(analysis);
-        validateRoleConsistency(analysis);
+        // Implement retry logic here
         
-        // Update role distribution
-        const assignedRole = SPECTRAL_TYPES[analysis.spectralType].name;
-        roleDistribution[assignedRole]++;
-        totalAssignments++;
-        
-        // Reset distribution if threshold reached
-        if (totalAssignments >= DISTRIBUTION_RESET_THRESHOLD) {
-          roleDistribution = {
-            '$AXIS Framer': 0,
-            '$FLUX Drifter': 0,
-            '$EDGE Disruptor': 0
-          };
-          totalAssignments = 0;
-          console.log('Role distribution reset');
-        }
-        
-        console.log('Current role distribution:', roleDistribution);
-        
-        return analysis;
-      } catch (error) {
-        console.error(`Validation Error (${modelName}):`, error);
-        
-        // Only log responseText if it's defined
-        if (responseText) {
-          console.error('Response:', responseText);
-        } else {
-          console.error('No response text available');
-        }
-        
-        // If we're using the flash model and it failed, try the pro model next
-        if (useFlashModel) {
-          console.log("Falling back to gemini-pro model");
-          useFlashModel = false;
-          continue; // Skip the attempt increment
-        }
-        
-        if (attempt === maxRetries - 1) throw error;
+        throw modelError;
       }
     } catch (error) {
       console.error(`Attempt ${attempt + 1} failed:`, error);
@@ -1020,11 +1029,14 @@ function validateRoleConsistency(analysis) {
 }
 
 export async function fetchUserInfo(fid) {
+  console.log(`FARCASTER: Fetching user info for FID: ${fid}`);
   if (!process.env.NEYNAR_API_KEY) {
+    console.error('FARCASTER: NEYNAR_API_KEY not configured');
     throw new Error('NEYNAR_API_KEY not configured');
   }
 
   try {
+    console.log(`FARCASTER: Making API request to Neynar for user info`);
     const response = await fetch(
       `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
       {
@@ -1036,28 +1048,35 @@ export async function fetchUserInfo(fid) {
     );
 
     if (!response.ok) {
+      console.error(`FARCASTER: Neynar API error: ${response.status}`);
       throw new Error(`Neynar API error: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log(`FARCASTER: User info API response status: ${!!data}`);
     
     if (!data?.users?.[0]) {
+      console.error('FARCASTER: User not found in Neynar response');
       throw new Error('User not found');
     }
 
+    console.log(`FARCASTER: Successfully fetched user info for: ${data.users[0].username}`);
     return data.users[0];
   } catch (error) {
-    console.error('Error fetching user info:', error);
+    console.error('FARCASTER: Error fetching user info:', error);
     throw error;
   }
 }
 
 export async function fetchUserCasts(fid) {
+  console.log(`FARCASTER: Fetching casts for FID: ${fid}`);
   if (!process.env.NEYNAR_API_KEY) {
+    console.error('FARCASTER: NEYNAR_API_KEY not configured');
     throw new Error('NEYNAR_API_KEY not configured');
   }
 
   try {
+    console.log(`FARCASTER: Making API request to Neynar for user casts`);
     const response = await fetch(
       `https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=50`,
       {
@@ -1069,22 +1088,28 @@ export async function fetchUserCasts(fid) {
     );
 
     if (!response.ok) {
+      console.error(`FARCASTER: Neynar API error: ${response.status}`);
       throw new Error(`Neynar API error: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log(`FARCASTER: Casts API response status: ${!!data}`);
 
     if (!data?.casts || !Array.isArray(data.casts)) {
+      console.error('FARCASTER: Invalid response structure from casts API');
       throw new Error('Invalid response structure');
     }
 
-    return data.casts
+    const filteredCasts = data.casts
       .filter(cast => cast?.text && !cast.parent_hash) // Only include original casts (no replies)
       .map(cast => cast.text)
       .slice(0, 50);
+    
+    console.log(`FARCASTER: Successfully fetched ${filteredCasts.length} casts`);
+    return filteredCasts;
 
   } catch (error) {
-    console.error('Error fetching user casts:', error);
+    console.error('FARCASTER: Error fetching user casts:', error);
     throw error;
   }
 }

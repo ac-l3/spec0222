@@ -49,35 +49,26 @@ async function getAnalysis(fid) {
     };
   }
 
-  try {
-    // Parse the cached data correctly
-    const analysis = JSON.parse(cachedData.value);
-    
-    if (!analysis?.username || !analysis?.pfp_url || !analysis?.analysis?.spectralType) {
-      console.error('Invalid analysis data structure:', analysis);
-      throw new Error('Invalid analysis data structure');
-    }
-    
-    const spectralType = SPECTRAL_TYPES[analysis.analysis.spectralType];
-    if (!spectralType) {
-      throw new Error(`Unknown spectral type: ${analysis.analysis.spectralType}`);
-    }
-    
-    return {
-      username: analysis.username,
-      pfp: analysis.pfp_url,
-      type: {
-        number: analysis.analysis.spectralType,
-        name: spectralType.name,
-        title: spectralType.name,
-        motto: spectralType.motto,
-        colors: spectralType.colors
-      }
-    };
-  } catch (error) {
-    console.error('Error processing cached analysis data:', error);
-    throw new Error('Failed to process cached analysis data');
+  const data = JSON.parse(cachedData);
+  const analysis = data.value ? JSON.parse(data.value) : data;
+
+  if (!analysis?.username || !analysis?.pfpUrl || !analysis?.analysis?.spectralType) {
+    throw new Error('Invalid analysis data');
   }
+
+  const spectralType = SPECTRAL_TYPES[analysis.analysis.spectralType];
+
+  return {
+    username: analysis.username,
+    pfp: analysis.pfpUrl,
+    type: {
+      number: analysis.analysis.spectralType,
+      name: spectralType.name,
+      title: spectralType.name,
+      motto: spectralType.motto,
+      colors: spectralType.colors
+    }
+  };
 }
 
 export async function GET(request) {

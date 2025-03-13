@@ -61,6 +61,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   }, [fid, userFid]);
 
   async function analyzeWithRetry(data) {
+    console.log('Starting data validation in analyzeWithRetry');
     if (!data || typeof data !== 'object') {
       console.error('Invalid data structure:', data);
       throw new Error('Invalid data structure');
@@ -68,10 +69,11 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
 
     // Validate the analysis object structure
     if (!data.analysis?.spectralType || !data.analysis?.researchProfile) {
-      console.log('Response data:', data);
+      console.error('Invalid analysis structure detected:', data);
       throw new Error('Invalid analysis structure');
     }
 
+    console.log('Data validation successful');
     return data;
   }
 
@@ -80,14 +82,20 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     async function loadAnalysis() {
       if (!initialFid || initialData) return;
       
+      console.log('Loading analysis for initialFid:', initialFid);
       try {
         // Fetch the analysis data from the API
+        console.log('Making API request for initial FID');
         const response = await fetch(`/api/analyze-profile?fid=${initialFid}&nocache=${Date.now()}`);
+        console.log('Initial analysis API response status:', response.status);
+        
         if (!response.ok) {
           throw new Error(`API returned ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('Initial analysis API response data:', data);
+        
         const validatedData = await analyzeWithRetry(data);
         
         console.log('Loaded analysis for FID:', initialFid, 'Data:', validatedData);
@@ -100,7 +108,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
           profile: { bio: { text: validatedData.bio } }
         });
       } catch (error) {
-        console.error('Error loading analysis:', error);
+        console.error('Error loading initial analysis:', error);
         alert('Failed to load analysis. Please try again.');
       }
     }
@@ -109,8 +117,10 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   }, [initialFid, initialData]);
 
   const handleAnalyze = async () => {
+    console.log('Analyze button clicked - beginning analysis process');
     // Play sound when button is clicked
     if (buttonSoundRef.current) {
+      console.log('Playing button sound');
       buttonSoundRef.current.currentTime = 0; // Reset sound to beginning
       buttonSoundRef.current.play().catch(error => {
         console.error('Error playing audio:', error);
@@ -120,6 +130,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
     setIsAnalyzing(true);
     try {
       const userFid = window.userFid;
+      console.log('User FID from window:', userFid);
       if (!userFid) {
         console.error('No user FID found');
         alert('Unable to find your Farcaster ID. Please make sure you are connected with Warpcast.');
@@ -127,26 +138,33 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
         return;
       }
 
+      console.log(`Making API request to /api/analyze-profile with FID: ${userFid}`);
       // Fetch the analysis data from the API
       const response = await fetch(`/api/analyze-profile?fid=${userFid}&nocache=${Date.now()}`);
+      console.log('API response status:', response.status);
       
       // Handle rate limiting errors
       if (response.status === 429) {
         const errorData = await response.json();
+        console.error('Rate limit error:', errorData);
         throw new Error(errorData.error || 'Too many requests. Please try again in a minute.');
       }
       
       if (!response.ok) {
+        console.error(`API error - status: ${response.status}`);
         throw new Error(`API returned ${response.status}: ${await response.text()}`);
       }
       
+      console.log('API request successful, parsing JSON response');
       const data = await response.json();
-      const validatedData = await analyzeWithRetry(data);
+      console.log('Raw API response:', data);
       
-      console.log('Analysis result:', validatedData);
+      const validatedData = await analyzeWithRetry(data);
+      console.log('Validated analysis data:', validatedData);
       
       // Update the URL with the new FID
       window.history.pushState({}, '', `/?fid=${userFid}`);
+      console.log('URL updated with FID');
       
       setAnalysis(validatedData.analysis);
       setFid(userFid);
@@ -156,11 +174,12 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
         pfp_url: validatedData.pfpUrl,
         profile: { bio: { text: validatedData.bio } }
       });
+      console.log('State updated with analysis results');
       
       // Since this is the user's own analysis, set isOwnProfile to true
       setIsOwnProfile(true);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Analysis error details:', error);
       
       // Provide specific error messages based on the error type
       if (error.message.includes('Too many requests') || error.message.includes('rate limit')) {
@@ -171,18 +190,21 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
         alert('Analysis failed. Please try again in a few moments.');
       }
     } finally {
+      console.log('Analysis process completed (success or failure)');
       setIsAnalyzing(false);
     }
   };
 
   const handleShare = async (e) => {
     e.preventDefault();
+    console.log('Share button clicked');
     setIsSharing(true);
     
     try {
       // Get the spectral type name and number
       const spectralTypeName = SPECTRAL_TYPES[analysis.spectralType].name;
       const spectralTypeNumber = analysis.spectralType;
+      console.log('Sharing spectral type:', spectralTypeName, spectralTypeNumber);
       
       // Create share text with spectral type
       const shareText = `Apparently I'm ${spectralTypeName} aligned!
@@ -202,11 +224,19 @@ See what the Spectral Lab says about you.`;
       console.log('Opening Warpcast URL:', warpcastUrl);
       
       // Use the Frame SDK to open the URL
-      window.frame.sdk.actions.openUrl(warpcastUrl);
+      console.log('Attempting to open URL with frame.sdk');
+      if (window.frame && window.frame.sdk && window.frame.sdk.actions) {
+        window.frame.sdk.actions.openUrl(warpcastUrl);
+        console.log('URL opened successfully with frame.sdk');
+      } else {
+        console.error('frame.sdk not available:', window.frame);
+        throw new Error('Frame SDK not available');
+      }
     } catch (error) {
       console.error('Error sharing:', error);
       alert('Failed to share. Please try again.');
     } finally {
+      console.log('Share process completed');
       setIsSharing(false);
     }
   };
