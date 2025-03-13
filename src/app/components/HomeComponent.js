@@ -361,58 +361,29 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                           // Track used interpretations to prevent duplicates
                           const usedInterpretations = new Set();
                           
-                          // If we have less than 3 evidence items, add fictional ones to ensure exactly 3
-                          const additionalCasts = [
-                            {
-                              observation: "https://warpcast.com/apex777.eth/0×d0c3a19f",
-                              interpretation: "You sense the ebb and flow of Farcaster's conversations like a social tide chart."
-                            },
-                            {
-                              observation: "how do you think this design is perceived by mainstream audiences?",
-                              interpretation: "You and AI are having a conversation the rest of us can only partially hear."
-                            },
-                            {
-                              observation: "alignment",
-                              interpretation: "What's revealing is that I bet even your casual thoughts come with metadata and tags."
-                            }
-                          ];
-                          
+                          // Use only real evidence, no fictional backup examples
                           let displayEvidence = [];
                           
                           // Process real evidence first, ensuring unique interpretations
                           for (const evidence of filteredEvidence) {
-                            // Generate interpretation for current evidence
                             const observation = evidence.observation || "";
                             const observationLower = observation.toLowerCase();
                             const spectralType = analysis.spectralType;
                             
-                            // Only add it if we don't already have 3 items and the interpretation is unique
-                            if (displayEvidence.length < 3) {
-                              displayEvidence.push(evidence);
-                            }
+                            // Add all available evidence
+                            displayEvidence.push(evidence);
                           }
                           
-                          // Add fictional casts if needed to reach exactly 3 casts, ensuring unique interpretations
-                          for (const additionalCast of additionalCasts) {
-                            if (displayEvidence.length >= 3) break;
-                            
-                            // Skip if the observation or a similar interpretation already exists
-                            if (displayEvidence.some(e => 
-                              e.observation === additionalCast.observation || 
-                              e.interpretation === additionalCast.interpretation ||
-                              (e.interpretation && e.interpretation.toLowerCase().includes(additionalCast.interpretation.toLowerCase().substring(10)))
-                            )) {
-                              continue;
-                            }
-                            
-                            displayEvidence.push({
-                              observation: additionalCast.observation,
-                              interpretation: additionalCast.interpretation
-                            });
+                          // Only proceed if we have any evidence to display
+                          if (displayEvidence.length === 0) {
+                            return (
+                              <li className="leading-relaxed mb-3">
+                                <p className="mb-1">No casts available to analyze.</p>
+                              </li>
+                            );
                           }
                           
-                          // Ensure we display exactly 3 casts
-                          displayEvidence = displayEvidence.slice(0, 3);
+                          // No need for artificial limit of 3 casts
                           
                           return displayEvidence.map((evidence, index) => {
                             // Generate holistic interpretation based on spectral type and the entire cast content
@@ -421,26 +392,124 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                             const observationLower = observation.toLowerCase();
                             const spectralType = analysis.spectralType;
                           
-                            // If we already have an interpretation from the additional casts, use it
                             if (evidence.interpretation) {
                               humorousInterpretation = evidence.interpretation;
                             } else {
                               // Function to check if observation contains any of the terms
                               const containsAny = (terms) => terms.some(term => observationLower.includes(term));
                               
-                              // Function to ensure interpretation uniqueness
+                              // Detect if cast is a question
+                              const isQuestion = (text) => {
+                                return text.includes("?") || 
+                                      /\b(what|how|why|when|where|who|which|whose|whom)\b/i.test(text);
+                              };
+                              
+                              // Simple sentiment analysis
+                              const detectSentiment = (text) => {
+                                const positiveWords = ["great", "love", "amazing", "good", "excited", "happy", "awesome", "excellent", "fantastic", "beautiful", "perfect", "fun", "enjoy", "thanks", "grateful", "win", "best", "better", "nice", "impressive", "proud", "joy", "positive", "hope", "successful"];
+                                const negativeWords = ["bad", "hate", "terrible", "awful", "disappointed", "sad", "worst", "sucks", "problem", "fail", "wrong", "broken", "annoying", "stupid", "useless", "ugly", "boring", "hard", "difficult", "negative", "worry", "concerned", "issue", "suck", "afraid", "fear"];
+                                
+                                let positiveScore = 0;
+                                let negativeScore = 0;
+                                
+                                positiveWords.forEach(word => {
+                                  if (text.toLowerCase().includes(word)) positiveScore++;
+                                });
+                                
+                                negativeWords.forEach(word => {
+                                  if (text.toLowerCase().includes(word)) negativeScore++;
+                                });
+                                
+                                if (positiveScore > negativeScore) return "positive";
+                                if (negativeScore > positiveScore) return "negative";
+                                return "neutral";
+                              };
+                              
+                              // Greatly expanded variations prefixes
+                              const getVariationPrefix = () => {
+                                const variations = [
+                                  // Original variations
+                                  "Interestingly, ", 
+                                  "What's revealing is that ", 
+                                  "It's telling that ",
+                                  "Notably, ",
+                                  "Characteristically, ",
+                                  
+                                  // Analytical
+                                  "Upon reflection, ",
+                                  "Looking closely, ",
+                                  "On examination, ",
+                                  "A pattern emerges where ",
+                                  "The subtext here is that ",
+                                  
+                                  // Enthusiastic
+                                  "Brilliantly, ",
+                                  "Fascinatingly, ",
+                                  "Remarkably, ",
+                                  "Impressively, ",
+                                  "Distinctively, ",
+                                  
+                                  // Subtle
+                                  "Subtly, ",
+                                  "In your own way, ",
+                                  "Almost invisibly, ",
+                                  "With quiet confidence, ",
+                                  "With characteristic nuance, ",
+                                  
+                                  // Confident
+                                  "Unmistakably, ",
+                                  "Without question, ",
+                                  "Definitively, ",
+                                  "It's clear that ",
+                                  "Undoubtedly, ",
+                                  
+                                  // Thoughtful
+                                  "Thoughtfully, ",
+                                  "On deeper consideration, ",
+                                  "With careful intention, ",
+                                  "Mindfully, ",
+                                  "With deliberate purpose, ",
+                                ];
+                                
+                                // Spectral type specific variations
+                                if (spectralType === 1) { // AXIS
+                                  variations.push(
+                                    "Analytically, ",
+                                    "Methodically, ",
+                                    "Systematically, ",
+                                    "With precision, ",
+                                    "Structurally speaking, ",
+                                    "In your framework-oriented way, "
+                                  );
+                                } else if (spectralType === 2) { // FLUX
+                                  variations.push(
+                                    "Intuitively, ",
+                                    "Fluidly, ",
+                                    "Adaptively, ",
+                                    "With natural flow, ",
+                                    "In your wave-riding fashion, ",
+                                    "As you navigate currents, "
+                                  );
+                                } else if (spectralType === 3) { // EDGE
+                                  variations.push(
+                                    "Provocatively, ",
+                                    "Disruptively, ",
+                                    "Challengingly, ",
+                                    "With revolutionary flair, ",
+                                    "In your system-questioning way, ",
+                                    "As you push boundaries, "
+                                  );
+                                }
+                                
+                                return variations[Math.floor(Math.random() * variations.length)];
+                              };
+                              
+                              // Function to ensure interpretation uniqueness with improved variations
                               const ensureUnique = (interpretation) => {
                                 // If this exact interpretation has been used before, modify it slightly
                                 if (usedInterpretations.has(interpretation)) {
                                   // Add a variation marker to make it unique
-                                  const variations = [
-                                    "Interestingly, ", 
-                                    "What's revealing is that ", 
-                                    "It's telling that ",
-                                    "Notably, ",
-                                    "Characteristically, "
-                                  ];
-                                  const variation = variations[Math.floor(Math.random() * variations.length)];
+                                  const variation = getVariationPrefix();
                                   return ensureUnique(variation + interpretation.charAt(0).toLowerCase() + interpretation.slice(1));
                                 }
                                 
@@ -546,6 +615,97 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                               // $AXIS Framer interpretations - focus on structure, frameworks, and systematic thinking
                               if (spectralType === 1) {
                                 
+                                // Sentiment-specific interpretations for AXIS
+                                const sentiment = detectSentiment(observationLower);
+                                if (sentiment === "positive") {
+                                  if (isQuestion(observationLower)) {
+                                    const options = [
+                                      "Your enthusiastic questions are carefully designed data collection tools.",
+                                      "You ask positive questions like someone mapping a territory you're excited to explore.",
+                                      "Even your optimistic inquiries fit neatly into your mental classification system.",
+                                      "Your questions reveal how you organize positive experiences into structured categories."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  } else {
+                                    const options = [
+                                      "Your enthusiasm comes with a built-in organizational system.",
+                                      "Even your excitement follows a clear, logical structure.",
+                                      "You celebrate with precision and categorized joy.",
+                                      "Your positive outlook is as well-architected as your plans."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  }
+                                } else if (sentiment === "negative") {
+                                  if (isQuestion(observationLower)) {
+                                    const options = [
+                                      "Your critical questions are designed to identify flaws in the system.",
+                                      "You ask challenging questions with surgical precision.",
+                                      "Even when questioning problems, you maintain perfect analytical distance.",
+                                      "Your inquiries about challenges reveal your desire to restore order to chaos."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  } else {
+                                    const options = [
+                                      "You categorize problems with the same precision you apply to solutions.",
+                                      "Your critiques come with an implicit blueprint for improvement.",
+                                      "You approach frustrations as engineering challenges to be solved methodically.",
+                                      "Even your complaints have perfect paragraph structure."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  }
+                                }
+                                
+                                // Question-specific for AXIS (neutral sentiment)
+                                if (isQuestion(observationLower)) {
+                                  const options = [
+                                    "Your questions are precision tools for information extraction.",
+                                    "You ask questions like someone mapping unexplored territory.",
+                                    "Each question you ask is designed to fit perfectly into your mental framework.",
+                                    "You don't just ask questions - you conduct strategic information reconnaissance."
+                                  ];
+                                  humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                  return (
+                                    <li key={index} className="leading-relaxed mb-3">
+                                      <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                      <div className="ml-4">
+                                        <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                      </div>
+                                    </li>
+                                  );
+                                }
+                                
                                 // Tech/coding related
                                 if (containsAny(["code", "build", "dev", "api", "function", "app", "website", "program", "framework", "system", "design", "architecture"])) {
                                   if (containsAny(["problem", "issue", "bug", "fix", "error"])) {
@@ -597,6 +757,97 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                               // $FLUX Drifter interpretations - focus on adaptability, flow, and intuitive navigation
                               else if (spectralType === 2) {
                                 
+                                // Sentiment-specific interpretations for FLUX
+                                const sentiment = detectSentiment(observationLower);
+                                if (sentiment === "positive") {
+                                  if (isQuestion(observationLower)) {
+                                    const options = [
+                                      "Your questions flow with optimistic curiosity, opening conversations rather than seeking definitive answers.",
+                                      "You ask enthusiastic questions that invite people into your wave of positive possibilities.",
+                                      "Your inquiries radiate an infectious excitement about the connections you're already sensing.",
+                                      "When you ask positive questions, you're already halfway to discovering unexpected joyful patterns."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  } else {
+                                    const options = [
+                                      "Your joy flows like water finding beautiful unexpected paths.",
+                                      "You don't just experience happiness - you ride its currents to new possibilities.",
+                                      "Your enthusiasm has this wonderful way of revealing connections others miss.",
+                                      "The way you express excitement feels like watching someone dance with emerging patterns."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  }
+                                } else if (sentiment === "negative") {
+                                  if (isQuestion(observationLower)) {
+                                    const options = [
+                                      "Your questions about challenges feel like someone navigating rapids - alert but unafraid.",
+                                      "Even when asking about problems, you're sensing flows and currents others miss.",
+                                      "Your inquiries into difficulties have this remarkable ability to open unexpected doorways.",
+                                      "You ask about problems with the curiosity of someone who sees them as interesting turbulence."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  } else {
+                                    const options = [
+                                      "You navigate disappointment like it's just another current to ride.",
+                                      "Your frustrations flow into opportunities others can't see yet.",
+                                      "Even when things go wrong, you're already sensing the next possibility.",
+                                      "Your critiques have this interesting way of opening doors rather than closing them."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  }
+                                }
+                                
+                                // Question-specific for FLUX (neutral sentiment)
+                                if (isQuestion(observationLower)) {
+                                  const options = [
+                                    "Your questions meander like rivers finding their natural path.",
+                                    "You ask questions that create spaces for unexpected connections to emerge.",
+                                    "Your inquiries have this way of surfing between possibilities rather than demanding certainties.",
+                                    "When you ask questions, you're really inviting people into an unfolding conversation."
+                                  ];
+                                  humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                  return (
+                                    <li key={index} className="leading-relaxed mb-3">
+                                      <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                      <div className="ml-4">
+                                        <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                      </div>
+                                    </li>
+                                  );
+                                }
+                                
                                 // Adaptability/change related
                                 if (containsAny(["adapt", "change", "evolve", "shift", "flow", "move", "transform"])) {
                                   humorousInterpretation = ensureUnique("Change isn't just something you adapt to - it's your natural habitat.");
@@ -642,6 +893,97 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                               // $EDGE Disruptor interpretations - focus on challenging assumptions and finding insights in disruption
                               else if (spectralType === 3) {
                                 
+                                // Sentiment-specific interpretations for EDGE
+                                const sentiment = detectSentiment(observationLower);
+                                if (sentiment === "positive") {
+                                  if (isQuestion(observationLower)) {
+                                    const options = [
+                                      "Even your optimistic questions contain subtle challenges to conventional thinking.",
+                                      "Your positive inquiries have hidden trap doors that lead to fascinating new perspectives.",
+                                      "You ask enthusiastic questions that somehow still manage to flip assumptions upside down.",
+                                      "Your excitement-filled questions are Trojan horses for revolutionary ideas."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  } else {
+                                    const options = [
+                                      "Your enthusiasm comes with a subtle revolutionary edge that changes how people see things.",
+                                      "You celebrate in ways that gently disrupt conventional patterns of thought.",
+                                      "Your positivity has this remarkable ability to make people question assumptions they didn't know they had.",
+                                      "Even your compliments contain invitations to see things from unexplored angles."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  }
+                                } else if (sentiment === "negative") {
+                                  if (isQuestion(observationLower)) {
+                                    const options = [
+                                      "Your critical questions cut straight to the flawed assumptions others miss.",
+                                      "You ask about problems in ways that expose the system's fundamental contradictions.",
+                                      "Your challenging inquiries have this surgical precision about them - cutting straight to hidden flaws.",
+                                      "When you question what's wrong, you're really inviting a complete rethinking of the premise."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  } else {
+                                    const options = [
+                                      "Your critiques don't just identify problems - they reframe entire conversations.",
+                                      "You don't just point out what's broken - you expose why the whole approach needs rethinking.",
+                                      "Your frustrations are really invitations to completely reimagine the system.",
+                                      "When you highlight a problem, you're actually offering a glimpse of a radically different possibility."
+                                    ];
+                                    humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                    return (
+                                      <li key={index} className="leading-relaxed mb-3">
+                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4">
+                                          <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                        </div>
+                                      </li>
+                                    );
+                                  }
+                                }
+                                
+                                // Question-specific for EDGE (neutral sentiment)
+                                if (isQuestion(observationLower)) {
+                                  const options = [
+                                    "Your questions are like little conceptual grenades, designed to shake up thinking.",
+                                    "You ask questions that expose the hidden assumptions everyone else missed.",
+                                    "Your inquiries have this wonderful ability to flip perspectives upside down.",
+                                    "When you ask questions, you're really inviting people to question everything they thought they knew."
+                                  ];
+                                  humorousInterpretation = ensureUnique(options[Math.floor(Math.random() * options.length)]);
+                                  return (
+                                    <li key={index} className="leading-relaxed mb-3">
+                                      <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                      <div className="ml-4">
+                                        <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
+                                      </div>
+                                    </li>
+                                  );
+                                }
+                                
                                 // Challenging assumptions/status quo
                                 if (containsAny(["wrong", "mistake", "problem", "issue", "broken", "fail", "missing", "overlooked"])) {
                                   humorousInterpretation = ensureUnique("You spot the flaw in systems others think are perfect. It's your superpower and dinner party trick.");
@@ -655,11 +997,6 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                                 // Boundary testing/breaking
                                 else if (containsAny(["limit", "boundary", "edge", "beyond", "outside", "break", "disrupt", "challenge"])) {
                                   humorousInterpretation = ensureUnique("You see boundaries as suggestions. Like speed limits or 'wet floor' signs.");
-                                }
-                                
-                                // Questioning established ideas
-                                else if (containsAny(["why", "question", "wonder", "doubt", "skeptical"]) || observationLower.includes("?")) {
-                                  humorousInterpretation = ensureUnique("Your questions come with tiny built-in grenades for conventional thinking. Just as planned.");
                                 }
                                 
                                 // Alternative perspectives/approaches
