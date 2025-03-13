@@ -35,10 +35,8 @@ export default function TypewriterEffect({ phrases, typeSpeed = 40, pauseDuratio
   
   // Select a single random phrase on mount
   useEffect(() => {
-    // Pick a random index based on current timestamp (day) as a stable seed for the session
-    const date = new Date();
-    const daySeed = date.getDate() + (date.getMonth() * 31); // Different seed each day
-    const randomIndex = daySeed % phrases.length;
+    // Generate a truly random selection each time the component mounts
+    const randomIndex = Math.floor(Math.random() * phrases.length);
     setSelectedPhrase(phrases[randomIndex]);
   }, [phrases]);
   
