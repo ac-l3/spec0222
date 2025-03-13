@@ -926,7 +926,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         </div>
                         
                         <div className="flex-grow flex items-center justify-center">
-                          <p className="text-[#C0C2C5] text-sm mb-4 text-left w-full">
+                          <div className="text-[#C0C2C5] text-xs px-8 mb-4 text-left w-full max-w-[90%] mx-auto">
                             <TypewriterEffect 
                               phrases={[
                                 "THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY.",
@@ -943,7 +943,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                               typeSpeed={40}
                               pauseDuration={1500}
                             />
-                          </p>
+                          </div>
                         </div>
                         
                         <div className="bg-[#222222] p-4 mb-6 mt-auto">
