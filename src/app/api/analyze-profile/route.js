@@ -48,10 +48,13 @@ export async function GET(request) {
       
       if (cachedData) {
         try {
+          // Parse the cache value string into a JSON object
           const parsed = JSON.parse(cachedData.value);
+          console.log('Successfully retrieved and parsed cached data');
           return NextResponse.json(parsed);
         } catch (e) {
           console.error('Error parsing cached data:', e);
+          // If parsing fails, continue with the API request
         }
       }
     }
@@ -102,6 +105,7 @@ export async function GET(request) {
         analysis,
       };
 
+      // Store the response in the cache
       await putToKV(cacheKey, response);
       return NextResponse.json(response);
     } catch (innerError) {

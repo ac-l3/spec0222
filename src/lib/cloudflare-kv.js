@@ -7,7 +7,7 @@ const memoryCache = new Map();
 
 export async function putToKV(key, value) {
   try {
-    // Store in memory cache
+    // Store in memory cache with direct value (no extra nesting)
     memoryCache.set(key, {
       value: JSON.stringify(value),
       timestamp: Date.now()
