@@ -205,9 +205,9 @@ See what the Spectral Lab says about you.`;
     if (!spectralType) return 'https://zora.co';
     
     const zoraUrls = {
-      1: 'https://zora.co/collect/base:0xa2d7f2b23e55d4816c02b84675007761b683be46/6?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
-      2: 'https://zora.co/collect/base:0x0910c0e7cbe84fa0575e6002924c617afe820b44/1?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
-      3: 'https://zora.co/collect/base:0xa2d7f2b23e55d4816c02b84675007761b683be46/7?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
+      1: 'https://zora.co/coin/base:0x747db8fb98ec1af5853ae399a1b7df9d5acd37e8?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
+      2: 'https://zora.co/coin/base:0x465e8207de3de9a13653b1681dc569f1160ccfe7?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
+      3: 'https://zora.co/coin/base:0x844a1c74927bdc3b6c9938b65e737f5539048c67?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
       4: 'https://zora.co/collect/base:0x0910c0e7cbe84fa0575e6002924c617afe820b44/2?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
       5: 'https://zora.co/collect/base:0x0910c0e7cbe84fa0575e6002924c617afe820b44/3?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160',
       6: 'https://zora.co/collect/base:0xa2d7f2b23e55d4816c02b84675007761b683be46/9?referrer=0xd51f298dd8d0fc36b858c37c7b34531be277f160'
