@@ -4,29 +4,6 @@ import { analyzePersonality, fetchUserInfo, fetchUserCasts } from '../../../lib/
 
 export const maxDuration = 60;
 
-// Simple request throttling system
-const THROTTLE_WINDOW_MS = 60000; // 1 minute
-const MAX_REQUESTS_PER_MINUTE = 10; // Adjust based on your actual limit
-const requestTimestamps = [];
-
-function canMakeRequest() {
-  const now = Date.now();
-  
-  // Remove timestamps older than the throttle window
-  while (requestTimestamps.length > 0 && requestTimestamps[0] < now - THROTTLE_WINDOW_MS) {
-    requestTimestamps.shift();
-  }
-  
-  // Check if we've hit the limit
-  if (requestTimestamps.length >= MAX_REQUESTS_PER_MINUTE) {
-    return false;
-  }
-  
-  // Add current timestamp and allow the request
-  requestTimestamps.push(now);
-  return true;
-}
-
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -48,21 +25,13 @@ export async function GET(request) {
       
       if (cachedData) {
         try {
-          const parsed = JSON.parse(cachedData.value);
-          return NextResponse.json(parsed);
+          const parsed = JSON.parse(cachedData);
+          const data = parsed.value ? JSON.parse(parsed.value) : parsed;
+          return NextResponse.json(data);
         } catch (e) {
           console.error('Error parsing cached data:', e);
         }
       }
-    }
-    
-    // Check if we're within rate limits before proceeding
-    if (!canMakeRequest()) {
-      console.log('Throttling request - too many requests in the last minute');
-      return NextResponse.json(
-        { error: 'Too many analysis requests. Please try again in a minute.' },
-        { status: 429 }
-      );
     }
     
     try {
