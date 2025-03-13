@@ -122,13 +122,22 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       const userFid = window.userFid;
       if (!userFid) {
         console.error('No user FID found');
+        alert('Unable to find your Farcaster ID. Please make sure you are connected with Warpcast.');
+        setIsAnalyzing(false);
         return;
       }
 
       // Fetch the analysis data from the API
       const response = await fetch(`/api/analyze-profile?fid=${userFid}&nocache=${Date.now()}`);
+      
+      // Handle rate limiting errors
+      if (response.status === 429) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Too many requests. Please try again in a minute.');
+      }
+      
       if (!response.ok) {
-        throw new Error(`API returned ${response.status}`);
+        throw new Error(`API returned ${response.status}: ${await response.text()}`);
       }
       
       const data = await response.json();
@@ -152,7 +161,15 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       setIsOwnProfile(true);
     } catch (error) {
       console.error('Error:', error);
-      alert('Analysis failed. Please try again.');
+      
+      // Provide specific error messages based on the error type
+      if (error.message.includes('Too many requests') || error.message.includes('rate limit')) {
+        alert('The analysis service is experiencing high demand. Please try again in a minute.');
+      } else if (error.message.includes('User not found') || error.message.includes('No casts found')) {
+        alert('Unable to analyze your profile. Make sure you have posted some casts on Farcaster.');
+      } else {
+        alert('Analysis failed. Please try again in a few moments.');
+      }
     } finally {
       setIsAnalyzing(false);
     }
