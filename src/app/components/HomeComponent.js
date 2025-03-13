@@ -168,7 +168,9 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       const spectralTypeNumber = analysis.spectralType;
       
       // Create share text with spectral type
-      const shareText = `I've been classified as a ${spectralTypeName} in the Spectral Lab! Discover your research alignment below.`;
+      const shareText = `Apparently I'm ${spectralTypeName} aligned!
+
+See what the Spectral Lab says about you.`;
       
       // Add a timestamp to force a refresh of the metadata
       const timestamp = Date.now();
