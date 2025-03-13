@@ -220,7 +220,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   return (
     <Layout>
       <div className={`min-h-screen bg-[#191919] ${firaCode.className} font-normal`}>
-        <div className="max-w-4xl mx-auto px-3 py-12">
+        <div className="max-w-4xl mx-auto px-6 py-16">
           {analysis && (
             <div className="text-center text-[#C0C2C5] max-w-3xl mx-auto">
               {/* Removed the first "How do you explore the unknown?" heading */}
@@ -239,7 +239,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               </div>
               
               {/* Call to Action in a darker box */}
-              <div className="bg-[#222222] p-4 mb-6">
+              <div className="bg-[#222222] p-6 mb-6">
                 <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
                   Alignments reveal Spectrals. This one matches you. Take ownership.
                 </p>
@@ -264,7 +264,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               </div>
               
               {/* Core Identity Summary */}
-              <div className="text-left mb-12">
+              <div className="text-left mb-16">
                 <p className="leading-relaxed text-sm mb-6">
                   {(() => {
                     // Get the first paragraph of the core identity
@@ -297,11 +297,11 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               </div>
               
               {/* How do you explore the unknown? - Updated to focus on poetic, philosophical exploration */}
-              <div className="text-left mb-12">
+              <div className="text-left mb-16">
                 <div className="mb-4">
                   <h3 className="text-base font-normal">How do you explore the unknown?</h3>
                 </div>
-                <div className="bg-[#222222] border border-[#333333] p-6">
+                <div className="bg-[#222222] border border-[#333333] p-8">
                   <div className="space-y-6">
                     <p className="leading-relaxed text-sm text-[#999999]">
                       {(() => {
@@ -336,11 +336,11 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               </div>
               
               {/* Field Evidence - Now in its own box with new title */}
-              <div className="text-left mb-12">
+              <div className="text-left mb-16">
                 <div className="mb-4">
                   <h3 className="text-base font-normal">What do your casts whisper about you?</h3>
                 </div>
-                <div className="bg-[#222222] border border-[#333333] p-6">
+                <div className="bg-[#222222] border border-[#333333] p-8">
                   <ul className="list-none pl-0 space-y-3 text-[#BEBFC2] text-sm">
                         {(() => {
                           // Get all field evidence
@@ -764,11 +764,11 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         </div>
                         
                         {/* Outside Your Frequency - Updated to a simpler format */}
-                        <div className="text-left mb-12">
+                        <div className="text-left mb-16">
                           <div className="mb-4">
                             <h3 className="text-base font-normal">Where do you diverge from other researchers?</h3>
                           </div>
-                          <div className="bg-[#222222] border border-[#333333] p-6">
+                          <div className="bg-[#222222] border border-[#333333] p-8">
                             <p className="leading-relaxed text-sm mb-8 text-[#999999]">
                               {(() => {
                                 // Get the spectral type to determine the contrast explanation
@@ -926,22 +926,27 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         </div>
                         
                         <div className="flex-grow flex items-center justify-center">
-                          <div className="text-[#C0C2C5] text-xs px-4 mb-4 text-left w-full max-w-[95%] mx-auto min-h-[7rem]">
+                          <div className="text-[#C0C2C5] text-xs px-8 mb-4 text-left w-full max-w-[90%] mx-auto">
                             <TypewriterEffect 
                               phrases={[
                                 "THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY.",
-                                "BEYOND STATIC CLASSIFICATION LIES YOUR TRUE ALIGNMENT.",
+                                "BETWEEN SIGNAL AND INTERFERENCE, YOUR APPROACH TO THE UNKNOWN REVEALS YOUR FUNDAMENTAL ALIGNMENT.",
+                                "YOUR METHOD OF ENGAGING WITH CHAOS ISN'T RANDOM—IT'S A SPECTRAL SIGNATURE WE CAN DETECT.",
+                                "THE SPECTRAL LAB TRACKS HOW MINDS TRANSFORM UNSEEN PATTERNS INTO MEANING THROUGH DISTINCT FREQUENCIES.",
+                                "SOME BUILD STRUCTURE FROM NOISE, OTHERS FLOW BETWEEN SIGNALS, AND A FEW INTENTIONALLY DISRUPT THE PATTERN.",
+                                "THE UNKNOWN ISN'T SIMPLY EXPLORED—IT'S WHERE YOUR CONSCIOUSNESS CREATES MEANING THROUGH SPECIFIC PATTERNS.",
+                                "BEYOND STATIC CLASSIFICATION LIES YOUR TRUE ALIGNMENT—HOW YOU MOVE BETWEEN ORDER AND CHAOS.",
                                 "$AXIS FRAMES, $FLUX FLOWS, $EDGE BREAKS.",
                                 "IN CHAOS: $AXIS CREATES ORDER, $FLUX RIDES CURRENTS, $EDGE TRANSFORMS.",
                                 "CARRY YOUR ALIGNMENT AS A BADGE OF HONOR. OWN YOUR SPECTRAL TRUTH."
                               ]}
-                              typeSpeed={50}
-                              pauseDuration={2000}
+                              typeSpeed={40}
+                              pauseDuration={1500}
                             />
                           </div>
                         </div>
                         
-                        <div className="bg-[#222222] p-4 mb-6 mt-auto">
+                        <div className="bg-[#222222] p-6 mb-6 mt-auto">
                           <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
                             Your alignment exposes your nature and a Spectral identity worth embracing.
                           </p>
