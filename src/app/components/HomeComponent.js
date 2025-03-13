@@ -220,7 +220,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   return (
     <Layout>
       <div className={`min-h-screen bg-[#191919] ${firaCode.className} font-normal`}>
-        <div className={`max-w-4xl mx-auto ${analysis ? 'px-6 py-16' : 'px-3 py-12'}`}>
+        <div className="max-w-4xl mx-auto px-6 py-16">
           {analysis && (
             <div className="text-center text-[#C0C2C5] max-w-3xl mx-auto">
               {/* Removed the first "How do you explore the unknown?" heading */}
@@ -914,7 +914,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                     )}
                     
                     {!analysis && (
-                      <div className="text-center flex flex-col justify-between min-h-[80vh] max-w-3xl mx-auto">
+                      <div className="text-center flex flex-col justify-between min-h-[85vh] max-w-3xl mx-auto px-4">
                         <div className="flex justify-center mt-12 mb-4">
                           <Image 
                             src="/images/title.png" 
@@ -926,7 +926,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         </div>
                         
                         <div className="flex-grow flex items-center justify-center">
-                          <div className="text-[#C0C2C5] text-xs px-8 mb-4 text-left w-full max-w-[90%] mx-auto">
+                          <div className="text-[#C0C2C5] text-xs px-6 mb-4 text-left w-full max-w-[80%] mx-auto">
                             <TypewriterEffect 
                               phrases={[
                                 "THE SPECTRAL LAB DECODES HIDDEN PATTERNS IN HOW WE APPROACH REALITY.",
@@ -946,7 +946,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                           </div>
                         </div>
                         
-                        <div className="bg-[#222222] p-4 mb-6 mt-auto">
+                        <div className="bg-[#222222] p-6 mb-6 mt-auto">
                           <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
                             Your alignment exposes your nature and a Spectral identity worth embracing.
                           </p>
