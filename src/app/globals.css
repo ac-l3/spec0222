@@ -2,9 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   min-height: 100vh;
   @apply bg-peach text-gray-800;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Scanlines effect for spectral visuals */
