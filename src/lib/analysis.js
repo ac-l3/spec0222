@@ -2,6 +2,12 @@ import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { SPECTRAL_TYPES, RESEARCH_DIVISIONS, SECTION_REQUIREMENTS } from './constants';
 import { genAI } from './google-ai';
 
+// Add this sleep function definition at the beginning of the file, after imports
+// but before any other functions
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Initialize role distribution counter
 let roleDistribution = {
   '$AXIS Framer': 0,
