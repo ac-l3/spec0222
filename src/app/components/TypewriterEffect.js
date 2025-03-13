@@ -26,58 +26,44 @@ function shuffleArray(array) {
  * Matrix-style typewriter effect component with randomized rotating phrases
  * Displays sequences of phrases with typing animation
  */
-export default function TypewriterEffect({ phrases, typeSpeed = 50, pauseDuration = 2000 }) {
+export default function TypewriterEffect({ phrases, typeSpeed = 40, pauseDuration = 1500 }) {
+  // Instead of shuffling all phrases, just pick one random phrase using a session-specific seed
+  const [selectedPhrase, setSelectedPhrase] = useState('');
   const [displayText, setDisplayText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
-  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
-  const [isTyping, setIsTyping] = useState(true);
-  const [isDone, setIsDone] = useState(false);
-  const timerRef = useRef(null);
-
-  // Effect for the typing animation
+  const charIndex = useRef(0);
+  
+  // Select a single random phrase on mount
   useEffect(() => {
-    if (phrases.length === 0) return;
-
-    // Clear any existing timers
-    if (timerRef.current) clearTimeout(timerRef.current);
-
-    const currentPhrase = phrases[currentPhraseIndex];
-
-    if (isTyping) {
-      // Still typing the current phrase
-      if (displayText.length < currentPhrase.length) {
-        const nextChar = currentPhrase.charAt(displayText.length);
-        const delay = ['.', ',', '?', '!', ':', ';', '-'].includes(nextChar) ? typeSpeed * 4 : typeSpeed;
-        
-        timerRef.current = setTimeout(() => {
-          setDisplayText(currentPhrase.substring(0, displayText.length + 1));
-        }, delay);
-      } else {
-        // Finished typing the current phrase, pause before erasing
-        setIsTyping(false);
-        setIsDone(true);
-        timerRef.current = setTimeout(() => {
-          setIsDone(false);
-        }, pauseDuration);
-      }
-    } else if (!isDone) {
-      // Erasing the current phrase
-      if (displayText.length > 0) {
-        timerRef.current = setTimeout(() => {
-          setDisplayText(displayText.substring(0, displayText.length - 1));
-        }, typeSpeed / 2);
-      } else {
-        // Fully erased, move to next phrase
-        setIsTyping(true);
-        setCurrentPhraseIndex((currentPhraseIndex + 1) % phrases.length);
-      }
+    // Pick a random index based on current timestamp (day) as a stable seed for the session
+    const date = new Date();
+    const daySeed = date.getDate() + (date.getMonth() * 31); // Different seed each day
+    const randomIndex = daySeed % phrases.length;
+    setSelectedPhrase(phrases[randomIndex]);
+  }, [phrases]);
+  
+  // Animation effect for typing
+  useEffect(() => {
+    // Don't start typing until phrase is selected
+    if (!selectedPhrase) return;
+    
+    // Handle typing animation
+    if (charIndex.current < selectedPhrase.length) {
+      const char = selectedPhrase.charAt(charIndex.current);
+      
+      // Longer pauses at punctuation during typing
+      const delay = ['.', ',', '?', '!', ':', ';', '-'].includes(char) ? typeSpeed * 4 : typeSpeed;
+      
+      const timer = setTimeout(() => {
+        setDisplayText(current => current + char);
+        charIndex.current += 1;
+      }, delay);
+      
+      return () => clearTimeout(timer);
     }
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [displayText, isTyping, isDone, currentPhraseIndex, phrases, typeSpeed, pauseDuration]);
-
+    // Once the phrase is fully typed, just leave it displayed (no cycling)
+  }, [displayText, selectedPhrase, typeSpeed]);
+  
   // Blinking cursor effect
   useEffect(() => {
     const blinkInterval = setInterval(() => {
