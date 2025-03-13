@@ -220,7 +220,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
   return (
     <Layout>
       <div className={`min-h-screen bg-[#191919] ${firaCode.className} font-normal`}>
-        <div className={`max-w-4xl mx-auto ${analysis ? 'px-6 sm:px-8' : 'px-3'} py-12`}>
+        <div className={`max-w-4xl mx-auto ${analysis ? 'px-4 sm:px-6 md:px-8' : 'px-3'} py-12`}>
           {analysis && (
             <div className="text-center text-[#C0C2C5] max-w-3xl mx-auto">
               {/* Removed the first "How do you explore the unknown?" heading */}
@@ -239,16 +239,16 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               </div>
               
               {/* Call to Action in a darker box */}
-              <div className="bg-[#222222] p-4 mb-6">
+              <div className="bg-[#222222] p-4 sm:p-5 mb-6">
                 <p className={`text-center mb-4 text-[13px] text-[#999999] ${firaCode.className}`}>
                   Alignments reveal Spectrals. This one matches you. Take ownership.
                 </p>
                 
                 {/* Action Buttons */}
-                <div className="flex justify-between w-full gap-4">
+                <div className="flex flex-col sm:flex-row justify-between w-full gap-3 sm:gap-4">
                   <button
                     onClick={() => window.open(getZoraUrl(analysis?.spectralType), '_blank')}
-                    className="w-1/2 py-1 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all text-center text-xs"
+                    className="w-full sm:w-1/2 py-2 sm:py-1 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all text-center text-xs"
                   >
                     ACQUIRE {SPECTRAL_TYPES[analysis.spectralType].name.split(' ')[0]}
                   </button>
@@ -256,7 +256,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                   <button
                     onClick={handleShare}
                     disabled={isSharing}
-                    className="w-1/2 py-1 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50 text-center text-xs"
+                    className="w-full sm:w-1/2 py-2 sm:py-1 bg-[#C8FA1A] text-[#191919] font-bold hover:brightness-110 transition-all disabled:opacity-50 text-center text-xs"
                   >
                     {isSharing ? 'SHARING...' : 'SHARE FINDINGS'}
                   </button>
@@ -264,8 +264,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               </div>
               
               {/* Core Identity Summary */}
-              <div className="text-left mb-12 px-1">
-                <p className="leading-relaxed text-sm mb-6">
+              <div className="text-left mb-12 px-2 sm:px-3">
+                <p className="leading-relaxed text-sm mb-6 mx-1">
                   {(() => {
                     // Get the first paragraph of the core identity
                     const coreIdentity = analysis.researchProfile.coreIdentity;
@@ -279,7 +279,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                     }
                   })()}
                 </p>
-                <p className="leading-relaxed text-sm">
+                <p className="leading-relaxed text-sm mx-1">
                   {(() => {
                     // Get everything after the first sentence
                     const coreIdentity = analysis.researchProfile.coreIdentity;
@@ -297,13 +297,13 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               </div>
               
               {/* How do you explore the unknown? - Updated to focus on poetic, philosophical exploration */}
-              <div className="text-left mb-12 px-1">
+              <div className="text-left mb-12 px-2 sm:px-3">
                 <div className="mb-4">
                   <h3 className="text-base font-normal">How do you explore the unknown?</h3>
                 </div>
-                <div className="bg-[#222222] border border-[#333333] p-6 sm:p-8">
+                <div className="bg-[#222222] border border-[#333333] p-5 sm:p-8">
                   <div className="space-y-6">
-                    <p className="leading-relaxed text-sm text-[#999999]">
+                    <p className="leading-relaxed text-sm text-[#999999] mx-1">
                       {(() => {
                         // Use the AI-generated explorationStyle if available
                         if (analysis.researchProfile.explorationStyle) {
@@ -336,11 +336,11 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
               </div>
               
               {/* Field Evidence - Now in its own box with new title */}
-              <div className="text-left mb-12 px-1">
+              <div className="text-left mb-12 px-2 sm:px-3">
                 <div className="mb-4">
                   <h3 className="text-base font-normal">What do your casts whisper about you?</h3>
                 </div>
-                <div className="bg-[#222222] border border-[#333333] p-6 sm:p-8">
+                <div className="bg-[#222222] border border-[#333333] p-5 sm:p-8">
                   <ul className="list-none pl-0 space-y-3 text-[#BEBFC2] text-sm">
                         {(() => {
                           // Get all field evidence
@@ -467,8 +467,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                                 }
                                 return (
                                   <li key={index} className="leading-relaxed mb-3">
-                                    <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
-                                    <div className="ml-4">
+                                    <p className="mb-1 break-words pr-1 overflow-hidden text-ellipsis">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                    <div className="ml-4 mr-1">
                                       <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
                                     </div>
                                   </li>
@@ -506,8 +506,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                                 }
                                 return (
                                   <li key={index} className="leading-relaxed mb-3">
-                                    <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
-                                    <div className="ml-4">
+                                    <p className="mb-1 break-words pr-1 overflow-hidden text-ellipsis">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                    <div className="ml-4 mr-1">
                                       <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
                                     </div>
                                   </li>
@@ -532,8 +532,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                                 }
                                 return (
                                   <li key={index} className="leading-relaxed mb-3">
-                                    <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
-                                    <div className="ml-4">
+                                    <p className="mb-1 break-words pr-1 overflow-hidden text-ellipsis">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                    <div className="ml-4 mr-1">
                                       <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
                                     </div>
                                   </li>
@@ -751,8 +751,8 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                                       
                                     return (
                                       <li key={index} className="leading-relaxed mb-3">
-                                        <p className="mb-1">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
-                                        <div className="ml-4">
+                                        <p className="mb-1 break-words pr-1 overflow-hidden text-ellipsis">• "{evidence.observation.replace(/^"+|"+$/g, '')}"</p>
+                                        <div className="ml-4 mr-1">
                                           <span className="text-[#999999] text-sm">{humorousInterpretation}</span>
                                         </div>
                                       </li>
@@ -764,12 +764,12 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                         </div>
                         
                         {/* Outside Your Frequency - Updated to a simpler format */}
-                        <div className="text-left mb-12 px-1">
+                        <div className="text-left mb-12 px-2 sm:px-3">
                           <div className="mb-4">
                             <h3 className="text-base font-normal">Where do you diverge from other researchers?</h3>
                           </div>
-                          <div className="bg-[#222222] border border-[#333333] p-6 sm:p-8">
-                            <p className="leading-relaxed text-sm mb-8 text-[#999999]">
+                          <div className="bg-[#222222] border border-[#333333] p-5 sm:p-8">
+                            <p className="leading-relaxed text-sm mb-8 text-[#999999] mx-1">
                               {(() => {
                                 // Get the spectral type to determine the contrast explanation
                                 const spectralType = analysis.spectralType;
@@ -840,7 +840,7 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
                             {/* Supporting Metrics - Now part of Outside Your Frequency */}
                             <div>
                               <h4 className="text-sm mb-3 text-[#888888] mt-4 pt-4 border-t border-[#333333]">Alignment Metrics</h4>
-                              <div className="space-y-4 text-[#999999] text-sm">
+                              <div className="space-y-4 text-[#999999] text-sm px-1">
                                 <div className="flex items-center justify-between">
                                   <span className="text-[#BEBFC2] text-sm">$AXIS Framer</span>
                                   <span className="text-right text-[#BEBFC2] text-sm">
