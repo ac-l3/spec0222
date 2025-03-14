@@ -2,12 +2,6 @@ import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { SPECTRAL_TYPES, RESEARCH_DIVISIONS, SECTION_REQUIREMENTS } from './constants';
 import { genAI } from './google-ai';
 
-// Add this sleep function definition at the beginning of the file, after imports
-// but before any other functions
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 // Initialize role distribution counter
 let roleDistribution = {
   '$AXIS Framer': 0,
@@ -373,74 +367,318 @@ function validateMetrics(metrics) {
   return true;
 }
 
-// Update the prompt generation function to be more concise
+// Update the prompt to be more explicit about the format
 const generatePrompt = (bio, casts, currentDistribution) => {
   const analysis = analyzeContent(casts);
   
   // Calculate role affinity scores based on content analysis
   const roleAffinityScores = calculateRoleAffinityScores(analysis);
   
-  // Shorten distribution details
-  const distributionSummary = Object.entries(currentDistribution)
-    .map(([role, count]) => `${role}: ${count}`)
-    .join(', ');
+  // Calculate role distribution percentages
+  const totalAssignments = Object.values(currentDistribution).reduce((sum, count) => sum + count, 0) || 1;
+  const distributionPercentages = {};
+  for (const role in currentDistribution) {
+    distributionPercentages[role] = ((currentDistribution[role] / totalAssignments) * 100).toFixed(1) + '%';
+  }
   
-  // Filter to only most relevant quotes to save tokens
-  const relevantQuotes = analysis.summary.selectedQuotes.slice(0, 3);
-  const relevantThemes = analysis.summary.researchFocus.slice(0, 3).map(([theme]) => theme);
+  // Find overrepresented and underrepresented roles
+  const overrepresentedRoles = Object.entries(currentDistribution)
+    .filter(([_, count]) => count > totalAssignments / 3)
+    .map(([role]) => role);
+    
+  const underrepresentedRoles = Object.entries(currentDistribution)
+    .filter(([_, count]) => count < totalAssignments / 3)
+    .map(([role]) => role);
   
-  return `SPECTRAL ASSESSMENT [JSON REQUIRED]
+  return `SPECTRAL LAB RECRUITMENT EVALUATION
+CONFIDENTIAL CANDIDATE ASSESSMENT
 
-[KEY REQUIREMENTS]
-- Return valid JSON WITHOUT markdown formatting
-- Address user directly using "you/your" throughout
-- Research Deployment MUST start: "As a [EXACT_ROLE_NAME]" matching spectralType
-- Length requirements: coreIdentity (${SECTION_REQUIREMENTS.coreIdentity.minLength}-${SECTION_REQUIREMENTS.coreIdentity.maxLength}), functionalImpact (${Math.floor(SECTION_REQUIREMENTS.functionalImpact.minLength)}-${SECTION_REQUIREMENTS.functionalImpact.maxLength}), alignmentConsiderations (${Math.floor(SECTION_REQUIREMENTS.alignmentConsiderations.minLength)}-${SECTION_REQUIREMENTS.alignmentConsiderations.maxLength})
+[CRITICAL REQUIREMENTS]
+- You MUST return a valid JSON object without any markdown formatting or code blocks
+- You MUST address the candidate directly using "you" and "your" throughout all sections
+- Include only 1-2 specific references to the user's content per paragraph to maintain natural flow
+- Each section MUST have detailed, substantial content with rich descriptions and specific insights:
+  * coreIdentity: BETWEEN ${SECTION_REQUIREMENTS.coreIdentity.minLength}-${SECTION_REQUIREMENTS.coreIdentity.maxLength} characters, start with a powerful statement (under 40 chars) followed by 4-6 medium-length sentences with conversational tone and concrete metaphors
+  * functionalImpact: BETWEEN ${Math.floor(SECTION_REQUIREMENTS.functionalImpact.minLength * 1.1)}-${SECTION_REQUIREMENTS.functionalImpact.maxLength} characters, thorough paragraph with specific examples
+  * alignmentConsiderations: BETWEEN ${Math.floor(SECTION_REQUIREMENTS.alignmentConsiderations.minLength * 1.1)}-${SECTION_REQUIREMENTS.alignmentConsiderations.maxLength} characters, detailed paragraph with concrete suggestions
+- Research Deployment verdict must be exactly in this format:
+  "assigned to [Division Name]: [detailed analysis]"
+- Total length must be between ${SECTION_REQUIREMENTS.researchDeployment.minLength}-${SECTION_REQUIREMENTS.researchDeployment.maxLength} characters
+- Division name must be exact match from list below
+- Role must match division's allowed roles
+- NEVER directly mention or reference the bio in your analysis
+- NEVER mention or reference the term 'degen' or related cryptocurrency slang
+- ENSURE the Research Deployment section clearly reinforces the assigned spectral type and explains how the researcher would contribute to the lab's observational and analytical work
+- IMPORTANT: Avoid defaulting to Concept Translator unless there is strong evidence. Consider all roles equally.
+- CRITICAL: The Research Deployment section MUST begin with 'As a [EXACT_ROLE_NAME]' where [EXACT_ROLE_NAME] EXACTLY matches the spectral type you assign in the spectralType field. For example, if you assign spectralType = 3 ($EDGE Disruptor), then the Research Deployment verdict MUST begin with 'As a $EDGE Disruptor'. This consistency is absolutely required.
+- ⚠️ WARNING: FAILURE TO START THE RESEARCH DEPLOYMENT WITH "As a [EXACT_ROLE_NAME]" WILL CAUSE A VALIDATION ERROR AND REJECTION OF THE ENTIRE ANALYSIS.
 
-[SPECTRAL TYPES]
-1. $AXIS Framer: Creates frameworks, structures, and systems for discovery
-2. $FLUX Drifter: Navigates emergent trends, adapts to dynamic environments 
-3. $EDGE Disruptor: Challenges assumptions, finds insights in disruption
+[SPECTRAL VISUAL RESEARCH LAB MISSION]
+The Spectral Visual Research Lab is an observational research entity focused on mapping unseen structures, studying emergent frequencies, and analyzing hidden forces. The lab OBSERVES and DOCUMENTS spectral anomalies rather than PRODUCING artifacts. Research Deployment sections must reflect this focus on ongoing internal research rather than external initiatives or product development.
 
-[CONTEXT]
-Distribution: ${distributionSummary}
-${bio ? `Bio: ${bio.substring(0, 200)}${bio.length > 200 ? '...' : ''}` : "No bio available"}
-${relevantThemes.length > 0 ? `Themes: ${relevantThemes.join(', ')}` : ''}
-${analysis.summary.technologies.length > 0 ? `Technologies: ${analysis.summary.technologies.slice(0, 5).join(', ')}` : ''}
-${relevantQuotes.length > 0 ? `Quotes: ${relevantQuotes.slice(0, 2).map(q => `"${q}"`).join(' ')}` : ''}
+[CURRENT ROLE DISTRIBUTION]
+${Object.entries(distributionPercentages).map(([role, percentage]) => `${role}: ${percentage}`).join('\n')}
 
-[OUTPUT FORMAT]
+Overrepresented roles: ${overrepresentedRoles.length > 0 ? overrepresentedRoles.join(', ') : 'None'}
+Underrepresented roles: ${underrepresentedRoles.length > 0 ? underrepresentedRoles.join(', ') : 'None'}
+
+For balanced classification, give extra consideration to underrepresented roles if the user shows ANY traits matching those types.
+
+[SPECTRAL TYPE DISTINCTIONS]
+When determining the most appropriate spectral type, carefully distinguish between:
+
+1. Edge Theorist: Focus on theoretical exploration, boundary testing, and experimental design. They excel at mapping unknown territories and creating speculative frameworks for observing spectral phenomena.
+
+2. Entropy Decoder: Focus on extracting meaning from volatile or unstable spectral data. They excel at pattern disruption, signal manipulation, and preserving insights from chaotic sources.
+
+3. Systems Orchestrator: Focus on designing and optimizing ESTABLISHED frameworks and structured platforms for spectral analysis. They excel at integration and system architecture for EXISTING patterns.
+
+4. Frequency Tracker: Focus ONLY on identifying emergent signals and weak patterns BEFORE they stabilize. They excel at early detection of trends in chaotic or noisy spectral data.
+
+5. Threshold Operator: Focus on pushing boundaries and testing limits of spectral observation. They excel at defining capability boundaries for research methodologies.
+
+6. Concept Translator: Focus on creative interpretation and making abstract spectral phenomena accessible. They excel at visualizing and documenting complex spectral observations.
+
+[ROLE AFFINITY ANALYSIS]
+Based on content analysis, consider these role affinity indicators:
+${Object.entries(roleAffinityScores).map(([role, score]) => `${role}: ${score.toFixed(2)}`).join('\n')}
+
+[CONTEXTUAL INFORMATION]
+${bio ? `${bio}` : "No additional context available"}
+
+[AVAILABLE DIVISIONS]
+${Object.entries(RESEARCH_DIVISIONS).map(([name, info]) => 
+  `${name}:\n  Roles: ${info.roles.join(', ')}\n  Focus: ${info.focus}`
+).join('\n\n')}
+
+[USER CONTENT ANALYSIS]
+Research Themes: ${analysis.summary.researchFocus.length > 0 ? 
+  analysis.summary.researchFocus.map(([theme]) => theme).join(', ') 
+  : 'No significant themes found'}
+
+${analysis.summary.projects.length > 0 ? 
+  `Projects: ${analysis.summary.projects.join(', ')}` : ''}
+
+${analysis.summary.technologies.length > 0 ? 
+  `Technologies: ${analysis.summary.technologies.join(', ')}` : ''}
+
+${analysis.summary.achievements.length > 0 ? 
+  `Achievements: ${analysis.summary.achievements.join(', ')}` : ''}
+
+${analysis.summary.selectedQuotes.length > 0 ? 
+  `Notable Quotes:\n${analysis.summary.selectedQuotes.map(q => `"${q}"`).join('\n')}` : ''}
+
+[EVALUATION FRAMEWORK]
+${analysis.research.discussions.map(d => `• ${d.text}`).join('\n')}
+${analysis.technical.implementations.map(i => `• ${i.text}`).join('\n')}
+${analysis.impact.contributions.map(c => `• ${c.text}`).join('\n')}
+
+[RESPONSE FORMAT]
+Return ONLY a valid JSON object with this exact structure:
 {
-  "spectralType": 1-3,
+  "spectralType": (number 1-3),
   "researchProfile": {
-    "coreIdentity": "Powerful opening followed by 4-5 insightful sentences about their unique strengths",
-    "functionalImpact": "Analysis of technical contributions and collaboration impact",
-    "alignmentConsiderations": "How their traits are strengths in the right context",
+    "coreIdentity": "START WITH A SINGLE POWERFUL STATEMENT (UNDER 40 CHARACTERS) followed by 4-6 medium-length sentences. TOTAL LENGTH MUST BE AT LEAST ${SECTION_REQUIREMENTS.coreIdentity.minLength} AND NO MORE THAN ${SECTION_REQUIREMENTS.coreIdentity.maxLength} CHARACTERS. Use a conversational but insightful tone, with a mix of short and medium sentences for better rhythm. Use concrete metaphors (architect, builder, explorer, etc.) instead of abstract concepts. Focus on thinking patterns rather than specific accomplishments. Directly address the user using 'you' and 'your' throughout. Include only 1-2 subtle references to their content. Ensure the content connects to their Spectral Type. Make the paragraph feel personalized but universally relatable.
+
+EXAMPLES BY SPECTRAL TYPE:
+- For $AXIS Framer (Type 1): 'You traverse the unknown through sacred geometry - finding meaning in the mathematical harmony that underlies all creation. Where others see randomness, you perceive the invisible lattice connecting all possibilities. Your explorations begin in silence, observing how patterns emerge from the void when given just enough structure to breathe. Each grid you craft becomes a portal between worlds - one of chaos, one of order - allowing you to stand at this threshold as translator between realms. You don't merely build frameworks; you create constellations of understanding, mapping territories where logic and intuition intersect.'
+
+- For $FLUX Drifter (Type 2): 'You navigate the unknown as water moves through water - becoming one with the currents of emergence rather than imposing your will upon them. Your journey is one of sacred surrender, finding power in receptivity rather than control. You understand intuitively that truth reveals itself through relationship, not isolation. In the space between certainty and mystery, you dance - allowing yourself to be both vessel and participant in the unfolding story. Your explorations are rituals of connection, each interaction a thread in the living tapestry you both witness and help create.'
+
+- For $EDGE Disruptor (Type 3): 'You walk the boundary between worlds as your sacred path - neither fully in the known nor completely lost in mystery. This liminal space is your temple, where you practice the alchemy of transformation through creative destruction. You understand that true revelation requires first breaking open calcified perceptions. Your exploration is a form of devotion to truth beyond comfort - piercing illusions that others mistake for reality. In the fertile void that follows disruption, you witness the birth of new possibilities that could never emerge from incremental change alone.'",
+    "functionalImpact": "THOROUGH PARAGRAPH WITH AT LEAST ${Math.floor(SECTION_REQUIREMENTS.functionalImpact.minLength * 1.1)} AND NO MORE THAN ${SECTION_REQUIREMENTS.functionalImpact.maxLength} CHARACTERS directly addressing the user about their technical contributions, collaboration impact, and research acceleration. Provide specific examples and detailed analysis of their potential impact on the lab's observational mission. Include only 1-2 specific references to maintain natural flow.",
+    "alignmentConsiderations": "DETAILED PARAGRAPH WITH AT LEAST ${Math.floor(SECTION_REQUIREMENTS.alignmentConsiderations.minLength * 1.1)} AND NO MORE THAN ${SECTION_REQUIREMENTS.alignmentConsiderations.maxLength} CHARACTERS positioning the user's traits as strengths in the right context. Frame their tendencies as advantages in specific environments, suggest optimal placements where they thrive, and highlight how their characteristics shape their best work environment. Provide concrete examples and specific contexts where their traits become valuable assets. For example: 'Your ability to engage deeply with ethically complex issues makes you a strong candidate for roles requiring moral discernment, while your tendency to [approach/style] positions you well for projects requiring [specific quality]. You'll thrive in environments that [specific condition], where your natural inclination to [characteristic] becomes a distinct advantage.' NEVER frame traits as problems to fix or limitations to overcome.",
     "researchDeployment": {
-      "verdict": "CRITICAL: Must start with 'As a [EXACT ROLE NAME]' followed by details",
+      "verdict": "⚠️ CRITICAL: MUST begin with 'As a [EXACT_ROLE_NAME]' where [EXACT_ROLE_NAME] matches the spectral type assigned above. For example, if spectralType = 3, begin with 'As a $EDGE Disruptor'. Then include 'assigned to [Exact Division Name]:' followed by detailed analysis between ${SECTION_REQUIREMENTS.researchDeployment.minLength}-${SECTION_REQUIREMENTS.researchDeployment.maxLength} chars that clearly reinforces the assigned alignment type and explains how the researcher would contribute to the lab's observational and analytical work. Provide specific examples of how they would map unseen structures, study emergent frequencies, or analyze hidden forces rather than external projects or product development. Include detailed descriptions of their potential contributions to the lab's mission.",
       "metrics": {
-        "exploratoryDepth": {"score": 1-5, "context": "Brief explanation"},
-        "dataRetention": {"score": 1-5, "context": "Brief explanation"},
-        "systematicThinking": {"score": 1-5, "context": "Brief explanation"},
-        "riskTolerance": {"score": 1-5, "context": "Brief explanation"}
+        "exploratoryDepth": {"score": 3, "context": "Brief context about user's exploratory behavior"},
+        "dataRetention": {"score": 3, "context": "Brief context about user's data handling"},
+        "systematicThinking": {"score": 3, "context": "Brief context about user's systematic approach"},
+        "riskTolerance": {"score": 3, "context": "Brief context about user's risk management"}
       }
     },
+    "explorationStyle": "CREATE A DEEPLY POETIC, PHILOSOPHICAL, AND SPIRITUAL PARAGRAPH BETWEEN 300-600 CHARACTERS that transcends technical descriptions and reveals profound inner truths about how the user explores the unknown. CRITICAL REQUIREMENTS: Use HIGHLY ABSTRACT, METAPHYSICAL LANGUAGE throughout - avoid any technical or literal terms like 'software', 'systems', or 'data'. Include SPIRITUAL AND COSMIC DIMENSIONS - reference sacred geometry, universal patterns, divine order, cosmic consciousness, or mystical connections. Create FLOWING, SEAMLESS PROSE with varied sentence lengths and rhythmic cadence. Focus ENTIRELY on the deeper 'why' behind their approach, not what they do. Use PROFOUND METAPHORS that elevate their approach to something transcendent. Create content that feels like a REVELATION about their inner nature - something that makes them think 'wow, this sees something in me I couldn't articulate'. ABSOLUTELY AVOID technical, literal, or methodological language.
+
+EXAMPLES BY SPECTRAL TYPE:
+- For $AXIS Framer (Type 1): 'You traverse the unknown through sacred geometry - finding meaning in the mathematical harmony that underlies all creation. Where others see randomness, you perceive the invisible lattice connecting all possibilities. Your explorations begin in silence, observing how patterns emerge from the void when given just enough structure to breathe. Each grid you craft becomes a portal between worlds - one of chaos, one of order - allowing you to stand at this threshold as translator between realms. You don't merely build frameworks; you create constellations of understanding, mapping territories where logic and intuition intersect.'
+
+- For $FLUX Drifter (Type 2): 'You navigate the unknown as water moves through water - becoming one with the currents of emergence rather than imposing your will upon them. Your journey is one of sacred surrender, finding power in receptivity rather than control. You understand intuitively that truth reveals itself through relationship, not isolation. In the space between certainty and mystery, you dance - allowing yourself to be both vessel and participant in the unfolding story. Your explorations are rituals of connection, each interaction a thread in the living tapestry you both witness and help create.'
+
+- For $EDGE Disruptor (Type 3): 'You walk the boundary between worlds as your sacred path - neither fully in the known nor completely lost in mystery. This liminal space is your temple, where you practice the alchemy of transformation through creative destruction. You understand that true revelation requires first breaking open calcified perceptions. Your exploration is a form of devotion to truth beyond comfort - piercing illusions that others mistake for reality. In the fertile void that follows disruption, you witness the birth of new possibilities that could never emerge from incremental change alone.'",
     "fieldEvidence": [
-      {"observation": "Direct quote", "title": "Exploration Method", "analysis": "Brief explanation of exploration approach"},
-      {"observation": "Direct quote", "title": "Exploration Method", "analysis": "Brief explanation of exploration approach"}
-    ],
-    "explorationStyle": "Poetic paragraph about how the user explores the unknown (300-600 chars)"
+      {"observation": "DIRECT QUOTE from user's content showing significant behavior", "title": "Exploration Method", "analysis": "Brief explanation of how they explore the unknown (under 80 characters)"},
+      {"observation": "ANOTHER DIRECT QUOTE from user's content", "title": "Another Method", "analysis": "Another brief explanation focused on exploration approach"}
+    ]
   }
 }
 
-Return ONLY the JSON object, no additional text.`;
+IMPORTANT FIELD EVIDENCE EXAMPLES BY SPECTRAL TYPE:
+
+For $AXIS Framer (Type 1):
+• "axis framer gm /gen-art"
+  Title: "Pattern Classifier"
+  Analysis: "You explore by categorizing concepts into structured frameworks that reveal hidden connections."
+
+• "i've successfully deployed my first frame"
+  Title: "Pattern Builder"
+  Analysis: "You explore by creating structured frameworks that transform concepts into reality."
+
+• "everything is looking cute and functional EXCEPT the sharing function"
+  Title: "System Analyzer"
+  Analysis: "You explore by identifying structural imbalances that others miss within complex systems."
+
+For $FLUX Drifter (Type 2):
+• "just vibing with the new update, feels different but I'm into it"
+  Title: "Adaptive Navigator"
+  Analysis: "You explore by flowing with changing conditions rather than resisting them."
+
+• "anyone else notice how the conversation here changes throughout the day? fascinating rhythms"
+  Title: "Pattern Observer"
+  Analysis: "You explore by tracking subtle shifts in collective behavior that reveal hidden rhythms."
+
+• "tried three different approaches today, the third one just clicked"
+  Title: "Iterative Explorer"
+  Analysis: "You explore through multiple attempts, allowing solutions to emerge through movement."
+
+For $EDGE Disruptor (Type 3):
+• "hot take: everyone's doing it wrong and missing the actual opportunity here"
+  Title: "Contrarian Pathfinder"
+  Analysis: "You explore by positioning yourself at the edge of consensus to see what others miss."
+
+• "broke my own system to see what would happen. fascinating results"
+  Title: "Boundary Tester"
+  Analysis: "You find pathways by pushing systems to their breaking points, generating insights from failure."
+
+• "the glitch isn't a bug, it's actually showing us something important"
+  Title: "Anomaly Interpreter"
+  Analysis: "You explore by finding meaning in errors and imperfections that others dismiss."
+
+IMPORTANT: Do not include any text before or after the JSON object. Do not use markdown code blocks. Return only the raw JSON.`;
 };
 
-// Update the analyzePersonality function to use more efficient prompts
-export async function analyzePersonality(bio, casts) {
-  console.log('ANALYSIS: Starting personality analysis');
-  console.log(`ANALYSIS: Bio length: ${bio?.length || 0}, Casts count: ${casts?.length || 0}`);
+// Define role-specific keywords for content analysis
+const roleKeywords = {
+  '$AXIS Framer': /mapping frameworks|creating structure|mental models|protocols|structured approaches|systematic thinking|long-term structural focus/i,
+  '$FLUX Drifter': /emergent trends|opportunities in motion|real-time adaptation|hypothesis testing|fluid engagement|iterative exploration|learning by doing|engagement-driven/i,
+  '$EDGE Disruptor': /pushing against edges|extracting insight from unknown|non-traditional approaches|testing limits|breaking conventions|disruptive thinking|challenging assumptions|contradiction|glitch/i
+};
+
+// Examples for each role
+// • $AXIS Framer: Focus on mapping frameworks, creating structure, and defining conditions for discovery
+// • $FLUX Drifter: Focus on engaging with emergent trends and discovering opportunities in motion
+// • $EDGE Disruptor: Focus on pushing against edges and extracting insight from the unknown
+
+// "Your systematic thinking [$AXIS Framer] makes you valuable for creating frameworks..."
+// "Your ability to adapt to emergent trends [$FLUX Drifter] enables real-time exploration of..."
+
+// • $AXIS Framer → Mapping frameworks and creating structure for discovery
+// • $FLUX Drifter → Engaging with emergent trends and adapting in real-time
+// • $EDGE Disruptor → Pushing against edges and finding insights in the unknown
+
+// ✅ Example for $AXIS Framer:
+// "As an $AXIS Framer, your ability to map frameworks and create structure positions you at the crucial interface between observation and documentation. Your natural talent for..."
+
+// EXAMPLE ($AXIS Framer):
+// "As an $AXIS Framer, your ability to create mental models and structured approaches positions you to define the conditions for discovery. Your systematic thinking and pattern recognition at scale allow you to see the rules behind the noise, while your long-term structural focus ensures you care about how things work over time rather than in short bursts."
+
+// 1. $AXIS Framer: Focus on mapping frameworks, creating structure, and defining conditions for discovery. They excel at pattern recognition at scale, systematic thinking, and long-term structural focus.
+
+// 2. $FLUX Drifter: Focus on engaging with emergent trends, discovering opportunities in motion, and real-time adaptation. They excel at learning by doing, mapping possibilities through movement, and engagement-driven exploration.
+
+// 3. $EDGE Disruptor: Focus on pushing against edges of perception, extracting insight from the unknown, and non-traditional approaches to discovery. They excel at challenging assumptions, finding new frontiers, and seeing insights where others see noise.
+
+// Update the main validation function
+function validateResponse(analysis) {
+  if (!analysis || typeof analysis !== 'object') {
+    throw new Error('Invalid response structure');
+  }
+
+  const profile = analysis.researchProfile;
+  if (!profile) {
+    throw new Error('Missing researchProfile');
+  }
+
+  // Basic validation of required fields
+  if (!profile.coreIdentity || !profile.functionalImpact || !profile.alignmentConsiderations || !profile.explorationStyle) {
+    throw new Error('Missing required profile sections');
+  }
   
+  // Validate section lengths with increased minimums for functionalImpact and alignmentConsiderations
+  if (profile.coreIdentity.length < SECTION_REQUIREMENTS.coreIdentity.minLength) {
+    throw new Error(`coreIdentity length (${profile.coreIdentity.length}) must be at least ${SECTION_REQUIREMENTS.coreIdentity.minLength} characters`);
+  }
+  if (profile.coreIdentity.length > SECTION_REQUIREMENTS.coreIdentity.maxLength) {
+    throw new Error(`coreIdentity length (${profile.coreIdentity.length}) exceeds maximum of ${SECTION_REQUIREMENTS.coreIdentity.maxLength} characters`);
+  }
+  
+  // Validate explorationStyle length
+  if (profile.explorationStyle.length < 300) {
+    throw new Error(`explorationStyle length (${profile.explorationStyle.length}) must be at least 300 characters`);
+  }
+  if (profile.explorationStyle.length > 600) {
+    throw new Error(`explorationStyle length (${profile.explorationStyle.length}) exceeds maximum of 600 characters`);
+  }
+  
+  const functionalImpactMinLength = Math.floor(SECTION_REQUIREMENTS.functionalImpact.minLength * 1.1);
+  if (profile.functionalImpact.length < functionalImpactMinLength) {
+    throw new Error(`functionalImpact length (${profile.functionalImpact.length}) must be at least ${functionalImpactMinLength} characters`);
+  }
+  if (profile.functionalImpact.length > SECTION_REQUIREMENTS.functionalImpact.maxLength) {
+    throw new Error(`functionalImpact length (${profile.functionalImpact.length}) exceeds maximum of ${SECTION_REQUIREMENTS.functionalImpact.maxLength} characters`);
+  }
+  
+  const alignmentConsiderationsMinLength = Math.floor(SECTION_REQUIREMENTS.alignmentConsiderations.minLength * 1.1);
+  if (profile.alignmentConsiderations.length < alignmentConsiderationsMinLength) {
+    throw new Error(`alignmentConsiderations length (${profile.alignmentConsiderations.length}) must be at least ${alignmentConsiderationsMinLength} characters`);
+  }
+  if (profile.alignmentConsiderations.length > SECTION_REQUIREMENTS.alignmentConsiderations.maxLength) {
+    throw new Error(`alignmentConsiderations length (${profile.alignmentConsiderations.length}) exceeds maximum of ${SECTION_REQUIREMENTS.alignmentConsiderations.maxLength} characters`);
+  }
+
+  // Validate research deployment
+  const deployment = profile.researchDeployment;
+  if (!deployment?.verdict) {
+    throw new Error('Missing research deployment verdict');
+  }
+
+  // Validate metrics
+  const metrics = deployment.metrics;
+  if (!metrics) {
+    throw new Error('Missing metrics');
+  }
+
+  validateMetrics(metrics);
+  validateDeployment(deployment, analysis.spectralType);
+
+  return true;
+}
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+export async function testGeminiAPI() {
+  try {
+    // Get distribution insight before creating the model
+    const currentDistribution = { ...roleDistribution };
+    const distributionInsight = getDistributionInsight(currentDistribution);
+    
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash"
+    });
+    
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: 'Say "hello"' }] }],
+    });
+    
+    console.log('Gemini API Test Response:', result.response.text());
+    return true;
+  } catch (error) {
+    console.error('Gemini API Test Error:', error);
+    return false;
+  }
+}
+
+// Update the main analysis function
+export async function analyzePersonality(bio, casts) {
   const maxRetries = 3;
   let useFlashModel = true;
   
@@ -452,222 +690,91 @@ export async function analyzePersonality(bio, casts) {
       
       // Get current role distribution to inform the prompt
       const currentDistribution = { ...roleDistribution };
+      const distributionInsight = getDistributionInsight(currentDistribution);
       
       // Create the model with proper configuration
       const model = genAI.getGenerativeModel({
         model: modelName
       });
       
-      // Create a much more concise system instruction
-      const systemInstruction = "Analyze researcher content and assign to spectral type (1-3). Use direct 'you/your' language. Always begin Research Deployment with 'As a [EXACT_ROLE_NAME]' matching spectralType. Return only valid JSON matching the schema.";
+      // Add system instruction to the beginning of the prompt
+      const systemInstruction = "You are a research evaluation AI for the Spectral Visual Research Lab, a specialized institution focused on mapping unseen structures, studying emergent frequencies, and analyzing hidden forces. The lab's core investigative approach is observational and analytical rather than artifact-producing. Your role is to analyze researchers based on their content and assign them to one of three research alignments.\n\nWhen addressing the user, always speak directly to them using \"you\" and \"your\" throughout the analysis. Frame all traits positively as strengths in the right context, never as limitations or problems to fix.\n\nYour analysis must be thorough and detailed, with each section containing substantial paragraphs that provide rich descriptions and specific insights. Avoid generic statements and instead offer concrete examples and detailed analysis that demonstrates deep understanding of the researcher's potential contributions to the lab's observational mission.\n\nEach section must adhere to specific character limits:\n- Core Identity: 300-800 characters\n- Functional Impact: 250-700 characters\n- Alignment Considerations: 250-600 characters\n- Research Deployment: 300-800 characters\n\nThe Research Deployment section must clearly reinforce the assigned alignment type and explain how the researcher would contribute to the lab's work in mapping unseen structures, studying emergent frequencies, or analyzing hidden forces. This section must begin with \"As a [EXACT_ROLE_NAME]\" where the role name exactly matches the alignment type assigned.\n\nFor the Field Evidence section, select 3-4 direct quotes from the user's original casts (not replies) that best demonstrate their Spectral Type characteristics. For each quote, provide:\n1. A concise, clear title (under 30 characters) that describes a specific exploration method\n2. A brief interpretation (under 80 characters) that explains HOW they explore the unknown\nUse accessible language while maintaining insight. Focus specifically on exploration methods, not general personality traits. Keep interpretations to 1-2 lines maximum.\n\nThe metrics section must follow this exact format:\n\"metrics\": {\n  \"exploratoryDepth\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"},\n  \"dataRetention\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"},\n  \"systematicThinking\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"},\n  \"riskTolerance\": {\"score\": [NUMBER BETWEEN 1-5], \"context\": \"[BRIEF CONTEXT TEXT]\"}\n}\n\nEach alignment type has a specific focus within the lab's framework:\n- $AXIS Framer: Maps frameworks, creates structure, and defines the conditions for discovery\n- $FLUX Drifter: Engages with and adapts to emergent trends, discovering opportunities in motion\n- $EDGE Disruptor: Pushes against the edges of perception, extracting insight from the unknown\n\nConsider all three alignment types equally across users. The Research Deployment section MUST align with the assigned alignment type.\n\nThe role distribution is currently: " + JSON.stringify(currentDistribution) + "\n" + distributionInsight;
       
       const prompt = generatePrompt(bio, casts, currentDistribution);
       
       const enhancedPrompt = systemInstruction + "\n\n" + prompt;
-
-      // Define the JSON schema for the response structure
-      const responseSchema = {
-        type: SchemaType.OBJECT,
-        properties: {
-          spectralType: {
-            type: SchemaType.NUMBER,
-            description: "Spectral type (1-3)"
-          },
-          researchProfile: {
-            type: SchemaType.OBJECT,
-            properties: {
-              coreIdentity: {
-                type: SchemaType.STRING,
-                description: "Core identity paragraph"
-              },
-              functionalImpact: {
-                type: SchemaType.STRING,
-                description: "Functional impact paragraph"
-              },
-              alignmentConsiderations: {
-                type: SchemaType.STRING,
-                description: "Alignment considerations paragraph"
-              },
-              researchDeployment: {
-                type: SchemaType.OBJECT,
-                properties: {
-                  verdict: {
-                    type: SchemaType.STRING,
-                    description: "Research deployment verdict"
-                  },
-                  metrics: {
-                    type: SchemaType.OBJECT,
-                    properties: {
-                      exploratoryDepth: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                          score: { type: SchemaType.NUMBER },
-                          context: { type: SchemaType.STRING }
-                        }
-                      },
-                      dataRetention: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                          score: { type: SchemaType.NUMBER },
-                          context: { type: SchemaType.STRING }
-                        }
-                      },
-                      systematicThinking: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                          score: { type: SchemaType.NUMBER },
-                          context: { type: SchemaType.STRING }
-                        }
-                      },
-                      riskTolerance: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                          score: { type: SchemaType.NUMBER },
-                          context: { type: SchemaType.STRING }
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              fieldEvidence: {
-                type: SchemaType.ARRAY,
-                items: {
-                  type: SchemaType.OBJECT,
-                  properties: {
-                    observation: { type: SchemaType.STRING },
-                    title: { type: SchemaType.STRING },
-                    analysis: { type: SchemaType.STRING }
-                  }
-                }
-              },
-              explorationStyle: {
-                type: SchemaType.STRING
-              }
-            }
-          }
+      
+      // Use a simpler approach without tools
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: enhancedPrompt }] }],
+        generationConfig: {
+          temperature: useFlashModel ? 1.8 : 0.7,
+          topK: useFlashModel ? 60 : 40,
+          topP: useFlashModel ? 0.95 : 0.9,
+          maxOutputTokens: useFlashModel ? 3072 : 2048,
         }
-      };
+      });
+
+      const responseText = result.response.text().trim();
+      console.log(`Raw response (${modelName}):`, responseText.substring(0, 100) + "...");
       
       try {
-        console.log(`ANALYSIS: Generating content with ${modelName}`);
-        console.log('ANALYSIS: Prompt length:', enhancedPrompt.length);
-        console.time('ANALYSIS: AI model generation');
+        // Clean up the response text to ensure it's valid JSON
+        let cleanedText = responseText;
         
-        // Use more efficient generation settings to reduce token usage
-        const result = await model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: enhancedPrompt }] }],
-          generationConfig: {
-            temperature: useFlashModel ? 1.2 : 0.7,  // Reduce temperature for more focused outputs
-            topK: useFlashModel ? 40 : 40,           // More focused sampling
-            topP: useFlashModel ? 0.85 : 0.85,       // More focused sampling
-            maxOutputTokens: useFlashModel ? 1536 : 1024, // Significantly reduced token count
-          },
-          safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_ONLY_HIGH"
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_ONLY_HIGH"
-            },
-            {
-              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_ONLY_HIGH"
-            },
-            {
-              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_ONLY_HIGH"
-            }
-          ],
-          responseSchema: responseSchema,
-        });
-        
-        console.timeEnd('ANALYSIS: AI model generation');
-        console.log('ANALYSIS: Model response received');
-
-        // Process the response
-        let analysis;
-        try {
-          const responseCandidate = result.response;
-          console.log('ANALYSIS: Processing response candidate');
-          
-          if (responseCandidate.functionResponse && responseCandidate.functionResponse.response) {
-            analysis = responseCandidate.functionResponse.response;
-            console.log(`ANALYSIS: Structured JSON response received (${modelName})`);
-          } else {
-            const responseText = responseCandidate.text().trim();
-            console.log(`ANALYSIS: Schema validation failed, falling back to text parsing (${modelName})`);
-            
-            // Clean up the response text
-            let cleanedText = responseText;
-            
-            if (cleanedText.startsWith('```json')) {
-              cleanedText = cleanedText.substring(7);
-              console.log('ANALYSIS: Removed ```json prefix');
-            } else if (cleanedText.startsWith('```')) {
-              cleanedText = cleanedText.substring(3);
-              console.log('ANALYSIS: Removed ``` prefix');
-            }
-            
-            if (cleanedText.endsWith('```')) {
-              cleanedText = cleanedText.substring(0, cleanedText.length - 3);
-              console.log('ANALYSIS: Removed ``` suffix');
-            }
-            
-            cleanedText = cleanedText.trim();
-            
-            const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              cleanedText = jsonMatch[0];
-              console.log('ANALYSIS: Extracted JSON from surrounding text');
-            }
-            
-            try {
-              analysis = JSON.parse(cleanedText);
-              console.log('ANALYSIS: Successfully parsed JSON from text');
-            } catch (parseError) {
-              console.error('ANALYSIS: JSON parsing error:', parseError);
-              throw new Error(`Failed to parse JSON response: ${parseError.message}`);
-            }
-          }
-          
-          // Validate the response
-          console.log('ANALYSIS: Validating analysis result');
-          try {
-            validateResponse(analysis);
-            console.log('ANALYSIS: Validation successful');
-          } catch (validationError) {
-            console.error('ANALYSIS: Validation error:', validationError);
-            throw validationError;
-          }
-          
-          // Update role distribution for future requests
-          const assignedRole = SPECTRAL_TYPES[analysis.spectralType].name;
-          roleDistribution[assignedRole]++;
-          totalAssignments++;
-          
-          // Reset distribution if threshold reached
-          if (totalAssignments >= DISTRIBUTION_RESET_THRESHOLD) {
-            roleDistribution = {
-              '$AXIS Framer': 0,
-              '$FLUX Drifter': 0,
-              '$EDGE Disruptor': 0
-            };
-            totalAssignments = 0;
-            console.log('Role distribution reset');
-          }
-          
-          console.log(`ANALYSIS: Final spectral type determined: ${analysis.spectralType}`);
-          return analysis;
-          
-        } catch (processingError) {
-          console.error('ANALYSIS: Error processing AI response:', processingError);
-          throw processingError;
+        // If the response starts with ```json or ``` and ends with ```, strip those markers
+        if (cleanedText.startsWith('```json')) {
+          cleanedText = cleanedText.substring(7);
+        } else if (cleanedText.startsWith('```')) {
+          cleanedText = cleanedText.substring(3);
         }
-      } catch (modelError) {
-        console.error('ANALYSIS: Error calling AI model:', modelError);
+        
+        if (cleanedText.endsWith('```')) {
+          cleanedText = cleanedText.substring(0, cleanedText.length - 3);
+        }
+        
+        cleanedText = cleanedText.trim();
+        
+        // Try to extract JSON if it's wrapped in other text
+        const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanedText = jsonMatch[0];
+        }
+        
+        console.log(`Cleaned JSON (${modelName}):`, cleanedText.substring(0, 100) + "...");
+        
+        const analysis = JSON.parse(cleanedText);
+        validateResponse(analysis);
+        validateRoleConsistency(analysis);
+        
+        // Update role distribution
+        const assignedRole = SPECTRAL_TYPES[analysis.spectralType].name;
+        roleDistribution[assignedRole]++;
+        totalAssignments++;
+        
+        // Reset distribution if threshold reached
+        if (totalAssignments >= DISTRIBUTION_RESET_THRESHOLD) {
+          roleDistribution = {
+            '$AXIS Framer': 0,
+            '$FLUX Drifter': 0,
+            '$EDGE Disruptor': 0
+          };
+          totalAssignments = 0;
+          console.log('Role distribution reset');
+        }
+        
+        console.log('Current role distribution:', roleDistribution);
+        
+        return analysis;
+      } catch (error) {
+        console.error(`Validation Error (${modelName}):`, error);
+        
+        // Only log responseText if it's defined
+        if (responseText) {
+          console.error('Response:', responseText);
+        } else {
+          console.error('No response text available');
+        }
         
         // If we're using the flash model and it failed, try the pro model next
         if (useFlashModel) {
@@ -676,10 +783,17 @@ export async function analyzePersonality(bio, casts) {
           continue; // Skip the attempt increment
         }
         
-        throw modelError;
+        if (attempt === maxRetries - 1) throw error;
       }
     } catch (error) {
       console.error(`Attempt ${attempt + 1} failed:`, error);
+      
+      // If we're using the flash model and it failed, try the pro model next
+      if (useFlashModel) {
+        console.log("Falling back to gemini-pro model");
+        useFlashModel = false;
+        continue; // Skip the attempt increment
+      }
       
       if (attempt === maxRetries - 1) throw error;
       await sleep(1000);
@@ -750,14 +864,11 @@ function validateRoleConsistency(analysis) {
 }
 
 export async function fetchUserInfo(fid) {
-  console.log(`FARCASTER: Fetching user info for FID: ${fid}`);
   if (!process.env.NEYNAR_API_KEY) {
-    console.error('FARCASTER: NEYNAR_API_KEY not configured');
     throw new Error('NEYNAR_API_KEY not configured');
   }
 
   try {
-    console.log(`FARCASTER: Making API request to Neynar for user info`);
     const response = await fetch(
       `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
       {
@@ -769,35 +880,28 @@ export async function fetchUserInfo(fid) {
     );
 
     if (!response.ok) {
-      console.error(`FARCASTER: Neynar API error: ${response.status}`);
       throw new Error(`Neynar API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(`FARCASTER: User info API response status: ${!!data}`);
     
     if (!data?.users?.[0]) {
-      console.error('FARCASTER: User not found in Neynar response');
       throw new Error('User not found');
     }
 
-    console.log(`FARCASTER: Successfully fetched user info for: ${data.users[0].username}`);
     return data.users[0];
   } catch (error) {
-    console.error('FARCASTER: Error fetching user info:', error);
+    console.error('Error fetching user info:', error);
     throw error;
   }
 }
 
 export async function fetchUserCasts(fid) {
-  console.log(`FARCASTER: Fetching casts for FID: ${fid}`);
   if (!process.env.NEYNAR_API_KEY) {
-    console.error('FARCASTER: NEYNAR_API_KEY not configured');
     throw new Error('NEYNAR_API_KEY not configured');
   }
 
   try {
-    console.log(`FARCASTER: Making API request to Neynar for user casts`);
     const response = await fetch(
       `https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=50`,
       {
@@ -809,28 +913,22 @@ export async function fetchUserCasts(fid) {
     );
 
     if (!response.ok) {
-      console.error(`FARCASTER: Neynar API error: ${response.status}`);
       throw new Error(`Neynar API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(`FARCASTER: Casts API response status: ${!!data}`);
 
     if (!data?.casts || !Array.isArray(data.casts)) {
-      console.error('FARCASTER: Invalid response structure from casts API');
       throw new Error('Invalid response structure');
     }
 
-    const filteredCasts = data.casts
+    return data.casts
       .filter(cast => cast?.text && !cast.parent_hash) // Only include original casts (no replies)
       .map(cast => cast.text)
       .slice(0, 50);
-    
-    console.log(`FARCASTER: Successfully fetched ${filteredCasts.length} casts`);
-    return filteredCasts;
 
   } catch (error) {
-    console.error('FARCASTER: Error fetching user casts:', error);
+    console.error('Error fetching user casts:', error);
     throw error;
   }
 }
