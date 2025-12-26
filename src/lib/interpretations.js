@@ -443,3 +443,4 @@ export function generateInterpretation(evidence, spectralType, usedInterpretatio
   return ensureUnique("You have this knack for being systematic, adaptive, and disruptive all at once. It's impressive and slightly confusing.", usedInterpretations, spectralType);
 }
 
+

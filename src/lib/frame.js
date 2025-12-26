@@ -72,7 +72,10 @@ async function waitForUser() {
     
     const checkUser = () => {
       attempts++;
-      console.log('Checking user (attempt', attempts, ')');
+      // Only log every 10 attempts to reduce console spam
+      if (attempts % 10 === 0 || attempts === 1) {
+        console.log('Checking user (attempt', attempts, ')');
+      }
       const sdk = getSDK();
       
       if (!sdk) {
@@ -137,6 +140,7 @@ async function waitForUser() {
 }
 
 // Debug helper - expose to window for console debugging
+// Also add a button to the page for easy access
 if (typeof window !== 'undefined') {
   window.debugFarcasterSDK = function() {
     const sdk = miniappSdk || window.sdk || window.frame?.sdk;
@@ -165,6 +169,15 @@ if (typeof window !== 'undefined') {
       cachedFid: window.userFid
     };
   };
+  
+  // Add a keyboard shortcut: Press 'd' key to run debug
+  document.addEventListener('keydown', (e) => {
+    // Only trigger if not typing in an input field
+    if (e.key === 'd' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      console.log('=== Running debugFarcasterSDK() ===');
+      window.debugFarcasterSDK();
+    }
+  });
 }
 
 export async function initializeFrame() {
@@ -202,16 +215,16 @@ export async function initializeFrame() {
 
     // Try to get user context (but don't fail if it's not available)
     try {
-      let user = await waitForUser();
+    let user = await waitForUser();
 
-      if (user.user) {
-        user = user.user;
-      }
+    if (user.user) {
+      user = user.user;
+    }
 
       if (user && user.fid) {
-        // Store user info
-        window.userFid = user.fid;
-        window.userName = user.username || 'Anonymous';
+    // Store user info
+    window.userFid = user.fid;
+    window.userName = user.username || 'Anonymous';
         console.log('User Info stored:', { fid: window.userFid, username: window.userName });
       } else {
         console.log('No user context available, but ready() was called');

@@ -152,7 +152,10 @@ export function useAnalysis(initialFid, initialData) {
           }
           
           if (attempt < 9) {
-            console.log(`User FID not found, retrying in ${(attempt + 1) * 300}ms... (attempt ${attempt + 1}/10)`);
+            // Only log every 3 attempts to reduce console spam
+            if (attempt % 3 === 0 || attempt === 0) {
+              console.log(`User FID not found, retrying in ${(attempt + 1) * 300}ms... (attempt ${attempt + 1}/10)`);
+            }
             await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 300));
           }
         }

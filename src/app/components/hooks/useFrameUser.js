@@ -17,7 +17,10 @@ export function useFrameUser(fid) {
       if (currentUserFid !== userFid) {
         setUserFid(currentUserFid);
         setIsOwnProfile(currentUserFid ? (currentUserFid && fid && Number(currentUserFid) === Number(fid)) : null);
-        console.log('Profile comparison:', { userFid: currentUserFid, fid });
+        // Only log when FID actually changes, not on every check
+        if (currentUserFid) {
+          console.log('Profile comparison:', { userFid: currentUserFid, fid });
+        }
       }
     };
     
@@ -28,4 +31,5 @@ export function useFrameUser(fid) {
 
   return { userFid, isOwnProfile };
 }
+
 
