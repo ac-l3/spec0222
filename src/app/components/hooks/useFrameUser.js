@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { UI_CONFIG } from '../../../lib/constants';
 
 /**
@@ -9,12 +9,15 @@ import { UI_CONFIG } from '../../../lib/constants';
 export function useFrameUser(fid) {
   const [userFid, setUserFid] = useState(null);
   const [isOwnProfile, setIsOwnProfile] = useState(null);
+  const previousUserFidRef = useRef(null);
 
   useEffect(() => {
     const checkUserFid = () => {
       const currentUserFid = window.userFid;
       
-      if (currentUserFid !== userFid) {
+      // Only update state if the value actually changed
+      if (currentUserFid !== previousUserFidRef.current) {
+        previousUserFidRef.current = currentUserFid;
         setUserFid(currentUserFid);
         setIsOwnProfile(currentUserFid ? (currentUserFid && fid && Number(currentUserFid) === Number(fid)) : null);
         // Only log when FID actually changes, not on every check
@@ -27,7 +30,7 @@ export function useFrameUser(fid) {
     checkUserFid();
     const interval = setInterval(checkUserFid, UI_CONFIG.USER_FID_CHECK_INTERVAL);
     return () => clearInterval(interval);
-  }, [fid, userFid]);
+  }, [fid]); // Removed userFid from dependencies to prevent infinite loop
 
   return { userFid, isOwnProfile };
 }
