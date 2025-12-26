@@ -1,4 +1,6 @@
-const TIMEOUT = 10000;
+import { UI_CONFIG } from './constants';
+
+const TIMEOUT = UI_CONFIG.FRAME_SDK_TIMEOUT;
 
 async function waitForDOMContentLoaded() {
   return new Promise((resolve) => {

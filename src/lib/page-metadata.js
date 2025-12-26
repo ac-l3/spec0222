@@ -1,5 +1,5 @@
 import { getFromKV } from './cloudflare-kv';
-import { SPECTRAL_TYPES } from './constants';
+import { SPECTRAL_TYPES, CACHE_CONFIG } from './constants';
 
 export async function generateFrameMetadata({ searchParams }) {
   const { fid, type, image, t } = await searchParams;
@@ -34,7 +34,7 @@ export async function generateFrameMetadata({ searchParams }) {
     imageUrl = image;
   } else if (fid) {
     // Try to get the share image URL from KV
-    const cacheKey = `spectral:share-image:${fid}`;
+    const cacheKey = `${CACHE_CONFIG.KEY_PREFIX.SHARE_IMAGE}${fid}`;
     const cachedImageUrl = await getFromKV(cacheKey);
     if (cachedImageUrl) {
       try {

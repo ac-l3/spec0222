@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { getFromKV } from '@/lib/cloudflare-kv';
-import { SPECTRAL_TYPES } from '@/lib/constants';
+import { SPECTRAL_TYPES, CACHE_CONFIG } from '@/lib/constants';
 
 export const runtime = 'edge';
 
@@ -26,7 +26,7 @@ const imagePaths = {
 };
 
 async function getAnalysis(fid) {
-  const cacheKey = `spectral:analysis:${fid}`;
+  const cacheKey = `${CACHE_CONFIG.KEY_PREFIX.ANALYSIS}${fid}`;
   const cachedData = await getFromKV(cacheKey);
   
   if (!cachedData) {

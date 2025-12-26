@@ -54,6 +54,10 @@ const config = {
         karla: ['var(--font-karla)'],
       },
       keyframes: {
+        'slide-down': {
+          '0%': { opacity: '0', transform: 'translate(-50%, -20px)' },
+          '100%': { opacity: '1', transform: 'translate(-50%, 0)' },
+        },
         blob: {
           '0%': { transform: 'translate(-45%, -45%) rotate(0deg)' },
           '50%': { transform: 'translate(-45%, -45%) rotate(15deg)' },
@@ -81,6 +85,7 @@ const config = {
         },
       },
       animation: {
+        'slide-down': 'slide-down 0.3s ease-out',
         'blob': 'blob 6.72s ease-in-out infinite alternate',
         'blob-delayed': 'blob-bottom 6.72s ease-in-out infinite alternate-reverse',
         'blob-top-right': 'blob-top-right 8.4s ease-in-out infinite alternate',

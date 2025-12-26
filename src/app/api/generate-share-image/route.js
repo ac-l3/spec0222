@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { uploadToR2, checkIfExists, getPublicUrl } from '../../../lib/cloudflare-r2';
 import { getFromKV, putToKV } from '../../../lib/cloudflare-kv';
+import { CACHE_CONFIG } from '../../../lib/constants';
 
 export const runtime = 'edge';
 

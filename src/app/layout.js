@@ -31,10 +31,8 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${karla.variable} font-karla`}>
-        <>
-          {children}
-          <FrameInit />
-        </>
+        {children}
+        <FrameInit />
       </body>
     </html>
   );

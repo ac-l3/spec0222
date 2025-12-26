@@ -1,16 +1,10 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
-import { SPECTRAL_TYPES, RESEARCH_DIVISIONS, SECTION_REQUIREMENTS } from './constants';
+import { SPECTRAL_TYPES, RESEARCH_DIVISIONS, SECTION_REQUIREMENTS, API_CONFIG, ROLE_DISTRIBUTION } from './constants';
 import { genAI } from './google-ai';
+import { getEnvVar } from './env-validation';
 
 // Initialize role distribution counter
-let roleDistribution = {
-  '$AXIS Framer': 0,
-  '$FLUX Drifter': 0,
-  '$EDGE Disruptor': 0
-};
-
-// Reset distribution periodically to avoid long-term bias
-const DISTRIBUTION_RESET_THRESHOLD = 20;
+let roleDistribution = { ...ROLE_DISTRIBUTION.INITIAL_COUNTS };
 let totalAssignments = 0;
 
 // Function to provide insights about the current role distribution
@@ -679,13 +673,13 @@ export async function testGeminiAPI() {
 
 // Update the main analysis function
 export async function analyzePersonality(bio, casts) {
-  const maxRetries = 3;
+  const maxRetries = API_CONFIG.GEMINI.MAX_RETRIES;
   let useFlashModel = true;
   
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       // If we've failed with the flash model, fall back to the pro model
-      const modelName = useFlashModel ? "gemini-2.0-flash" : "gemini-pro";
+      const modelName = useFlashModel ? API_CONFIG.GEMINI.DEFAULT_MODEL : API_CONFIG.GEMINI.FALLBACK_MODEL;
       console.log(`Attempt ${attempt + 1} using model: ${modelName}`);
       
       // Get current role distribution to inform the prompt
@@ -708,10 +702,10 @@ export async function analyzePersonality(bio, casts) {
       const result = await model.generateContent({
         contents: [{ role: 'user', parts: [{ text: enhancedPrompt }] }],
         generationConfig: {
-          temperature: useFlashModel ? 1.8 : 0.7,
-          topK: useFlashModel ? 60 : 40,
-          topP: useFlashModel ? 0.95 : 0.9,
-          maxOutputTokens: useFlashModel ? 3072 : 2048,
+          temperature: useFlashModel ? API_CONFIG.GEMINI.TEMPERATURE_FLASH : API_CONFIG.GEMINI.TEMPERATURE_PRO,
+          topK: useFlashModel ? API_CONFIG.GEMINI.TOP_K_FLASH : API_CONFIG.GEMINI.TOP_K_PRO,
+          topP: useFlashModel ? API_CONFIG.GEMINI.TOP_P_FLASH : API_CONFIG.GEMINI.TOP_P_PRO,
+          maxOutputTokens: useFlashModel ? API_CONFIG.GEMINI.MAX_OUTPUT_TOKENS_FLASH : API_CONFIG.GEMINI.MAX_OUTPUT_TOKENS_PRO,
         }
       });
 
@@ -753,12 +747,8 @@ export async function analyzePersonality(bio, casts) {
         totalAssignments++;
         
         // Reset distribution if threshold reached
-        if (totalAssignments >= DISTRIBUTION_RESET_THRESHOLD) {
-          roleDistribution = {
-            '$AXIS Framer': 0,
-            '$FLUX Drifter': 0,
-            '$EDGE Disruptor': 0
-          };
+        if (totalAssignments >= ROLE_DISTRIBUTION.RESET_THRESHOLD) {
+          roleDistribution = { ...ROLE_DISTRIBUTION.INITIAL_COUNTS };
           totalAssignments = 0;
           console.log('Role distribution reset');
         }
@@ -796,7 +786,7 @@ export async function analyzePersonality(bio, casts) {
       }
       
       if (attempt === maxRetries - 1) throw error;
-      await sleep(1000);
+      await sleep(API_CONFIG.GEMINI.RETRY_DELAY);
     }
   }
 }
@@ -864,13 +854,11 @@ function validateRoleConsistency(analysis) {
 }
 
 export async function fetchUserInfo(fid) {
-  if (!process.env.NEYNAR_API_KEY) {
-    throw new Error('NEYNAR_API_KEY not configured');
-  }
+  const apiKey = getEnvVar('NEYNAR_API_KEY');
 
   try {
     const response = await fetch(
-      `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
+      `${API_CONFIG.NEYNAR.BASE_URL}${API_CONFIG.NEYNAR.USER_BULK_ENDPOINT}?fids=${fid}`,
       {
         headers: {
           'accept': 'application/json',
@@ -897,17 +885,15 @@ export async function fetchUserInfo(fid) {
 }
 
 export async function fetchUserCasts(fid) {
-  if (!process.env.NEYNAR_API_KEY) {
-    throw new Error('NEYNAR_API_KEY not configured');
-  }
+  const apiKey = getEnvVar('NEYNAR_API_KEY');
 
   try {
     const response = await fetch(
-      `https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=50`,
+      `${API_CONFIG.NEYNAR.BASE_URL}${API_CONFIG.NEYNAR.USER_CASTS_ENDPOINT}?fid=${fid}&limit=${API_CONFIG.NEYNAR.DEFAULT_LIMIT}`,
       {
         headers: {
           'accept': 'application/json',
-          'api_key': process.env.NEYNAR_API_KEY,
+          'api_key': apiKey,
         },
       }
     );
@@ -922,10 +908,39 @@ export async function fetchUserCasts(fid) {
       throw new Error('Invalid response structure');
     }
 
-    return data.casts
-      .filter(cast => cast?.text && !cast.parent_hash) // Only include original casts (no replies)
-      .map(cast => cast.text)
-      .slice(0, 50);
+    // Filter for original casts (no replies) and sort by timestamp (newest first)
+    // Neynar API typically returns newest first, but we'll sort explicitly to be safe
+    const originalCasts = data.casts
+      .filter(cast => cast?.text && !cast.parent_hash)
+      .sort((a, b) => {
+        // Sort by timestamp descending (newest first)
+        // Try multiple possible timestamp field names
+        const timeA = (a.timestamp || a.created_at || a.createdAt || 0);
+        const timeB = (b.timestamp || b.created_at || b.createdAt || 0);
+        const dateA = timeA ? new Date(timeA).getTime() : 0;
+        const dateB = timeB ? new Date(timeB).getTime() : 0;
+        return dateB - dateA; // Descending order (newest first)
+      })
+      .slice(0, API_CONFIG.NEYNAR.DEFAULT_LIMIT);
+
+    // Log cast date range for debugging
+    if (originalCasts.length > 0) {
+      const timestamps = originalCasts
+        .map(cast => {
+          const ts = cast.timestamp || cast.created_at || cast.createdAt;
+          return ts ? new Date(ts) : null;
+        })
+        .filter(Boolean);
+      if (timestamps.length > 0) {
+        const newest = timestamps[0];
+        const oldest = timestamps[timestamps.length - 1];
+        console.log(`Fetched ${originalCasts.length} casts for FID ${fid}, newest: ${newest.toISOString()}, oldest: ${oldest.toISOString()}`);
+      } else {
+        console.log(`Fetched ${originalCasts.length} casts for FID ${fid} (timestamps not available)`);
+      }
+    }
+
+    return originalCasts.map(cast => cast.text);
 
   } catch (error) {
     console.error('Error fetching user casts:', error);
@@ -934,18 +949,21 @@ export async function fetchUserCasts(fid) {
 }
 
 export async function testNeynarAPI() {
-  if (!process.env.NEYNAR_API_KEY) {
+  let apiKey;
+  try {
+    apiKey = getEnvVar('NEYNAR_API_KEY');
+  } catch (error) {
     console.error('NEYNAR_API_KEY not configured');
     return { success: false, error: 'API key not configured' };
   }
 
   try {
     const response = await fetch(
-      'https://api.neynar.com/v2/farcaster/user/bulk?fids=1', // Test with fid 1
+      `${API_CONFIG.NEYNAR.BASE_URL}${API_CONFIG.NEYNAR.USER_BULK_ENDPOINT}?fids=1`, // Test with fid 1
       {
         headers: {
           'accept': 'application/json',
-          'api_key': process.env.NEYNAR_API_KEY,
+          'api_key': apiKey,
         },
       }
     );
@@ -955,7 +973,7 @@ export async function testNeynarAPI() {
       return { 
         success: false, 
         error: `API returned ${response.status}`,
-        key: process.env.NEYNAR_API_KEY?.slice(0, 5) + '...' // Show first 5 chars for debugging
+        key: apiKey?.slice(0, 5) + '...' // Show first 5 chars for debugging
       };
     }
 
@@ -963,7 +981,7 @@ export async function testNeynarAPI() {
     return { 
       success: true, 
       data: data?.users?.[0]?.username || 'No username found',
-      key: process.env.NEYNAR_API_KEY?.slice(0, 5) + '...'
+      key: apiKey?.slice(0, 5) + '...'
     };
   } catch (error) {
     console.error('Neynar API Test Error:', error);

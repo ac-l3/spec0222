@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getFromKV } from '../../../lib/cloudflare-kv';
+import { CACHE_CONFIG } from '../../../lib/constants';
 import { SPECTRAL_TYPES } from '../../../lib/constants';
 
 export const runtime = 'edge';
@@ -14,7 +15,7 @@ export async function GET(request) {
     }
 
     // Try to get the user's spectral type from KV
-    const cacheKey = `spectral:analysis:${fid}`;
+    const cacheKey = `${CACHE_CONFIG.KEY_PREFIX.ANALYSIS}${fid}`;
     const cachedData = await getFromKV(cacheKey);
     
     let spectralType = null;

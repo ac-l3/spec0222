@@ -1,9 +1,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getEnvVar } from './env-validation';
 
-if (!process.env.GEMINI_API_KEY) {
-  console.error('GEMINI_API_KEY is not set in environment variables');
+// Validate and get API key
+let genAI;
+try {
+  const apiKey = getEnvVar('GEMINI_API_KEY');
+  genAI = new GoogleGenerativeAI(apiKey);
+} catch (error) {
+  console.error('❌ Failed to initialize Gemini AI:', error.message);
+  // Create a dummy instance to prevent crashes, but it won't work
+  genAI = new GoogleGenerativeAI('');
 }
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export { genAI }; 
