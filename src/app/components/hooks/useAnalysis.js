@@ -68,9 +68,21 @@ export function useAnalysis(initialFid, initialData) {
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     try {
-      const userFid = window.userFid;
+      // Try multiple sources for user FID
+      let userFid = window.userFid;
+      
+      // Fallback to getting FID from frame SDK context
+      if (!userFid && window.frame?.sdk?.context?.user) {
+        const user = window.frame.sdk.context.user;
+        userFid = user.fid || user.user?.fid;
+        if (userFid) {
+          window.userFid = userFid; // Cache it for future use
+        }
+      }
+      
       if (!userFid) {
         console.error('No user FID found');
+        setErrorMessage('Unable to identify user. Please try again.');
         return;
       }
 

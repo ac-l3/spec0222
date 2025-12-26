@@ -55,30 +55,45 @@ export async function initializeFrame() {
     // Wait for Frame SDK initialization
     await waitForFrameSDK();
 
-    // Wait for user context
-    let user = await waitForUser();
-
-    if (user.user) {
-      user = user.user;
-    }
-
-    if (!user || !user.fid) {
-      // we're probably not in a frame
-      return;
-    }
-
-    // Store user info
-    window.userFid = user.fid;
-    window.userName = user.username || 'Anonymous';
-    console.log('User Info:', { fid: window.userFid, username: window.userName });
-
-    // Initialize Frame SDK
+    // Call ready() immediately after SDK is available
+    // This dismisses the splash screen even if user context isn't ready yet
     if (window.frame?.sdk?.actions?.ready) {
       console.log('Calling ready');
       await window.frame.sdk.actions.ready();
       console.log('Frame SDK ready');
     }
+
+    // Try to get user context (but don't fail if it's not available)
+    try {
+      let user = await waitForUser();
+
+      if (user.user) {
+        user = user.user;
+      }
+
+      if (user && user.fid) {
+        // Store user info
+        window.userFid = user.fid;
+        window.userName = user.username || 'Anonymous';
+        console.log('User Info:', { fid: window.userFid, username: window.userName });
+      } else {
+        console.log('No user context available, but ready() was called');
+      }
+    } catch (userError) {
+      // User context might not be available, but that's okay
+      // We've already called ready() to dismiss the splash screen
+      console.log('User context not available:', userError.message);
+    }
   } catch (error) {
     console.error('Frame initialization error:', error);
+    // Even if there's an error, try to call ready() if SDK is available
+    if (window.frame?.sdk?.actions?.ready) {
+      try {
+        await window.frame.sdk.actions.ready();
+        console.log('Called ready() after error');
+      } catch (readyError) {
+        console.error('Error calling ready():', readyError);
+      }
+    }
   }
 } 
