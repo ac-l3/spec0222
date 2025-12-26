@@ -656,7 +656,7 @@ export async function testGeminiAPI() {
     const distributionInsight = getDistributionInsight(currentDistribution);
     
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash"
+      model: API_CONFIG.GEMINI.DEFAULT_MODEL
     });
     
     const result = await model.generateContent({
@@ -768,7 +768,7 @@ export async function analyzePersonality(bio, casts) {
         
         // If we're using the flash model and it failed, try the pro model next
         if (useFlashModel) {
-          console.log("Falling back to gemini-pro model");
+          console.log("Falling back to gemini-1.5-pro model");
           useFlashModel = false;
           continue; // Skip the attempt increment
         }
@@ -780,7 +780,7 @@ export async function analyzePersonality(bio, casts) {
       
       // If we're using the flash model and it failed, try the pro model next
       if (useFlashModel) {
-        console.log("Falling back to gemini-pro model");
+        console.log("Falling back to gemini-1.5-pro model");
         useFlashModel = false;
         continue; // Skip the attempt increment
       }

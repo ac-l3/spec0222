@@ -110,8 +110,8 @@ export const API_CONFIG = {
     TIMEOUT: 10000,
   },
   GEMINI: {
-    DEFAULT_MODEL: 'gemini-2.0-flash',
-    FALLBACK_MODEL: 'gemini-pro',
+    DEFAULT_MODEL: 'gemini-1.5-flash',
+    FALLBACK_MODEL: 'gemini-1.5-pro',
     MAX_RETRIES: 3,
     RETRY_DELAY: 1000,
     TEMPERATURE_FLASH: 1.8,
