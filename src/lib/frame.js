@@ -1,5 +1,18 @@
 import { UI_CONFIG } from './constants';
 
+// Try to import miniapp SDK statically
+// When running in Farcaster client, it may also be injected as window.sdk
+let miniappSdk = null;
+if (typeof window !== 'undefined') {
+  // Dynamic import for client-side only
+  import('@farcaster/miniapp-sdk').then(module => {
+    miniappSdk = module.sdk;
+    console.log('Mini App SDK imported from package');
+  }).catch(err => {
+    console.log('Mini App SDK package not available, will use injected SDK:', err.message);
+  });
+}
+
 const TIMEOUT = UI_CONFIG.FRAME_SDK_TIMEOUT;
 
 async function waitForDOMContentLoaded() {
@@ -15,26 +28,39 @@ async function waitForDOMContentLoaded() {
 }
 
 function getSDK() {
-  // When running as a miniapp, the Farcaster client injects the SDK
   // Priority order:
-  // 1. window.sdk (Mini App SDK injected by Farcaster client - @farcaster/miniapp-sdk)
-  // 2. window.frame.sdk (Legacy Frame SDK - kept for backwards compatibility only)
+  // 1. Imported SDK from @farcaster/miniapp-sdk package (miniappSdk)
+  // 2. window.sdk (Mini App SDK injected by Farcaster client)
+  // 3. window.frame.sdk (Legacy Frame SDK - kept for backwards compatibility only)
   // Per docs: https://miniapps.farcaster.xyz/docs/getting-started#making-your-app-display
-  return window.sdk || window.frame?.sdk;
+  const sdk = miniappSdk || window.sdk || window.frame?.sdk;
+  if (!sdk) {
+    console.warn('No SDK found. Available:', { 
+      miniappSdk: !!miniappSdk, 
+      windowSdk: !!window.sdk, 
+      windowFrameSdk: !!window.frame?.sdk 
+    });
+  }
+  return sdk;
 }
 
 async function waitForFrameSDK() {
   return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const maxAttempts = TIMEOUT / 100; // Check every 100ms
+    
     const checkSDK = () => {
+      attempts++;
       const sdk = getSDK();
       if (sdk) {
-        console.log('Mini App SDK initialized');
+        console.log('Mini App SDK initialized', { source: miniappSdk ? 'package' : window.sdk ? 'injected' : 'legacy' });
         resolve();
+      } else if (attempts >= maxAttempts) {
+        reject(new Error('SDK initialization timeout - SDK not found'));
       } else {
         setTimeout(checkSDK, 100);
       }
     };
-    setTimeout(() => reject(new Error('SDK initialization timeout')), TIMEOUT);
     checkSDK();
   });
 }
@@ -66,18 +92,26 @@ export async function initializeFrame() {
     // Wait for SDK initialization
     await waitForFrameSDK();
 
-    // Get the SDK instance (Mini App SDK - injected by Farcaster client)
+    // Get the SDK instance (Mini App SDK - imported or injected by Farcaster client)
     const sdk = getSDK();
+    
+    if (!sdk) {
+      throw new Error('SDK not available after wait');
+    }
     
     // Call ready() immediately after SDK is available
     // This dismisses the splash screen even if user context isn't ready yet
     // Per Farcaster miniapp docs: https://miniapps.farcaster.xyz/docs/getting-started#making-your-app-display
     if (sdk?.actions?.ready) {
-      console.log('Calling sdk.actions.ready()');
+      console.log('Calling sdk.actions.ready()', { sdkType: miniappSdk ? 'package' : window.sdk ? 'injected' : 'legacy' });
       await sdk.actions.ready();
       console.log('Mini App SDK ready - splash screen dismissed');
     } else {
-      console.warn('SDK actions.ready not available');
+      console.error('SDK actions.ready not available', { 
+        sdk, 
+        hasActions: !!sdk?.actions,
+        actionsKeys: sdk?.actions ? Object.keys(sdk.actions) : []
+      });
     }
 
     // Try to get user context (but don't fail if it's not available)
@@ -112,6 +146,8 @@ export async function initializeFrame() {
       } catch (readyError) {
         console.error('Error calling ready():', readyError);
       }
+    } else {
+      console.error('Cannot call ready() - SDK not available', { sdk, error });
     }
   }
 } 
