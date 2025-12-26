@@ -68,25 +68,52 @@ export function useAnalysis(initialFid, initialData) {
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     try {
-      // Try multiple sources for user FID
+      // Try multiple sources for user FID with retry logic
       let userFid = window.userFid;
       
-      // Fallback to getting FID from Mini App SDK context
+      // If not found, try to get from SDK with retries (user context might load asynchronously)
       if (!userFid) {
-        // Try miniapp SDK first (window.sdk), then legacy frame SDK (window.frame.sdk)
-        const sdk = window.sdk || window.frame?.sdk;
-        if (sdk?.context?.user) {
-          const user = sdk.context.user;
-          userFid = user.fid || user.user?.fid;
-          if (userFid) {
-            window.userFid = userFid; // Cache it for future use
+        console.log('User FID not cached, trying to get from SDK...');
+        
+        // Try multiple times with increasing delays
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const sdk = window.sdk || window.frame?.sdk;
+          
+          if (sdk?.context?.user) {
+            const user = sdk.context.user;
+            userFid = user.fid || user.user?.fid;
+            
+            if (userFid) {
+              console.log('Found user FID from SDK:', userFid);
+              window.userFid = userFid; // Cache it for future use
+              break;
+            }
+          }
+          
+          // Also check if SDK has a different user structure
+          if (sdk?.context) {
+            console.log('SDK context structure:', {
+              hasUser: !!sdk.context.user,
+              contextKeys: Object.keys(sdk.context),
+              userKeys: sdk.context.user ? Object.keys(sdk.context.user) : []
+            });
+          }
+          
+          if (attempt < 4) {
+            console.log(`User FID not found, retrying in ${(attempt + 1) * 200}ms... (attempt ${attempt + 1}/5)`);
+            await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 200));
           }
         }
       }
       
       if (!userFid) {
-        console.error('No user FID found');
+        console.error('No user FID found after retries', {
+          windowUserFid: window.userFid,
+          hasSdk: !!(window.sdk || window.frame?.sdk),
+          sdkContext: window.sdk?.context || window.frame?.sdk?.context
+        });
         setErrorMessage('Unable to identify user. Please try again.');
+        setIsAnalyzing(false);
         return;
       }
 

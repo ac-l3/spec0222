@@ -126,14 +126,36 @@ export async function initializeFrame() {
         // Store user info
         window.userFid = user.fid;
         window.userName = user.username || 'Anonymous';
-        console.log('User Info:', { fid: window.userFid, username: window.userName });
+        console.log('User Info stored:', { fid: window.userFid, username: window.userName });
       } else {
         console.log('No user context available, but ready() was called');
+        // Try to get user from SDK context directly as fallback
+        const sdk = getSDK();
+        if (sdk?.context?.user) {
+          const directUser = sdk.context.user;
+          const directFid = directUser.fid || directUser.user?.fid;
+          if (directFid) {
+            window.userFid = directFid;
+            window.userName = directUser.username || 'Anonymous';
+            console.log('User Info stored from direct SDK access:', { fid: window.userFid, username: window.userName });
+          }
+        }
       }
     } catch (userError) {
       // User context might not be available, but that's okay
       // We've already called ready() to dismiss the splash screen
       console.log('User context not available:', userError.message);
+      
+      // Last resort: try direct SDK access
+      const sdk = getSDK();
+      if (sdk?.context?.user) {
+        const directUser = sdk.context.user;
+        const directFid = directUser.fid || directUser.user?.fid;
+        if (directFid) {
+          window.userFid = directFid;
+          console.log('User FID stored from fallback SDK access:', directFid);
+        }
+      }
     }
   } catch (error) {
     console.error('Mini App initialization error:', error);
