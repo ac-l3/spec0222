@@ -130,27 +130,32 @@ if (typeof window !== 'undefined') {
   window.debugFarcasterSDK = function() {
     const sdk = miniappSdk || window.sdk || window.frame?.sdk;
     console.log('=== Farcaster SDK Debug ===');
-    console.log('miniappSdk (imported):', miniappSdk);
-    console.log('window.sdk:', window.sdk);
-    console.log('window.frame?.sdk:', window.frame?.sdk);
-    console.log('Current SDK:', sdk);
-    console.log('SDK context:', sdk?.context);
-    console.log('SDK context.user:', sdk?.context?.user);
+    console.log('miniappSdk (imported):', !!miniappSdk);
+    console.log('window.sdk available:', !!window.sdk);
+    console.log('window.frame?.sdk available:', !!window.frame?.sdk);
+    console.log('Current SDK type:', miniappSdk ? 'package' : window.sdk ? 'injected' : window.frame?.sdk ? 'legacy' : 'none');
     console.log('window.userFid:', window.userFid);
     console.log('window.userName:', window.userName);
-    
-    if (sdk?.context?.user) {
-      const user = sdk.context.user;
-      console.log('User object:', user);
-      console.log('User FID:', user.fid);
-      console.log('User keys:', Object.keys(user));
-    }
+    console.log('SDK has context:', !!sdk?.context, 'context type:', typeof sdk?.context);
+
+    resolveUserFromSdk(sdk)
+      .then(user => {
+        if (user) {
+          console.log('Resolved user object:', user);
+          console.log('Resolved user FID:', user.fid);
+        } else {
+          console.log('User not yet resolved from SDK context');
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to resolve user during debug:', err);
+      });
     
     return {
-      sdk,
-      context: sdk?.context,
-      user: sdk?.context?.user,
-      userFid: sdk?.context?.user?.fid || window.userFid,
+      sdkAvailable: !!sdk,
+      sdkType: miniappSdk ? 'package' : window.sdk ? 'injected' : window.frame?.sdk ? 'legacy' : 'none',
+      hasContext: !!sdk?.context,
+      contextType: typeof sdk?.context,
       cachedFid: window.userFid
     };
   };

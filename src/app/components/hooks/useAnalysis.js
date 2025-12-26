@@ -129,11 +129,7 @@ export function useAnalysis(initialFid, initialData) {
               sdkKeys: sdk ? Object.keys(sdk) : [],
               hasContext: !!sdk?.context,
               contextType: typeof sdk?.context,
-              contextKeys: sdk?.context && typeof sdk?.context === 'object' ? Object.keys(sdk.context) : [],
-              hasUser: !!sdk?.context?.user,
-              hasDirectUser: !!sdk?.user,
-              userType: typeof sdk?.context?.user,
-              userKeys: sdk?.context?.user ? Object.keys(sdk.context.user) : []
+              hasDirectUser: !!sdk?.user
             });
           }
           
@@ -179,11 +175,25 @@ export function useAnalysis(initialFid, initialData) {
       }
 
       const response = await fetch(`/api/analyze-profile?fid=${userFid}&nocache=${Date.now()}`);
+      const responseText = await response.text();
       if (!response.ok) {
-        throw new Error(`API returned ${response.status}`);
+        let errorMessage = `API returned ${response.status}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData?.details || errorData?.error || errorMessage;
+        } catch (parseError) {
+          console.log('Failed to parse error response:', parseError);
+        }
+        throw new Error(errorMessage);
       }
       
-      const data = await response.json();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse API response:', parseError, responseText);
+        throw new Error('Invalid response from analysis service.');
+      }
       const validatedData = await analyzeWithRetry(data);
       
       console.log('Analysis result:', validatedData);
@@ -200,7 +210,7 @@ export function useAnalysis(initialFid, initialData) {
       });
     } catch (error) {
       console.error('Error:', error);
-      setErrorMessage('Analysis failed. Please try again.');
+      setErrorMessage(error?.message || 'Analysis failed. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
