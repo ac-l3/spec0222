@@ -81,6 +81,37 @@ async function waitForUser() {
   });
 }
 
+// Debug helper - expose to window for console debugging
+if (typeof window !== 'undefined') {
+  window.debugFarcasterSDK = function() {
+    const sdk = miniappSdk || window.sdk || window.frame?.sdk;
+    console.log('=== Farcaster SDK Debug ===');
+    console.log('miniappSdk (imported):', miniappSdk);
+    console.log('window.sdk:', window.sdk);
+    console.log('window.frame?.sdk:', window.frame?.sdk);
+    console.log('Current SDK:', sdk);
+    console.log('SDK context:', sdk?.context);
+    console.log('SDK context.user:', sdk?.context?.user);
+    console.log('window.userFid:', window.userFid);
+    console.log('window.userName:', window.userName);
+    
+    if (sdk?.context?.user) {
+      const user = sdk.context.user;
+      console.log('User object:', user);
+      console.log('User FID:', user.fid);
+      console.log('User keys:', Object.keys(user));
+    }
+    
+    return {
+      sdk,
+      context: sdk?.context,
+      user: sdk?.context?.user,
+      userFid: sdk?.context?.user?.fid || window.userFid,
+      cachedFid: window.userFid
+    };
+  };
+}
+
 export async function initializeFrame() {
   if (typeof window === 'undefined') return;
 

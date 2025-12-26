@@ -75,33 +75,63 @@ export function useAnalysis(initialFid, initialData) {
       if (!userFid) {
         console.log('User FID not cached, trying to get from SDK...');
         
+        // Try to import SDK if not already available
+        let sdk = window.sdk || window.frame?.sdk;
+        if (!sdk) {
+          try {
+            const module = await import('@farcaster/miniapp-sdk');
+            sdk = module.sdk;
+            console.log('Imported SDK for FID retrieval');
+          } catch (e) {
+            console.log('Could not import SDK:', e);
+          }
+        }
+        
+        // Ensure SDK is ready before accessing context
+        if (sdk?.actions?.ready) {
+          try {
+            await sdk.actions.ready();
+            console.log('SDK ready() called for FID retrieval');
+          } catch (e) {
+            console.log('SDK ready() already called or failed:', e);
+          }
+        }
+        
         // Try multiple times with increasing delays
-        for (let attempt = 0; attempt < 5; attempt++) {
-          const sdk = window.sdk || window.frame?.sdk;
+        for (let attempt = 0; attempt < 10; attempt++) {
+          // Re-check SDK on each attempt (might be injected later)
+          sdk = window.sdk || window.frame?.sdk || sdk;
+          
+          // Log full SDK structure for debugging
+          if (attempt === 0) {
+            console.log('SDK structure:', {
+              hasSdk: !!sdk,
+              sdkType: sdk ? (window.sdk ? 'window.sdk' : window.frame?.sdk ? 'window.frame.sdk' : 'imported') : 'none',
+              hasContext: !!sdk?.context,
+              contextKeys: sdk?.context ? Object.keys(sdk.context) : [],
+              hasUser: !!sdk?.context?.user,
+              userType: typeof sdk?.context?.user,
+              userKeys: sdk?.context?.user ? Object.keys(sdk.context.user) : [],
+              fullContext: sdk?.context,
+              fullUser: sdk?.context?.user
+            });
+          }
           
           if (sdk?.context?.user) {
             const user = sdk.context.user;
-            userFid = user.fid || user.user?.fid;
+            // Try multiple possible FID locations
+            userFid = user.fid || user.user?.fid || user.userFid || (typeof user === 'object' && user !== null ? user.fid : null);
             
             if (userFid) {
-              console.log('Found user FID from SDK:', userFid);
+              console.log('Found user FID from SDK:', userFid, 'from user object:', user);
               window.userFid = userFid; // Cache it for future use
               break;
             }
           }
           
-          // Also check if SDK has a different user structure
-          if (sdk?.context) {
-            console.log('SDK context structure:', {
-              hasUser: !!sdk.context.user,
-              contextKeys: Object.keys(sdk.context),
-              userKeys: sdk.context.user ? Object.keys(sdk.context.user) : []
-            });
-          }
-          
-          if (attempt < 4) {
-            console.log(`User FID not found, retrying in ${(attempt + 1) * 200}ms... (attempt ${attempt + 1}/5)`);
-            await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 200));
+          if (attempt < 9) {
+            console.log(`User FID not found, retrying in ${(attempt + 1) * 300}ms... (attempt ${attempt + 1}/10)`);
+            await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 300));
           }
         }
       }
@@ -110,7 +140,12 @@ export function useAnalysis(initialFid, initialData) {
         console.error('No user FID found after retries', {
           windowUserFid: window.userFid,
           hasSdk: !!(window.sdk || window.frame?.sdk),
-          sdkContext: window.sdk?.context || window.frame?.sdk?.context
+          sdkContext: window.sdk?.context || window.frame?.sdk?.context,
+          fullWindow: {
+            sdk: window.sdk,
+            frameSdk: window.frame?.sdk,
+            userFid: window.userFid
+          }
         });
         setErrorMessage('Unable to identify user. Please try again.');
         setIsAnalyzing(false);
