@@ -2,6 +2,25 @@
 
 import { useState, useEffect } from 'react';
 
+async function getUserFromSdkContext(sdk) {
+  if (!sdk) return null;
+  try {
+    const contextCandidate = sdk.context;
+    if (contextCandidate) {
+      const context = typeof contextCandidate.then === 'function'
+        ? await contextCandidate
+        : contextCandidate;
+      if (context?.user) {
+        return context.user;
+      }
+    }
+  } catch (err) {
+    console.log('Error getting context from SDK:', err);
+  }
+
+  return sdk.user || null;
+}
+
 /**
  * Custom hook for managing analysis state and operations
  */
@@ -118,25 +137,7 @@ export function useAnalysis(initialFid, initialData) {
             });
           }
           
-          // Try multiple ways to access user
-          let user = null;
-          
-          // Method 1: sdk.context.user
-          if (sdk?.context?.user) {
-            user = sdk.context.user;
-          }
-          // Method 2: sdk.user (direct)
-          else if (sdk?.user) {
-            user = sdk.user;
-          }
-          // Method 3: Context might be a getter
-          else if (sdk?.context && typeof sdk.context === 'object') {
-            try {
-              user = sdk.context.user;
-            } catch (e) {
-              // Context might not be accessible this way
-            }
-          }
+          const user = await getUserFromSdkContext(sdk);
           
           if (user) {
             // Try multiple possible FID locations
@@ -215,4 +216,3 @@ export function useAnalysis(initialFid, initialData) {
     handleAnalyze,
   };
 }
-

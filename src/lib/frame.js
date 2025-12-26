@@ -65,78 +65,63 @@ async function waitForFrameSDK() {
   });
 }
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function resolveUserFromSdk(sdk) {
+  if (!sdk) return null;
+  
+  try {
+    const contextCandidate = sdk.context;
+    
+    if (contextCandidate) {
+      const context = typeof contextCandidate.then === 'function'
+        ? await contextCandidate
+        : contextCandidate;
+      if (context?.user) {
+        return context.user;
+      }
+    }
+  } catch (err) {
+    console.warn('Error resolving SDK context:', err);
+  }
+
+  return sdk.user || null;
+}
+
 async function waitForUser() {
-  return new Promise((resolve, reject) => {
-    let attempts = 0;
-    const maxAttempts = TIMEOUT / 100;
-    
-    const checkUser = () => {
-      attempts++;
-      // Only log every 10 attempts to reduce console spam
-      if (attempts % 10 === 0 || attempts === 1) {
-        console.log('Checking user (attempt', attempts, ')');
-      }
-      const sdk = getSDK();
-      
-      if (!sdk) {
-        if (attempts >= maxAttempts) {
-          reject(new Error('SDK not available'));
-          return;
-        }
-        setTimeout(checkUser, 100);
-        return;
-      }
-      
-      // Try different ways to access user context
-      // The SDK might expose context differently
-      let user = null;
-      
-      // Method 1: Direct access
-      if (sdk.context?.user) {
-        user = sdk.context.user;
-      }
-      // Method 2: Context might be a getter/property
-      else if (sdk.context && typeof sdk.context === 'object') {
-        user = sdk.context.user;
-      }
-      // Method 3: Check if context is a method
-      else if (typeof sdk.context === 'function') {
-        try {
-          const context = sdk.context();
-          user = context?.user;
-        } catch (e) {
-          console.log('Context is not callable:', e);
-        }
-      }
-      
-      // Also check if user is directly on SDK
-      if (!user && sdk.user) {
-        user = sdk.user;
-      }
-      
-      if (user) {
-        console.log('User found:', user);
-        resolve(user);
-      } else if (attempts >= maxAttempts) {
-        // Log full SDK structure for debugging
-        console.error('User context not found after', attempts, 'attempts');
-        console.error('SDK structure:', {
-          hasSdk: !!sdk,
-          sdkKeys: sdk ? Object.keys(sdk) : [],
-          hasContext: !!sdk?.context,
-          contextType: typeof sdk?.context,
-          contextKeys: sdk?.context && typeof sdk?.context === 'object' ? Object.keys(sdk.context) : [],
-          hasUser: !!sdk?.user,
-          fullSdk: sdk
-        });
-        reject(new Error('User context timeout'));
-      } else {
-        setTimeout(checkUser, 100);
-      }
-    };
-    
-    checkUser();
+  const maxAttempts = TIMEOUT / 100;
+  for (let attempts = 1; attempts <= maxAttempts; attempts++) {
+    if (attempts % 10 === 0 || attempts === 1) {
+      console.log('Checking user (attempt', attempts, ')');
+    }
+
+    const sdk = getSDK();
+    if (!sdk) {
+      await delay(100);
+      continue;
+    }
+
+    const user = await resolveUserFromSdk(sdk);
+    if (user) {
+      console.log('User found:', user);
+      return user;
+    }
+
+    await delay(100);
+  }
+
+  const sdk = getSDK();
+  console.error('User context not found after timeout', {
+    hasSdk: !!sdk,
+    sdkKeys: sdk ? Object.keys(sdk) : [],
+    hasContext: !!sdk?.context,
+    contextType: typeof sdk?.context,
+    hasUser: !!sdk?.user,
+    fullSdk: sdk,
   });
+  throw new Error('User context timeout');
 }
 
 // Debug helper - expose to window for console debugging
@@ -217,10 +202,6 @@ export async function initializeFrame() {
     try {
     let user = await waitForUser();
 
-    if (user.user) {
-      user = user.user;
-    }
-
       if (user && user.fid) {
     // Store user info
     window.userFid = user.fid;
@@ -230,14 +211,11 @@ export async function initializeFrame() {
         console.log('No user context available, but ready() was called');
         // Try to get user from SDK context directly as fallback
         const sdk = getSDK();
-        if (sdk?.context?.user) {
-          const directUser = sdk.context.user;
-          const directFid = directUser.fid || directUser.user?.fid;
-          if (directFid) {
-            window.userFid = directFid;
-            window.userName = directUser.username || 'Anonymous';
-            console.log('User Info stored from direct SDK access:', { fid: window.userFid, username: window.userName });
-          }
+        const directUser = await resolveUserFromSdk(sdk);
+        if (directUser?.fid) {
+          window.userFid = directUser.fid;
+          window.userName = directUser.username || 'Anonymous';
+          console.log('User Info stored from direct SDK access:', { fid: window.userFid, username: window.userName });
         }
       }
     } catch (userError) {
@@ -247,13 +225,10 @@ export async function initializeFrame() {
       
       // Last resort: try direct SDK access
       const sdk = getSDK();
-      if (sdk?.context?.user) {
-        const directUser = sdk.context.user;
-        const directFid = directUser.fid || directUser.user?.fid;
-        if (directFid) {
-          window.userFid = directFid;
-          console.log('User FID stored from fallback SDK access:', directFid);
-        }
+      const directUser = await resolveUserFromSdk(sdk);
+      if (directUser?.fid) {
+        window.userFid = directUser.fid;
+        console.log('User FID stored from fallback SDK access:', directUser.fid);
       }
     }
   } catch (error) {
