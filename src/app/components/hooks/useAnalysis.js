@@ -102,30 +102,52 @@ export function useAnalysis(initialFid, initialData) {
           // Re-check SDK on each attempt (might be injected later)
           sdk = window.sdk || window.frame?.sdk || sdk;
           
-          // Log full SDK structure for debugging
+          // Log full SDK structure for debugging (only first attempt)
           if (attempt === 0) {
             console.log('SDK structure:', {
               hasSdk: !!sdk,
               sdkType: sdk ? (window.sdk ? 'window.sdk' : window.frame?.sdk ? 'window.frame.sdk' : 'imported') : 'none',
+              sdkKeys: sdk ? Object.keys(sdk) : [],
               hasContext: !!sdk?.context,
-              contextKeys: sdk?.context ? Object.keys(sdk.context) : [],
+              contextType: typeof sdk?.context,
+              contextKeys: sdk?.context && typeof sdk?.context === 'object' ? Object.keys(sdk.context) : [],
               hasUser: !!sdk?.context?.user,
+              hasDirectUser: !!sdk?.user,
               userType: typeof sdk?.context?.user,
-              userKeys: sdk?.context?.user ? Object.keys(sdk.context.user) : [],
-              fullContext: sdk?.context,
-              fullUser: sdk?.context?.user
+              userKeys: sdk?.context?.user ? Object.keys(sdk.context.user) : []
             });
           }
           
+          // Try multiple ways to access user
+          let user = null;
+          
+          // Method 1: sdk.context.user
           if (sdk?.context?.user) {
-            const user = sdk.context.user;
+            user = sdk.context.user;
+          }
+          // Method 2: sdk.user (direct)
+          else if (sdk?.user) {
+            user = sdk.user;
+          }
+          // Method 3: Context might be a getter
+          else if (sdk?.context && typeof sdk.context === 'object') {
+            try {
+              user = sdk.context.user;
+            } catch (e) {
+              // Context might not be accessible this way
+            }
+          }
+          
+          if (user) {
             // Try multiple possible FID locations
-            userFid = user.fid || user.user?.fid || user.userFid || (typeof user === 'object' && user !== null ? user.fid : null);
+            userFid = user.fid || user.user?.fid || user.userFid;
             
             if (userFid) {
               console.log('Found user FID from SDK:', userFid, 'from user object:', user);
               window.userFid = userFid; // Cache it for future use
               break;
+            } else {
+              console.log('User object found but no FID:', user, 'keys:', Object.keys(user));
             }
           }
           

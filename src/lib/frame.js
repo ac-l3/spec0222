@@ -67,16 +67,71 @@ async function waitForFrameSDK() {
 
 async function waitForUser() {
   return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const maxAttempts = TIMEOUT / 100;
+    
     const checkUser = () => {
-      console.log('Checking user');
+      attempts++;
+      console.log('Checking user (attempt', attempts, ')');
       const sdk = getSDK();
-      if (sdk?.context?.user) {
-        resolve(sdk.context.user);
+      
+      if (!sdk) {
+        if (attempts >= maxAttempts) {
+          reject(new Error('SDK not available'));
+          return;
+        }
+        setTimeout(checkUser, 100);
+        return;
+      }
+      
+      // Try different ways to access user context
+      // The SDK might expose context differently
+      let user = null;
+      
+      // Method 1: Direct access
+      if (sdk.context?.user) {
+        user = sdk.context.user;
+      }
+      // Method 2: Context might be a getter/property
+      else if (sdk.context && typeof sdk.context === 'object') {
+        user = sdk.context.user;
+      }
+      // Method 3: Check if context is a method
+      else if (typeof sdk.context === 'function') {
+        try {
+          const context = sdk.context();
+          user = context?.user;
+        } catch (e) {
+          console.log('Context is not callable:', e);
+        }
+      }
+      
+      // Also check if user is directly on SDK
+      if (!user && sdk.user) {
+        user = sdk.user;
+      }
+      
+      if (user) {
+        console.log('User found:', user);
+        resolve(user);
+      } else if (attempts >= maxAttempts) {
+        // Log full SDK structure for debugging
+        console.error('User context not found after', attempts, 'attempts');
+        console.error('SDK structure:', {
+          hasSdk: !!sdk,
+          sdkKeys: sdk ? Object.keys(sdk) : [],
+          hasContext: !!sdk?.context,
+          contextType: typeof sdk?.context,
+          contextKeys: sdk?.context && typeof sdk?.context === 'object' ? Object.keys(sdk.context) : [],
+          hasUser: !!sdk?.user,
+          fullSdk: sdk
+        });
+        reject(new Error('User context timeout'));
       } else {
         setTimeout(checkUser, 100);
       }
     };
-    setTimeout(() => reject(new Error('User context timeout')), TIMEOUT);
+    
     checkUser();
   });
 }
