@@ -1,5 +1,4 @@
 import { Karla } from 'next/font/google';
-import Script from "next/script";
 import { FrameInit } from './components/FrameInit';
 import "./globals.css";
 
@@ -25,10 +24,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <Script
-          src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"
-          strategy="beforeInteractive"
-        />
+        {/* Mini App SDK is injected by Farcaster client when running as a miniapp */}
+        {/* No need to load frame SDK CDN - using @farcaster/miniapp-sdk package */}
       </head>
       <body className={`${karla.variable} font-karla`}>
         {children}

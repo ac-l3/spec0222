@@ -14,17 +14,27 @@ async function waitForDOMContentLoaded() {
   });
 }
 
+function getSDK() {
+  // When running as a miniapp, the Farcaster client injects the SDK
+  // Priority order:
+  // 1. window.sdk (Mini App SDK injected by Farcaster client - @farcaster/miniapp-sdk)
+  // 2. window.frame.sdk (Legacy Frame SDK - kept for backwards compatibility only)
+  // Per docs: https://miniapps.farcaster.xyz/docs/getting-started#making-your-app-display
+  return window.sdk || window.frame?.sdk;
+}
+
 async function waitForFrameSDK() {
   return new Promise((resolve, reject) => {
     const checkSDK = () => {
-      if (window.frame?.sdk) {
-        console.log('Frame SDK initialized');
+      const sdk = getSDK();
+      if (sdk) {
+        console.log('Mini App SDK initialized');
         resolve();
       } else {
         setTimeout(checkSDK, 100);
       }
     };
-    setTimeout(() => reject(new Error('Frame SDK initialization timeout')), TIMEOUT);
+    setTimeout(() => reject(new Error('SDK initialization timeout')), TIMEOUT);
     checkSDK();
   });
 }
@@ -33,8 +43,9 @@ async function waitForUser() {
   return new Promise((resolve, reject) => {
     const checkUser = () => {
       console.log('Checking user');
-      if (window.frame?.sdk?.context?.user) {
-        resolve(window.frame.sdk.context.user);
+      const sdk = getSDK();
+      if (sdk?.context?.user) {
+        resolve(sdk.context.user);
       } else {
         setTimeout(checkUser, 100);
       }
@@ -52,15 +63,21 @@ export async function initializeFrame() {
     await waitForDOMContentLoaded();
     console.log('DOM Content Loaded');
 
-    // Wait for Frame SDK initialization
+    // Wait for SDK initialization
     await waitForFrameSDK();
 
+    // Get the SDK instance (Mini App SDK - injected by Farcaster client)
+    const sdk = getSDK();
+    
     // Call ready() immediately after SDK is available
     // This dismisses the splash screen even if user context isn't ready yet
-    if (window.frame?.sdk?.actions?.ready) {
-      console.log('Calling ready');
-      await window.frame.sdk.actions.ready();
-      console.log('Frame SDK ready');
+    // Per Farcaster miniapp docs: https://miniapps.farcaster.xyz/docs/getting-started#making-your-app-display
+    if (sdk?.actions?.ready) {
+      console.log('Calling sdk.actions.ready()');
+      await sdk.actions.ready();
+      console.log('Mini App SDK ready - splash screen dismissed');
+    } else {
+      console.warn('SDK actions.ready not available');
     }
 
     // Try to get user context (but don't fail if it's not available)
@@ -85,11 +102,12 @@ export async function initializeFrame() {
       console.log('User context not available:', userError.message);
     }
   } catch (error) {
-    console.error('Frame initialization error:', error);
+    console.error('Mini App initialization error:', error);
     // Even if there's an error, try to call ready() if SDK is available
-    if (window.frame?.sdk?.actions?.ready) {
+    const sdk = getSDK();
+    if (sdk?.actions?.ready) {
       try {
-        await window.frame.sdk.actions.ready();
+        await sdk.actions.ready();
         console.log('Called ready() after error');
       } catch (readyError) {
         console.error('Error calling ready():', readyError);

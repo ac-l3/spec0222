@@ -86,8 +86,15 @@ export default function HomeComponent({ fid: initialFid, initialData }) {
       const warpcastUrl = `${SHARE_CONFIG.WARPCAST_COMPOSE_URL}?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(resultUrl)}`;
       console.log('Opening Warpcast URL:', warpcastUrl);
       
-      // Use the Frame SDK to open the URL
-      window.frame.sdk.actions.openUrl(warpcastUrl);
+      // Use the Mini App SDK to open the URL
+      // Try multiple SDK sources (miniapp SDK injected by client, or legacy frame SDK)
+      const sdk = window.sdk || window.frame?.sdk;
+      if (sdk?.actions?.openUrl) {
+        sdk.actions.openUrl(warpcastUrl);
+      } else {
+        // Fallback to window.open if SDK not available
+        window.open(warpcastUrl, '_blank');
+      }
     } catch (error) {
       console.error('Error sharing:', error);
       setErrorMessage('Failed to share. Please try again.');

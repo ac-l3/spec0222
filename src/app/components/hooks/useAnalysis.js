@@ -71,12 +71,16 @@ export function useAnalysis(initialFid, initialData) {
       // Try multiple sources for user FID
       let userFid = window.userFid;
       
-      // Fallback to getting FID from frame SDK context
-      if (!userFid && window.frame?.sdk?.context?.user) {
-        const user = window.frame.sdk.context.user;
-        userFid = user.fid || user.user?.fid;
-        if (userFid) {
-          window.userFid = userFid; // Cache it for future use
+      // Fallback to getting FID from Mini App SDK context
+      if (!userFid) {
+        // Try miniapp SDK first (window.sdk), then legacy frame SDK (window.frame.sdk)
+        const sdk = window.sdk || window.frame?.sdk;
+        if (sdk?.context?.user) {
+          const user = sdk.context.user;
+          userFid = user.fid || user.user?.fid;
+          if (userFid) {
+            window.userFid = userFid; // Cache it for future use
+          }
         }
       }
       
